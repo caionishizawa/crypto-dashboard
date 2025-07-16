@@ -17,7 +17,11 @@ const PORT = process.env.PORT || 3001;
 
 // Configurar CORS
 const corsOptions = {
-  origin: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:5173'],
+  origin: process.env.CORS_ORIGINS?.split(',') || [
+    'http://localhost:5173',
+    'https://crypto-dusky-ten.vercel.app',
+    'https://*.vercel.app'
+  ],
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -43,12 +47,39 @@ app.use('/api/clientes', clienteRoutes);
 app.use('/api/carteiras', carteiraRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 
+// Rota de saúde
+app.get('/health', async (req, res) => {
+  try {
+    res.json({
+      status: 'OK',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV,
+      version: '1.0.0',
+      database: process.env.DATABASE_URL ? 'configured' : 'not configured'
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'ERROR',
+      error: 'Health check failed'
+    });
+  }
+});
+
 // Middleware de tratamento de erros
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Error:', err);
+  console.error('Error details:', {
+    message: err.message,
+    stack: err.stack,
+    code: err.code,
+    url: req.url,
+    method: req.method,
+    body: req.body
+  });
+  
   res.status(500).json({
     error: 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong',
+    code: err.code || 'UNKNOWN'
   });
 });
 
