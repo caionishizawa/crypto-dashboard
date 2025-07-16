@@ -1,5 +1,9 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 
-  (import.meta.env.PROD ? '/api' : 'http://localhost:3001/api');
+  (import.meta.env.PROD ? 
+    (window.location.hostname.includes('vercel.app') ? '/api' : 
+     window.location.hostname.includes('onrender.com') ? 'https://crypto-dashboard-backend.onrender.com/api' : 
+     '/api') : 
+    'http://localhost:3001/api');
 
 interface ApiResponse {
   success?: boolean;

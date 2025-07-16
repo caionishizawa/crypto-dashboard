@@ -1,0 +1,33 @@
+services:
+  # Frontend (React + Vite)
+  - type: web
+    name: crypto-dashboard-frontend
+    env: static
+    buildCommand: npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+  # Backend (Node.js + Express)
+  - type: web
+    name: crypto-dashboard-backend
+    env: node
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        value: crypto-dashboard-jwt-secret-2024
+      - key: NODE_ENV
+        value: production
+      - key: CORS_ORIGINS
+        value: https://crypto-dashboard-frontend.onrender.com
+
+  # Banco PostgreSQL
+  - type: postgres
+    name: crypto-dashboard-db
+    databaseName: crypto_dashboard
+    user: admin 
