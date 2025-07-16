@@ -1,37 +1,21 @@
 {
-  "builds": [
-    {
-      "src": "src/main.tsx",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    },
-    {
-      "src": "backend/src/app.ts",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": ["backend/prisma/**"]
-      }
+  "version": 2,
+  "functions": {
+    "backend/src/app.ts": {
+      "runtime": "nodejs20.x"
     }
-  ],
+  },
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "backend/src/app.ts"
+      "dest": "/backend/src/app.ts"
     },
     {
       "src": "/(.*)",
-      "dest": "src/main.tsx"
+      "dest": "/index.html"
     }
   ],
-  "installCommand": "npm install && cd backend && npm install",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "framework": "vite",
-  "env": {
-    "DATABASE_URL": "$DATABASE_URL",
-    "JWT_SECRET": "$JWT_SECRET",
-    "NODE_ENV": "$NODE_ENV"
-  }
+  "installCommand": "npm install && cd backend && npm install"
 } 
