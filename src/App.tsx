@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Shield } from 'lucide-react';
+import { Shield, Wifi, WifiOff } from 'lucide-react';
 import type { Cliente, ClientesData } from './types/cliente';
 import type { Usuario, LoginData, RegisterData } from './types/usuario';
 import { clientesData } from './data/clientes';
@@ -9,6 +9,7 @@ import { LoginForm } from './components/auth/LoginForm';
 import { RegisterForm } from './components/auth/RegisterForm';
 import { AdminPage } from './pages/AdminPage';
 import { ClientPage } from './pages/ClientPage';
+import { isSupabaseConfigured } from './lib/api';
 
 function App() {
   const [usuarios, setUsuarios] = useState<Usuario[]>(usuariosIniciais);
@@ -135,6 +136,27 @@ function App() {
     }
   };
 
+  // Componente para indicador de modo
+  const ModeIndicator = () => (
+    <div className={`fixed top-4 right-4 z-50 px-3 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 ${
+      isSupabaseConfigured 
+        ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+        : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+    }`}>
+      {isSupabaseConfigured ? (
+        <>
+          <Wifi className="w-4 h-4" />
+          <span>Modo Online</span>
+        </>
+      ) : (
+        <>
+          <WifiOff className="w-4 h-4" />
+          <span>Modo Offline</span>
+        </>
+      )}
+    </div>
+  );
+
   // Mostrar loading enquanto verifica a autenticação
   if (loading) {
     return (
@@ -151,6 +173,7 @@ function App() {
   if (!usuarioLogado) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
+        <ModeIndicator />
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4">
@@ -158,6 +181,15 @@ function App() {
             </div>
             <h1 className="text-3xl font-bold text-white mb-2">Dashboard Crypto</h1>
             <p className="text-gray-400">Sistema de gestão de investimentos</p>
+            
+            {/* Aviso sobre o modo offline */}
+            {!isSupabaseConfigured && (
+              <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                <p className="text-yellow-400 text-sm">
+                  ⚠️ Funcionando em modo offline. Para usar o banco de dados, configure o Supabase.
+                </p>
+              </div>
+            )}
           </div>
 
           {modoRegistro ? (
@@ -185,24 +217,30 @@ function App() {
     // Se estiver visualizando um cliente específico
     if (clienteVisualizando) {
       return (
-        <ClientPage 
-          client={clienteVisualizando}
-          onGoBack={handleBackToAdmin}
-        />
+        <div>
+          <ModeIndicator />
+          <ClientPage 
+            client={clienteVisualizando}
+            onGoBack={handleBackToAdmin}
+          />
+        </div>
       );
     }
 
     // Painel administrativo principal
     return (
-      <AdminPage 
-        currentUser={usuarioLogado}
-        clients={clientes}
-        onLogout={handleLogout}
-        onViewClient={handleViewClient}
-        onAddWallet={(clientId: string, walletData: any) => console.log('Adicionar carteira:', clientId, walletData)}
-        onCreateSnapshot={(clientId: string) => console.log('Criar snapshot:', clientId)}
-        onCreateClient={handleCreateClient}
-      />
+      <div>
+        <ModeIndicator />
+        <AdminPage 
+          currentUser={usuarioLogado}
+          clients={clientes}
+          onLogout={handleLogout}
+          onViewClient={handleViewClient}
+          onAddWallet={(clientId: string, walletData: any) => console.log('Adicionar carteira:', clientId, walletData)}
+          onCreateSnapshot={(clientId: string) => console.log('Criar snapshot:', clientId)}
+          onCreateClient={handleCreateClient}
+        />
+      </div>
     );
   } else {
     // Cliente logado
@@ -214,6 +252,7 @@ function App() {
     if (!clienteData) {
       return (
         <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
+          <ModeIndicator />
           <div className="text-center">
             <h2 className="text-2xl font-bold text-white mb-4">Dados não encontrados</h2>
             <p className="text-gray-400 mb-6">Não foi possível localizar seus dados de investimento.</p>
@@ -229,10 +268,13 @@ function App() {
     }
 
     return (
-      <ClientPage 
-        client={clienteData}
-        onGoBack={handleLogout}
-      />
+      <div>
+        <ModeIndicator />
+        <ClientPage 
+          client={clienteData}
+          onGoBack={handleLogout}
+        />
+      </div>
     );
   }
 }

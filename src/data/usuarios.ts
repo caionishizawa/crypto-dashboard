@@ -1,6 +1,6 @@
-import type { Usuario } from '../types';
+import type { UsuarioCompleto } from '../types';
 
-export const usuariosIniciais: Usuario[] = [
+export const usuariosIniciais: UsuarioCompleto[] = [
   {
     id: 'admin-001',
     nome: 'Administrador',

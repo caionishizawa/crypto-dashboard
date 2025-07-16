@@ -28,7 +28,6 @@ export const useAuth = () => {
             id: dadosSessao.usuarioId,
             nome: 'Usuário Logado',
             email: 'user@example.com',
-            senha: '', // Senha vazia para sessão
             tipo: 'admin',
             dataRegistro: new Date().toISOString()
           };
