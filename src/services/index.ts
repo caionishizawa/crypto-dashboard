@@ -1,2 +1,3 @@
-export * from './authService';
-export * from './walletService'; 
+export { authService } from './authService';
+export { walletService } from './walletService';
+export { clienteService } from './clienteService'; 

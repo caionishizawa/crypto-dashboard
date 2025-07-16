@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Users, User, LogOut, Plus, Eye, Edit, Wallet, Bitcoin, Shield, TrendingUp } from 'lucide-react';
 import type { Cliente, ClientesData, Usuario, Carteira } from '../types';
 import { formatarMoeda, formatarPercentual, getCorRetorno } from '../utils';
+import { NovoClienteForm } from '../components/auth/NovoClienteForm';
 
 interface AdminPageProps {
   currentUser: Usuario;
@@ -10,6 +11,7 @@ interface AdminPageProps {
   onViewClient: (client: Cliente) => void;
   onAddWallet: (clientId: string, walletData: Omit<Carteira, 'id'>) => void;
   onCreateSnapshot: (clientId: string) => void;
+  onCreateClient: (clienteData: Omit<Cliente, 'id' | 'transacoes' | 'carteiras' | 'snapshots'>) => void;
 }
 
 export const AdminPage: React.FC<AdminPageProps> = ({
@@ -18,7 +20,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   onLogout,
   onViewClient,
   onAddWallet,
-  onCreateSnapshot
+  onCreateSnapshot,
+  onCreateClient
 }) => {
   const [activeTab, setActiveTab] = useState<'clientes' | 'carteiras' | 'snapshots'>('clientes');
   const [showAddWallet, setShowAddWallet] = useState(false);
@@ -26,6 +29,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   const [newWalletAddress, setNewWalletAddress] = useState('');
   const [newWalletType, setNewWalletType] = useState<'solana' | 'ethereum'>('solana');
   const [loading, setLoading] = useState(false);
+  const [showNovoCliente, setShowNovoCliente] = useState(false);
 
   const handleAddWallet = async () => {
     if (!newWalletAddress || !selectedClientForWallet) return;
@@ -54,6 +58,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCreateClient = async (clienteData: Omit<Cliente, 'id' | 'transacoes' | 'carteiras' | 'snapshots'>) => {
+    await onCreateClient(clienteData);
+    setShowNovoCliente(false);
   };
 
   return (
@@ -109,7 +118,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           <div>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-semibold">Gestão de Clientes</h2>
-              <button className="bg-green-500 hover:bg-green-600 text-black font-semibold px-4 py-2 rounded-lg transition-colors flex items-center space-x-2">
+              <button 
+                onClick={() => setShowNovoCliente(true)}
+                className="bg-green-500 hover:bg-green-600 text-black font-semibold px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+              >
                 <Plus className="w-5 h-5" />
                 <span>Novo Cliente</span>
               </button>
@@ -556,6 +568,14 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               </div>
             </div>
           </div>
+        )}
+
+        {/* Modal Novo Cliente */}
+        {showNovoCliente && (
+          <NovoClienteForm 
+            onClose={() => setShowNovoCliente(false)}
+            onSubmit={handleCreateClient}
+          />
         )}
       </div>
     </div>

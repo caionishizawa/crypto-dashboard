@@ -1,49 +1,42 @@
 import type { Usuario, LoginData, RegisterData } from '../types';
-import { usuariosIniciais } from '../data';
+import { apiClient } from '../lib/api';
 
 class AuthService {
-  private usuarios: Usuario[] = [...usuariosIniciais];
-
   // Login do usuário
-  login(loginData: LoginData): { success: boolean; usuario?: Usuario; error?: string } {
-    const usuario = this.usuarios.find(u => u.email === loginData.email && u.senha === loginData.senha);
-    
-    if (usuario) {
-      localStorage.setItem('dashboardUser', JSON.stringify(usuario));
-      return { success: true, usuario };
+  async login(loginData: LoginData): Promise<{ success: boolean; usuario?: Usuario; error?: string }> {
+    try {
+      const response = await apiClient.login(loginData.email, loginData.senha);
+      
+      if (response.success && response.user) {
+        return { success: true, usuario: response.user };
+      }
+      
+      return { success: false, error: response.error || 'Email ou senha incorretos' };
+    } catch (error: any) {
+      console.error('Erro no login:', error);
+      return { success: false, error: error.message || 'Erro interno do servidor' };
     }
-    
-    return { success: false, error: 'Email ou senha incorretos' };
   }
 
   // Registro de novo usuário
-  register(registerData: RegisterData): { success: boolean; usuario?: Usuario; error?: string } {
-    if (registerData.senha !== registerData.confirmarSenha) {
-      return { success: false, error: 'As senhas não coincidem' };
+  async register(registerData: RegisterData): Promise<{ success: boolean; usuario?: Usuario; error?: string }> {
+    try {
+      const response = await apiClient.register(
+        registerData.nome,
+        registerData.email,
+        registerData.senha,
+        registerData.confirmarSenha
+      );
+      
+      if (response.success && response.user) {
+        return { success: true, usuario: response.user };
+      }
+      
+      return { success: false, error: response.error || 'Erro no registro' };
+    } catch (error: any) {
+      console.error('Erro no registro:', error);
+      return { success: false, error: error.message || 'Erro interno do servidor' };
     }
-
-    if (registerData.senha.length < 6) {
-      return { success: false, error: 'A senha deve ter pelo menos 6 caracteres' };
-    }
-    
-    // Verificar se email já existe
-    if (this.usuarios.find(u => u.email === registerData.email)) {
-      return { success: false, error: 'Este email já está cadastrado' };
-    }
-
-    const novoUsuario: Usuario = {
-      id: `user-${Date.now()}`,
-      nome: registerData.nome,
-      email: registerData.email,
-      senha: registerData.senha,
-      tipo: 'admin',
-      dataRegistro: new Date().toISOString().split('T')[0]
-    };
-
-    this.usuarios.push(novoUsuario);
-    localStorage.setItem('dashboardUser', JSON.stringify(novoUsuario));
-    
-    return { success: true, usuario: novoUsuario };
   }
 
   // Logout do usuário
@@ -69,6 +62,17 @@ class AuthService {
   // Obter usuário atual
   getCurrentUser(): Usuario | null {
     return this.checkSavedSession();
+  }
+
+  // Validar usuário atual (buscar dados atualizados do servidor)
+  async validateUser(): Promise<Usuario | null> {
+    try {
+      const response = await apiClient.getCurrentUser() as { user?: Usuario };
+      return response.user || null;
+    } catch (error) {
+      console.error('Erro ao validar usuário:', error);
+      return null;
+    }
   }
 }
 

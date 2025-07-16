@@ -79,3 +79,5 @@ public
 # Temporary folders
 tmp/
 temp/
+
+/src/generated/prisma

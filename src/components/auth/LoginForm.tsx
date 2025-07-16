@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Shield, LogIn, Mail, Lock } from 'lucide-react';
-import type { LoginData } from '../../types';
+import { LogIn, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import type { LoginData } from '../../types/usuario';
 
 interface LoginFormProps {
-  onLogin: (loginData: LoginData) => Promise<{ success: boolean; error?: string }>;
+  onLogin: (loginData: LoginData & { manterConectado?: boolean }) => Promise<{ success: boolean; error?: string }>;
   onSwitchToRegister: () => void;
 }
 
@@ -11,6 +11,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onSwitchToRegiste
   const [formData, setFormData] = useState<LoginData>({ email: '', senha: '' });
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [manterConectado, setManterConectado] = useState<boolean>(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,7 +25,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onSwitchToRegiste
       return;
     }
 
-    const result = await onLogin(formData);
+    const result = await onLogin({ ...formData, manterConectado });
     if (!result.success) {
       setError(result.error || 'Erro ao fazer login');
     }
@@ -63,13 +65,34 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onSwitchToRegiste
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={formData.senha}
                   onChange={(e) => setFormData({...formData, senha: e.target.value})}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all"
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-12 py-2.5 text-white placeholder-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all"
                   placeholder="••••••••"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
+            </div>
+
+            {/* Checkbox Manter Conectado */}
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="manterConectado"
+                checked={manterConectado}
+                onChange={(e) => setManterConectado(e.target.checked)}
+                className="w-4 h-4 text-green-600 bg-gray-800 border-gray-700 rounded focus:ring-green-500 focus:ring-2 cursor-pointer"
+              />
+              <label htmlFor="manterConectado" className="ml-2 text-sm text-gray-300 cursor-pointer hover:text-white transition-colors">
+                Manter conectado
+              </label>
             </div>
 
             {error && (
@@ -96,15 +119,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onSwitchToRegiste
               >
                 Cadastre-se
               </button>
-            </p>
-          </div>
-
-          {/* Credenciais de Demo */}
-          <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-            <h3 className="text-blue-400 font-medium mb-1 text-sm">👨‍💼 Conta Demo</h3>
-            <p className="text-xs text-gray-300">
-              <strong>Email:</strong> admin@dashboard.com<br />
-              <strong>Senha:</strong> admin123
             </p>
           </div>
         </div>

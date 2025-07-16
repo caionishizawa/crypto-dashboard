@@ -1,4 +1,5 @@
 import type { Carteira } from '../types';
+import { apiClient } from '../lib/api';
 
 class WalletService {
   
@@ -74,6 +75,93 @@ class WalletService {
     }
 
     return false;
+  }
+
+  // === FUNCIONALIDADES COM API ===
+
+  // Salvar carteira no banco de dados
+  async saveWallet(carteiraData: Omit<Carteira, 'id'>, clienteId: string): Promise<Carteira | null> {
+    try {
+      const response = await apiClient.createCarteira({
+        ...carteiraData,
+        clienteId
+      }) as { success: boolean; carteira?: Carteira };
+
+      return response.success ? response.carteira || null : null;
+    } catch (error) {
+      console.error('Erro ao salvar carteira:', error);
+      return null;
+    }
+  }
+
+  // Buscar carteiras de um cliente
+  async getClientWallets(clienteId: string): Promise<Carteira[]> {
+    try {
+      const carteiras = await apiClient.getCarteirasCliente(clienteId) as Carteira[];
+      return carteiras || [];
+    } catch (error) {
+      console.error('Erro ao buscar carteiras do cliente:', error);
+      return [];
+    }
+  }
+
+  // Buscar carteira por ID
+  async getWalletById(carteiraId: string): Promise<Carteira | null> {
+    try {
+      const carteira = await apiClient.getCarteira(carteiraId) as Carteira;
+      return carteira || null;
+    } catch (error) {
+      console.error('Erro ao buscar carteira:', error);
+      return null;
+    }
+  }
+
+  // Atualizar dados da carteira
+  async updateWallet(carteiraId: string, carteiraData: Partial<Carteira>): Promise<Carteira | null> {
+    try {
+      const response = await apiClient.updateCarteira(carteiraId, carteiraData) as { success: boolean; carteira?: Carteira };
+      return response.success ? response.carteira || null : null;
+    } catch (error) {
+      console.error('Erro ao atualizar carteira:', error);
+      return null;
+    }
+  }
+
+  // Remover carteira
+  async removeWallet(carteiraId: string): Promise<boolean> {
+    try {
+      const response = await apiClient.deleteCarteira(carteiraId) as { success: boolean };
+      return response.success || false;
+    } catch (error) {
+      console.error('Erro ao remover carteira:', error);
+      return false;
+    }
+  }
+
+  // Atualizar carteira com dados das APIs
+  async refreshWallet(carteiraId: string): Promise<Carteira | null> {
+    try {
+      const response = await apiClient.refreshCarteira(carteiraId) as { success: boolean; carteira?: Carteira };
+      return response.success ? response.carteira || null : null;
+    } catch (error) {
+      console.error('Erro ao atualizar carteira:', error);
+      return null;
+    }
+  }
+
+  // Buscar e salvar carteira automaticamente
+  async fetchAndSaveWallet(endereco: string, tipo: 'solana' | 'ethereum', clienteId: string): Promise<Carteira | null> {
+    try {
+      // Buscar dados atualizados da API externa
+      const dadosAtualizados = await this.fetchWalletData(endereco, tipo);
+      if (!dadosAtualizados) return null;
+
+      // Salvar nova carteira
+      return await this.saveWallet(dadosAtualizados, clienteId);
+    } catch (error) {
+      console.error('Erro ao buscar e salvar carteira:', error);
+      return null;
+    }
   }
 }
 

@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Shield } from 'lucide-react';
 import type { Cliente, ClientesData } from './types/cliente';
 import type { Usuario, LoginData, RegisterData } from './types/usuario';
-import type { Carteira } from './types/carteira';
 import { clientesData } from './data/clientes';
 import { usuariosIniciais } from './data/usuarios';
 import { authService } from './services/authService';
@@ -16,41 +15,73 @@ function App() {
   const [usuarioLogado, setUsuarioLogado] = useState<Usuario | null>(null);
   const [modoRegistro, setModoRegistro] = useState(false);
   const [clienteVisualizando, setClienteVisualizando] = useState<Cliente | null>(null);
+  const [clientes, setClientes] = useState<ClientesData>(clientesData);
+  const [loading, setLoading] = useState(true);
 
-  // Verificar se há sessão salva
+  // Verificar se há sessão salva ao carregar o app
   useEffect(() => {
-    const sessaoSalva = localStorage.getItem('sessaoUsuario');
-    if (sessaoSalva) {
+    const verificarSessao = async () => {
       try {
-        const dadosSessao = JSON.parse(sessaoSalva);
-        const usuario = usuarios.find(u => u.id === dadosSessao.usuarioId);
-        if (usuario) {
-          setUsuarioLogado(usuario);
-        } else {
-          localStorage.removeItem('sessaoUsuario');
+        // Primeiro, verificar se há sessão no localStorage
+        const sessaoSalva = localStorage.getItem('dashboardUser');
+        if (sessaoSalva) {
+          const dadosSessao = JSON.parse(sessaoSalva);
+          
+          // Verificar se a sessão expirou (apenas se não foi marcado "manter conectado")
+          if (!dadosSessao.manterConectado && dadosSessao.timestamp) {
+            const agora = Date.now();
+            const tempoExpiracao = 24 * 60 * 60 * 1000; // 24 horas
+            
+            if (agora - dadosSessao.timestamp > tempoExpiracao) {
+              // Sessão expirou
+              localStorage.removeItem('dashboardUser');
+              setLoading(false);
+              return;
+            }
+          }
+          
+          // Buscar usuário na lista atual de usuários
+          const usuario = usuarios.find(u => u.id === dadosSessao.id || u.email === dadosSessao.email);
+          if (usuario) {
+            setUsuarioLogado(usuario);
+          } else {
+            // Se não encontrar o usuário, limpar a sessão
+            localStorage.removeItem('dashboardUser');
+          }
         }
-      } catch {
-        localStorage.removeItem('sessaoUsuario');
+      } catch (error) {
+        console.error('Erro ao verificar sessão:', error);
+        localStorage.removeItem('dashboardUser');
+      } finally {
+        setLoading(false);
       }
-    }
+    };
+
+    verificarSessao();
   }, [usuarios]);
 
-  const handleLogin = async (dados: LoginData) => {
-    const resultado = authService.login(dados);
+  const handleLogin = async (dados: LoginData & { manterConectado?: boolean }) => {
+    const resultado = await authService.login(dados);
     if (resultado.success && resultado.usuario) {
       setUsuarioLogado(resultado.usuario);
-      // Salvar sessão
-      localStorage.setItem('sessaoUsuario', JSON.stringify({
-        usuarioId: resultado.usuario.id,
+      
+      // Salvar sessão no localStorage
+      localStorage.setItem('dashboardUser', JSON.stringify({
+        id: resultado.usuario.id,
+        email: resultado.usuario.email,
+        nome: resultado.usuario.nome,
+        tipo: resultado.usuario.tipo,
+        manterConectado: dados.manterConectado || false,
         timestamp: Date.now()
       }));
+      
       return { success: true };
     }
     return { success: false, error: resultado.error || 'Erro ao fazer login' };
   };
 
   const handleRegister = async (dados: RegisterData) => {
-    const resultado = authService.register(dados);
+    const resultado = await authService.register(dados);
     if (resultado.success && resultado.usuario) {
       const novosUsuarios = [...usuarios, resultado.usuario];
       setUsuarios(novosUsuarios);
@@ -63,7 +94,7 @@ function App() {
   const handleLogout = () => {
     setUsuarioLogado(null);
     setClienteVisualizando(null);
-    localStorage.removeItem('sessaoUsuario');
+    localStorage.removeItem('dashboardUser');
   };
 
   const handleViewClient = (client: Cliente) => {
@@ -73,6 +104,48 @@ function App() {
   const handleBackToAdmin = () => {
     setClienteVisualizando(null);
   };
+
+  const handleCreateClient = async (clienteData: Omit<Cliente, 'id' | 'transacoes' | 'carteiras' | 'snapshots'>) => {
+    try {
+      // Gerar ID único para o cliente
+      const newClientId = `cliente-${Date.now()}`;
+      
+      // Criar cliente completo
+      const newClient: Cliente = {
+        id: newClientId,
+        ...clienteData,
+        transacoes: [],
+        carteiras: [],
+        snapshots: []
+      };
+
+      // Atualizar estado local
+      setClientes(prev => ({
+        ...prev,
+        [newClientId]: newClient
+      }));
+
+      // Aqui você pode adicionar a lógica para salvar no backend
+      // await clienteService.createCliente(clienteData);
+
+      alert('Cliente criado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao criar cliente:', error);
+      alert('Erro ao criar cliente. Tente novamente.');
+    }
+  };
+
+  // Mostrar loading enquanto verifica a autenticação
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
+          <p className="text-white">Verificando autenticação...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Se não estiver logado, mostrar tela de autenticação
   if (!usuarioLogado) {
@@ -123,16 +196,17 @@ function App() {
     return (
       <AdminPage 
         currentUser={usuarioLogado}
-        clients={clientesData as ClientesData}
+        clients={clientes}
         onLogout={handleLogout}
         onViewClient={handleViewClient}
         onAddWallet={(clientId: string, walletData: any) => console.log('Adicionar carteira:', clientId, walletData)}
         onCreateSnapshot={(clientId: string) => console.log('Criar snapshot:', clientId)}
+        onCreateClient={handleCreateClient}
       />
     );
   } else {
     // Cliente logado
-    const clienteData = Object.values(clientesData as ClientesData).find((client: Cliente) => 
+    const clienteData = Object.values(clientes).find((client: Cliente) => 
       client.nome.toLowerCase().includes(usuarioLogado.nome.toLowerCase()) ||
       usuarioLogado.nome.toLowerCase().includes(client.nome.toLowerCase())
     );
