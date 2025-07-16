@@ -1,6 +1,4 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default (req, res) => {
   // Configurar CORS
   res.setHeader('Access-Control-Allow-Origin', 'https://crypto-dusky-ten.vercel.app');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -20,15 +18,14 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     res.json({
       status: 'OK',
       timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || 'production',
+      environment: 'production',
       version: '1.0.0',
-      database: process.env.DATABASE_URL ? 'configured' : 'not configured'
+      message: 'API funcionando!'
     });
   } catch (error) {
     res.status(500).json({
       status: 'ERROR',
-      error: 'Health check failed',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      error: 'Health check failed'
     });
   }
-} 
+}; 

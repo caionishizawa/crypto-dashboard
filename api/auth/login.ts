@@ -1,4 +1,4 @@
-export default async function handler(req: any, res: any) {
+export default async (req, res) => {
   // Configurar CORS
   res.setHeader('Access-Control-Allow-Origin', 'https://crypto-dusky-ten.vercel.app');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
