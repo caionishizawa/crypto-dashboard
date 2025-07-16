@@ -19,8 +19,7 @@ const PORT = process.env.PORT || 3001;
 const corsOptions = {
   origin: process.env.CORS_ORIGINS?.split(',') || [
     'http://localhost:5173',
-    'https://crypto-dusky-ten.vercel.app',
-    'https://*.vercel.app'
+    'https://crypto-dashboard-frontend.onrender.com'
   ],
   credentials: true,
   optionsSuccessStatus: 200

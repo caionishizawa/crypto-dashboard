@@ -1,6 +1,6 @@
 export default (req, res) => {
   // Configurar CORS
-  res.setHeader('Access-Control-Allow-Origin', 'https://crypto-dusky-ten.vercel.app');
+  res.setHeader('Access-Control-Allow-Origin', 'https://crypto-dashboard-frontend.onrender.com');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Credentials', 'true');

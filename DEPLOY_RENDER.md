@@ -7,7 +7,7 @@
 - ✅ **Deploy automático** do GitHub
 - ✅ **SSL automático**
 - ✅ **Domínio gratuito**
-- ✅ **Muito mais simples** que Vercel
+- ✅ **Muito mais simples** que outras plataformas
 
 ## 📋 Passo a Passo (5 minutos)
 
@@ -75,7 +75,7 @@ git push origin main
 
 ## ⚡ Vantagens do Render
 
-- **Mais simples** que Vercel
+- **Mais simples** que outras plataformas
 - **Banco incluído** (não precisa Supabase)
 - **Logs melhores** para debug
 - **Deploy mais rápido**

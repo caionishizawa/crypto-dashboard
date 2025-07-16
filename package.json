@@ -7,8 +7,7 @@
     "dev": "npx vite",
     "build": "tsc && npx vite build",
     "preview": "npx vite preview",
-    "dash-vite": "npx vite",
-    "vercel-build": "npm run build"
+    "dash-vite": "npx vite"
   },
   "dependencies": {
     "@prisma/client": "^6.11.1",

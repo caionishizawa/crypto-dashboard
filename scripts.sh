@@ -365,58 +365,26 @@ deploy_prod() {
     log "🚀 Preparando deploy para produção..."
     
     echo "🌐 OPÇÕES DE DEPLOY GRATUITAS:"
-    echo "1. 🏆 Vercel + Railway (Recomendado)"
+    echo "1. 🏆 Render (Recomendado)"
     echo "2. 🌟 Netlify + Supabase"
-    echo "3. 🔥 Render (Tudo em um)"
-    echo "4. 📖 Ver guia completo"
-    echo "5. 🔙 Voltar"
-    echo -n "Escolha [1-5]: "
+    echo "3. 📖 Ver guia completo"
+    echo "4. 🔙 Voltar"
+    echo -n "Escolha [1-4]: "
     
     read deploy_choice
     case $deploy_choice in
         1)
-            log "🏆 Preparando para Vercel + Railway..."
+            log "🏆 Preparando para Render..."
             
             # Build do projeto
             log "🔨 Fazendo build..."
             npm run build
             cd backend && npm run build && cd ..
             
-            # Criar configuração Vercel
-            cat > vercel.json << 'EOF'
-{
-  "version": 2,
-  "builds": [
-    {
-      "src": "dist/**",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/dist/$1"
-    }
-  ]
-}
-EOF
-            
-            # Criar configuração Railway
-            cat > backend/railway.json << 'EOF'
-{
-  "build": {
-    "builder": "nixpacks"
-  },
-  "deploy": {
-    "startCommand": "npm start"
-  }
-}
-EOF
-            
-            log "✅ Configurações criadas!"
+            log "✅ Build concluído!"
             info "📖 Próximos passos:"
-            info "1. 🚀 Backend: https://railway.app - conecte GitHub"
-            info "2. 🌐 Frontend: https://vercel.com - conecte GitHub"
+            info "1. 🚀 Acesse: https://render.com"
+            info "2. 🌐 Conecte GitHub e configure Web Service"
             info "3. ⚙️ Configure variáveis de ambiente"
             ;;
         2)
