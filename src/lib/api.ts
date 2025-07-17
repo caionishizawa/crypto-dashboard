@@ -141,83 +141,42 @@ class SupabaseApiClient {
         return { success: false, error: 'Email já cadastrado' }
       }
 
-      // Usar Supabase Auth para criar o usuário com confirmação de email
-      const { data, error } = await safeQuery(async () => {
-        return await supabase!.auth.signUp({
-          email,
-          password: senha,
-          options: {
-            data: {
-              nome,
-              tipo: 'cliente'
-            },
-            emailRedirectTo: `${window.location.origin}/auth/callback`
-          }
-        })
-      })
-
-      if (error) {
-        console.error('Erro ao criar usuário:', error)
-        return { success: false, error: error.message }
-      }
-
-      if (data.user) {
-        // Inserir dados adicionais na tabela usuarios
-        const { data: userData, error: insertError } = await safeQuery(async () => {
-          return await supabase!
-            .from('usuarios')
-            .insert([
-              {
-                id: data.user.id,
-                nome,
-                email,
-                senha: '', // Senha vazia - gerenciada pelo Supabase Auth
-                tipo: 'cliente',
-                dataRegistro: new Date().toISOString(),
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-                // Não incluir senha - gerenciada pelo Supabase Auth
-              }
-            ])
-            .select('id, nome, email, tipo, dataRegistro')
-            .single()
-        })
-
-        if (insertError) {
-          console.error('Erro ao inserir dados do usuário:', insertError)
-          // Não falhar aqui, pois o usuário já foi criado no Auth
-        }
-
-        // Verificar se o email precisa ser confirmado
-        if (data.user.email_confirmed_at === null) {
-          return { 
-            success: true, 
-            message: 'Conta criada! Verifique seu email para confirmar a conta.',
-            user: {
-              id: data.user.id,
+      // Criar usuário diretamente na tabela (sem Supabase Auth para teste)
+      const { data: userData, error: insertError } = await safeQuery(async () => {
+        return await supabase!
+          .from('usuarios')
+          .insert([
+            {
+              id: `user-${Date.now()}`,
               nome,
               email,
+              senha: '', // Senha vazia para teste
               tipo: 'cliente',
-              dataRegistro: new Date().toISOString()
-            },
-            requiresEmailConfirmation: true
-          }
-        }
+              dataRegistro: new Date().toISOString(),
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            }
+          ])
+          .select('id, nome, email, tipo, dataRegistro')
+          .single()
+      })
 
-        return { 
-          success: true, 
-          user: {
-            id: data.user.id,
-            nome,
-            email,
-            tipo: 'cliente',
-            dataRegistro: new Date().toISOString()
-          },
-          token: data.session?.access_token
-        }
+      if (insertError) {
+        console.error('Erro ao criar usuário:', insertError)
+        return { success: false, error: 'Erro ao criar usuário' }
       }
 
-      return { success: false, error: 'Erro ao criar usuário' }
+      return { 
+        success: true, 
+        user: {
+          id: userData.id,
+          nome: userData.nome,
+          email: userData.email,
+          tipo: userData.tipo,
+          dataRegistro: userData.dataRegistro
+        },
+        message: 'Conta criada com sucesso!'
+      }
     } catch (error: any) {
       console.error('Erro no registro:', error)
       return { success: false, error: error.message }
