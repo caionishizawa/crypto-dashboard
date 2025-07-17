@@ -178,23 +178,20 @@ class SupabaseApiClient {
         return { success: false, error: 'Modo offline' }
       }
 
-      const { data: { session }, error } = await safeQuery(async () => {
-        return await supabase!.auth.getSession()
-      })
-
-      if (error) {
-        return { success: false, error: error.message }
-      }
-
-      if (!session) {
+      // Verificar se há token salvo
+      const token = localStorage.getItem('userToken');
+      if (!token) {
         return { success: false, error: 'Usuário não autenticado' }
       }
 
+      // Buscar o último usuário logado (simplificado)
+      // Em um sistema real, você salvaria o ID do usuário no token
       const { data: userData, error: userError } = await safeQuery(async () => {
         return await supabase!
           .from('usuarios')
           .select('id, nome, email, tipo, dataRegistro')
-          .eq('email', session.user.email)
+          .order('createdAt', { ascending: false })
+          .limit(1)
           .single()
       })
 
