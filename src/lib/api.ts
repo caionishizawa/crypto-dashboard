@@ -117,38 +117,44 @@ class SupabaseApiClient {
       }
 
       if (!isSupabaseConfigured) {
-        // Modo offline - simular registro
-        return { 
-          success: true, 
-          user: {
-            id: `user-${Date.now()}`,
-            nome,
-            email,
-            tipo: 'cliente',
-            dataRegistro: new Date().toISOString()
-          }
+        // Simular registro local
+        const novoUsuario = {
+          id: `user-${Date.now()}`,
+          nome,
+          email,
+          tipo: 'cliente',
+          dataRegistro: new Date().toISOString()
         }
+        return { success: true, user: novoUsuario, token: 'local-token' }
       }
 
-      // Modo online - usar Supabase
+      // Usar Supabase Auth para criar o usuário
       const { data, error } = await safeQuery(async () => {
         return await supabase!.auth.signUp({
           email,
-          password: senha
+          password: senha,
+          options: {
+            data: {
+              nome,
+              tipo: 'cliente'
+            }
+          }
         })
       })
 
       if (error) {
+        console.error('Erro ao criar usuário:', error)
         return { success: false, error: error.message }
       }
 
       if (data.user) {
-        // Criar registro na tabela usuarios
+        // Inserir dados adicionais na tabela usuarios
         const { data: userData, error: insertError } = await safeQuery(async () => {
           return await supabase!
             .from('usuarios')
             .insert([
               {
+                id: data.user.id,
                 nome,
                 email,
                 tipo: 'cliente',
@@ -160,18 +166,18 @@ class SupabaseApiClient {
         })
 
         if (insertError) {
-          console.error('Erro ao criar usuário:', insertError)
-          return { success: false, error: 'Erro ao criar usuário' }
+          console.error('Erro ao inserir dados do usuário:', insertError)
+          // Não falhar aqui, pois o usuário já foi criado no Auth
         }
 
         return { 
           success: true, 
           user: {
-            id: userData.id,
-            nome: userData.nome,
-            email: userData.email,
-            tipo: userData.tipo,
-            dataRegistro: userData.dataRegistro
+            id: data.user.id,
+            nome,
+            email,
+            tipo: 'cliente',
+            dataRegistro: new Date().toISOString()
           },
           token: data.session?.access_token
         }
