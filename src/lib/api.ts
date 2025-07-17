@@ -152,10 +152,10 @@ class SupabaseApiClient {
                 nome,
                 email,
                 tipo: 'cliente',
-                created_at: new Date().toISOString()
+                dataRegistro: new Date().toISOString()
               }
             ])
-            .select('id, nome, email, tipo, created_at')
+            .select('id, nome, email, tipo, dataRegistro')
             .single()
         })
 
@@ -171,7 +171,7 @@ class SupabaseApiClient {
             nome: userData.nome,
             email: userData.email,
             tipo: userData.tipo,
-            created_at: userData.created_at
+            dataRegistro: userData.dataRegistro
           },
           token: data.session?.access_token
         }
@@ -205,7 +205,7 @@ class SupabaseApiClient {
       const { data: userData, error: userError } = await safeQuery(async () => {
         return await supabase!
           .from('usuarios')
-          .select('id, nome, email, tipo, created_at')
+          .select('id, nome, email, tipo, dataRegistro')
           .eq('email', session.user.email)
           .single()
       })
