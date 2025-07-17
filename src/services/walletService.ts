@@ -246,7 +246,7 @@ class WalletService {
           carteira.tokens.forEach(token => {
             distribution[token.symbol] = (distribution[token.symbol] || 0) + token.valueUSD;
           });
-        }
+  }
       });
       
       return distribution;

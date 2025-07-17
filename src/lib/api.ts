@@ -43,11 +43,11 @@ class SupabaseApiClient {
               data_registro: usuario.dataRegistro
             },
             token: 'local-token'
-          }
-        }
+      }
+    }
         
         return { success: false, error: 'Email ou senha incorretos' }
-      }
+  }
 
       // Modo online - usar Supabase
       const { data, error } = await supabase!.auth.signInWithPassword({
@@ -63,7 +63,7 @@ class SupabaseApiClient {
         // Buscar dados do usuário na tabela usuarios
         const { data: userData, error: userError } = await supabase!
           .from('usuarios')
-          .select('*')
+          .select('id, nome, email, tipo, data_registro')
           .eq('email', email)
           .single()
 
@@ -73,10 +73,16 @@ class SupabaseApiClient {
 
         return { 
           success: true, 
-          user: userData,
+          user: {
+            id: userData.id,
+            nome: userData.nome,
+            email: userData.email,
+            tipo: userData.tipo,
+            data_registro: userData.data_registro
+          },
           token: data.session?.access_token
         }
-      }
+    }
 
       return { success: false, error: 'Usuário não encontrado' }
     } catch (error: any) {
@@ -181,7 +187,7 @@ class SupabaseApiClient {
           return { success: true, user }
         }
         return { success: false, error: 'Usuário não autenticado' }
-      }
+  }
 
       // Modo online - usar Supabase
       const { data: { session } } = await supabase!.auth.getSession()
@@ -276,8 +282,8 @@ class SupabaseApiClient {
 
       if (error) {
         return { success: false, error: error.message }
-      }
-
+    }
+    
       return { success: true, data }
     } catch (error: any) {
       return { success: false, error: error.message }
@@ -308,7 +314,7 @@ class SupabaseApiClient {
 
       if (error) {
         return { success: false, error: error.message }
-      }
+  }
 
       return { success: true, data }
     } catch (error: any) {

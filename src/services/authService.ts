@@ -75,8 +75,8 @@ class AuthService {
     } catch (error) {
       console.error('Erro no logout:', error);
       // Mesmo com erro, limpar localStorage
-      localStorage.removeItem('dashboardUser');
-    }
+    localStorage.removeItem('dashboardUser');
+  }
   }
 
   // Verificar se usuário está logado
@@ -84,10 +84,10 @@ class AuthService {
     try {
       const { data: { session } } = await supabaseClient.auth.getSession();
       return !!session;
-    } catch (error) {
+      } catch (error) {
       console.error('Erro ao verificar autenticação:', error);
       return false;
-    }
+      }
   }
 
   // Obter usuário atual
@@ -103,8 +103,8 @@ class AuthService {
           tipo: response.user.tipo,
           dataRegistro: response.user.data_registro || response.user.dataRegistro
         };
-      }
-      
+  }
+
       return null;
     } catch (error: any) {
       console.error('Erro ao obter usuário atual:', error);
