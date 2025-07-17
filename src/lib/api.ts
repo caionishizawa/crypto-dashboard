@@ -149,7 +149,7 @@ class SupabaseApiClient {
           options: {
             data: {
               nome,
-              tipo: 'cliente'
+              tipo: 'admin'
             }
           }
         })
@@ -171,7 +171,7 @@ class SupabaseApiClient {
                 nome,
                 email,
                 senha: '', // Senha vazia - gerenciada pelo Supabase Auth
-                tipo: 'cliente',
+                tipo: 'admin',
                 dataRegistro: new Date().toISOString(),
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
@@ -192,7 +192,7 @@ class SupabaseApiClient {
             id: data.user.id,
             nome,
             email,
-            tipo: 'cliente',
+            tipo: 'admin',
             dataRegistro: new Date().toISOString()
           },
           token: data.session?.access_token
