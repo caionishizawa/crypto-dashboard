@@ -63,33 +63,22 @@ class SupabaseApiClient {
         return { success: false, error: 'Email ou senha incorretos' }
       }
 
-      // Modo online - usar Supabase com queries mais seguras
-      const { data, error } = await safeQuery(async () => {
-        return await supabase!.auth.signInWithPassword({
-          email,
-          password: senha
-        })
+      // Modo online - verificar diretamente na tabela usuarios
+      const { data: userData, error } = await safeQuery(async () => {
+        return await supabase!
+          .from('usuarios')
+          .select('id, nome, email, senha, tipo, dataRegistro')
+          .eq('email', email)
+          .eq('senha', senha)
+          .single()
       })
 
       if (error) {
-        return { success: false, error: error.message }
+        console.error('Erro ao fazer login:', error)
+        return { success: false, error: 'Email ou senha incorretos' }
       }
 
-      if (data.user) {
-        // Buscar dados do usuário na tabela usuarios com query segura
-        const { data: userData, error: userError } = await safeQuery(async () => {
-          return await supabase!
-            .from('usuarios')
-            .select('id, nome, email, tipo, dataRegistro')
-            .eq('email', email)
-            .single()
-        })
-
-        if (userError) {
-          console.error('Erro ao buscar usuário:', userError)
-          return { success: false, error: 'Erro ao carregar dados do usuário' }
-        }
-
+      if (userData) {
         return { 
           success: true, 
           user: {
@@ -99,11 +88,11 @@ class SupabaseApiClient {
             tipo: userData.tipo,
             dataRegistro: userData.dataRegistro
           },
-          token: data.session?.access_token
+          token: 'user-token'
         }
       }
 
-      return { success: false, error: 'Usuário não encontrado' }
+      return { success: false, error: 'Email ou senha incorretos' }
     } catch (error: any) {
       console.error('Erro no login:', error)
       return { success: false, error: error.message }
