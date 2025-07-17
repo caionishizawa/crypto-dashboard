@@ -22,18 +22,9 @@ export const useAuth = () => {
       if (sessaoSalva) {
         try {
           const dadosSessao = JSON.parse(sessaoSalva);
-          // Aqui você pode fazer uma verificação mais robusta
-          // Por enquanto, vamos simular uma verificação básica
-          const mockUser: Usuario = {
-            id: dadosSessao.usuarioId,
-            nome: 'Usuário Logado',
-            email: 'user@example.com',
-            tipo: 'admin',
-            dataRegistro: new Date().toISOString()
-          };
-          
+          // Restaurar dados completos do usuário
           setAuthState({
-            user: mockUser,
+            user: dadosSessao.user,
             loading: false,
             error: null
           });
@@ -60,9 +51,9 @@ export const useAuth = () => {
       const resultado = await authService.login(dados);
       
       if (resultado.success && resultado.usuario) {
-        // Salvar sessão
+        // Salvar sessão completa do usuário
         localStorage.setItem('sessaoUsuario', JSON.stringify({
-          usuarioId: resultado.usuario.id,
+          user: resultado.usuario,
           timestamp: Date.now()
         }));
 
