@@ -171,6 +171,7 @@ class SupabaseApiClient {
                 id: data.user.id,
                 nome,
                 email,
+                senha: '', // Senha vazia - gerenciada pelo Supabase Auth
                 tipo: 'cliente',
                 dataRegistro: new Date().toISOString()
                 // Não incluir senha - gerenciada pelo Supabase Auth
