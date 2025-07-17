@@ -17,27 +17,38 @@ export const useAuth = () => {
 
   // Verificar se há sessão salva ao inicializar
   useEffect(() => {
-    const checkSavedSession = () => {
-      const sessaoSalva = localStorage.getItem('sessaoUsuario');
-      if (sessaoSalva) {
-        try {
-          const dadosSessao = JSON.parse(sessaoSalva);
-          // Restaurar dados completos do usuário
-          setAuthState({
-            user: dadosSessao.user,
-            loading: false,
-            error: null
-          });
-        } catch (error) {
-          localStorage.removeItem('sessaoUsuario');
-          setAuthState({
-            user: null,
-            loading: false,
-            error: null
-          });
+    const checkSavedSession = async () => {
+      try {
+        // Verificar se há token salvo
+        const token = localStorage.getItem('userToken');
+        if (token) {
+          // Verificar no banco de dados se o usuário ainda existe
+          const currentUser = await authService.getCurrentUser();
+          if (currentUser) {
+            setAuthState({
+              user: currentUser,
+              loading: false,
+              error: null
+            });
+          } else {
+            // Usuário não existe mais, limpar token
+            localStorage.removeItem('userToken');
+            setAuthState({
+              user: null,
+              loading: false,
+              error: null
+            });
+          }
+        } else {
+          setAuthState(prev => ({ ...prev, loading: false }));
         }
-      } else {
-        setAuthState(prev => ({ ...prev, loading: false }));
+      } catch (error) {
+        localStorage.removeItem('userToken');
+        setAuthState({
+          user: null,
+          loading: false,
+          error: null
+        });
       }
     };
 
@@ -51,11 +62,8 @@ export const useAuth = () => {
       const resultado = await authService.login(dados);
       
       if (resultado.success && resultado.usuario) {
-        // Salvar sessão completa do usuário
-        localStorage.setItem('sessaoUsuario', JSON.stringify({
-          user: resultado.usuario,
-          timestamp: Date.now()
-        }));
+        // Salvar apenas o token
+        localStorage.setItem('userToken', 'valid-token');
 
         setAuthState({
           user: resultado.usuario,
@@ -116,7 +124,7 @@ export const useAuth = () => {
   };
 
   const logout = () => {
-    localStorage.removeItem('sessaoUsuario');
+    localStorage.removeItem('userToken');
     setAuthState({
       user: null,
       loading: false,
