@@ -54,7 +54,7 @@ class SupabaseApiClient {
               nome: usuario.nome,
               email: usuario.email,
               tipo: usuario.tipo,
-              data_registro: usuario.dataRegistro
+              dataRegistro: usuario.dataRegistro
             },
             token: 'local-token'
           }
@@ -80,7 +80,7 @@ class SupabaseApiClient {
         const { data: userData, error: userError } = await safeQuery(async () => {
           return await supabase!
             .from('usuarios')
-            .select('id, nome, email, tipo, data_registro')
+            .select('id, nome, email, tipo, dataRegistro')
             .eq('email', email)
             .single()
         })
@@ -97,7 +97,7 @@ class SupabaseApiClient {
             nome: userData.nome,
             email: userData.email,
             tipo: userData.tipo,
-            data_registro: userData.data_registro
+            dataRegistro: userData.dataRegistro
           },
           token: data.session?.access_token
         }
@@ -125,7 +125,7 @@ class SupabaseApiClient {
             nome,
             email,
             tipo: 'cliente',
-            data_registro: new Date().toISOString()
+            dataRegistro: new Date().toISOString()
           }
         }
       }
@@ -152,10 +152,10 @@ class SupabaseApiClient {
                 nome,
                 email,
                 tipo: 'cliente',
-                data_registro: new Date().toISOString()
+                created_at: new Date().toISOString()
               }
             ])
-            .select('id, nome, email, tipo, data_registro')
+            .select('id, nome, email, tipo, created_at')
             .single()
         })
 
@@ -171,7 +171,7 @@ class SupabaseApiClient {
             nome: userData.nome,
             email: userData.email,
             tipo: userData.tipo,
-            data_registro: userData.data_registro
+            created_at: userData.created_at
           },
           token: data.session?.access_token
         }
@@ -205,7 +205,7 @@ class SupabaseApiClient {
       const { data: userData, error: userError } = await safeQuery(async () => {
         return await supabase!
           .from('usuarios')
-          .select('id, nome, email, tipo, data_registro')
+          .select('id, nome, email, tipo, created_at')
           .eq('email', session.user.email)
           .single()
       })
