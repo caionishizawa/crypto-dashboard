@@ -132,9 +132,9 @@ class SupabaseApiClient {
       const { data: existingUser, error: checkError } = await safeQuery(async () => {
         return await supabase!
           .from('usuarios')
-          .select('email')
+          .select('id, email')
           .eq('email', email)
-          .single()
+          .maybeSingle()
       })
 
       if (existingUser) {
