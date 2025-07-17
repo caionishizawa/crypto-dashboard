@@ -173,6 +173,7 @@ class SupabaseApiClient {
                 email,
                 tipo: 'cliente',
                 dataRegistro: new Date().toISOString()
+                // Não incluir senha - gerenciada pelo Supabase Auth
               }
             ])
             .select('id, nome, email, tipo, dataRegistro')
