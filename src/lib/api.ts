@@ -141,42 +141,65 @@ class SupabaseApiClient {
         return { success: false, error: 'Email já cadastrado' }
       }
 
-      // Criar usuário diretamente na tabela (sem Supabase Auth para teste)
-      const { data: userData, error: insertError } = await safeQuery(async () => {
-        return await supabase!
-          .from('usuarios')
-          .insert([
-            {
-              id: `user-${Date.now()}`,
+      // Usar Supabase Auth para criar o usuário
+      const { data, error } = await safeQuery(async () => {
+        return await supabase!.auth.signUp({
+          email,
+          password: senha,
+          options: {
+            data: {
               nome,
-              email,
-              senha: '', // Senha vazia para teste
-              tipo: 'cliente',
-              dataRegistro: new Date().toISOString(),
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
+              tipo: 'cliente'
             }
-          ])
-          .select('id, nome, email, tipo, dataRegistro')
-          .single()
+          }
+        })
       })
 
-      if (insertError) {
-        console.error('Erro ao criar usuário:', insertError)
-        return { success: false, error: 'Erro ao criar usuário' }
+      if (error) {
+        console.error('Erro ao criar usuário:', error)
+        return { success: false, error: error.message }
       }
 
-      return { 
-        success: true, 
-        user: {
-          id: userData.id,
-          nome: userData.nome,
-          email: userData.email,
-          tipo: userData.tipo,
-          dataRegistro: userData.dataRegistro
-        },
-        message: 'Conta criada com sucesso!'
+      if (data.user) {
+        // Inserir dados adicionais na tabela usuarios
+        const { data: userData, error: insertError } = await safeQuery(async () => {
+          return await supabase!
+            .from('usuarios')
+            .insert([
+              {
+                id: data.user.id,
+                nome,
+                email,
+                senha: '', // Senha vazia - gerenciada pelo Supabase Auth
+                tipo: 'cliente',
+                dataRegistro: new Date().toISOString(),
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+              }
+            ])
+            .select('id, nome, email, tipo, dataRegistro')
+            .single()
+        })
+
+        if (insertError) {
+          console.error('Erro ao inserir dados do usuário:', insertError)
+          // Não falhar aqui, pois o usuário já foi criado no Auth
+        }
+
+        return { 
+          success: true, 
+          user: {
+            id: data.user.id,
+            nome,
+            email,
+            tipo: 'cliente',
+            dataRegistro: new Date().toISOString()
+          },
+          token: data.session?.access_token
+        }
       }
+
+      return { success: false, error: 'Erro ao criar usuário' }
     } catch (error: any) {
       console.error('Erro no registro:', error)
       return { success: false, error: error.message }
