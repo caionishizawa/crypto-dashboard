@@ -128,7 +128,20 @@ class SupabaseApiClient {
         return { success: true, user: novoUsuario, token: 'local-token' }
       }
 
-      // Usar Supabase Auth para criar o usuário
+      // Verificar se o email já existe
+      const { data: existingUser, error: checkError } = await safeQuery(async () => {
+        return await supabase!
+          .from('usuarios')
+          .select('email')
+          .eq('email', email)
+          .single()
+      })
+
+      if (existingUser) {
+        return { success: false, error: 'Email já cadastrado' }
+      }
+
+      // Usar Supabase Auth para criar o usuário com confirmação de email
       const { data, error } = await safeQuery(async () => {
         return await supabase!.auth.signUp({
           email,
@@ -137,7 +150,8 @@ class SupabaseApiClient {
             data: {
               nome,
               tipo: 'cliente'
-            }
+            },
+            emailRedirectTo: `${window.location.origin}/auth/callback`
           }
         })
       })
@@ -168,6 +182,22 @@ class SupabaseApiClient {
         if (insertError) {
           console.error('Erro ao inserir dados do usuário:', insertError)
           // Não falhar aqui, pois o usuário já foi criado no Auth
+        }
+
+        // Verificar se o email precisa ser confirmado
+        if (data.user.email_confirmed_at === null) {
+          return { 
+            success: true, 
+            message: 'Conta criada! Verifique seu email para confirmar a conta.',
+            user: {
+              id: data.user.id,
+              nome,
+              email,
+              tipo: 'cliente',
+              dataRegistro: new Date().toISOString()
+            },
+            requiresEmailConfirmation: true
+          }
         }
 
         return { 

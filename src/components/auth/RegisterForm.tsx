@@ -3,7 +3,12 @@ import { UserPlus, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import type { RegisterData } from '../../types/usuario';
 
 interface RegisterFormProps {
-  onRegister: (registerData: RegisterData) => Promise<{ success: boolean; error?: string }>;
+  onRegister: (registerData: RegisterData) => Promise<{ 
+    success: boolean; 
+    error?: string; 
+    message?: string;
+    requiresEmailConfirmation?: boolean;
+  }>;
   onSwitchToLogin: () => void;
 }
 
@@ -15,6 +20,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
     confirmarSenha: ''
   });
   const [error, setError] = useState<string>('');
+  const [success, setSuccess] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
@@ -23,6 +29,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess('');
 
     if (!formData.nome || !formData.email || !formData.senha || !formData.confirmarSenha) {
       setError('Por favor, preencha todos os campos');
@@ -43,7 +50,27 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
     }
 
     const result = await onRegister(formData);
-    if (!result.success) {
+    if (result.success) {
+      if (result.requiresEmailConfirmation) {
+        setSuccess(result.message || 'Conta criada! Verifique seu email para confirmar.');
+        // Limpar formulário
+        setFormData({
+          nome: '',
+          email: '',
+          senha: '',
+          confirmarSenha: ''
+        });
+      } else {
+        setSuccess('Conta criada com sucesso!');
+        // Limpar formulário
+        setFormData({
+          nome: '',
+          email: '',
+          senha: '',
+          confirmarSenha: ''
+        });
+      }
+    } else {
       setError(result.error || 'Erro ao criar conta');
     }
     setLoading(false);
@@ -140,6 +167,12 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
           {error && (
             <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-red-400 text-sm">
               {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3 text-green-400 text-sm">
+              {success}
             </div>
           )}
 
