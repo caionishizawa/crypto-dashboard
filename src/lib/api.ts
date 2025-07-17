@@ -12,6 +12,20 @@ const isSupabaseConfigured = supabaseUrl && supabaseAnonKey &&
   supabaseAnonKey !== 'your-anon-key'
 
 export const supabase = isSupabaseConfigured ? createClient(supabaseUrl, supabaseAnonKey) : null
+export { isSupabaseConfigured }
+
+// Função helper para queries seguras
+const safeQuery = async (queryFn: () => Promise<any>) => {
+  try {
+    if (!supabase) {
+      throw new Error('Supabase não configurado')
+    }
+    return await queryFn()
+  } catch (error: any) {
+    console.error('Erro na query:', error)
+    throw error
+  }
+}
 
 // Tipos para as respostas da API
 interface ApiResponse {
@@ -43,16 +57,18 @@ class SupabaseApiClient {
               data_registro: usuario.dataRegistro
             },
             token: 'local-token'
-      }
-    }
+          }
+        }
         
         return { success: false, error: 'Email ou senha incorretos' }
-  }
+      }
 
-      // Modo online - usar Supabase
-      const { data, error } = await supabase!.auth.signInWithPassword({
-        email,
-        password: senha
+      // Modo online - usar Supabase com queries mais seguras
+      const { data, error } = await safeQuery(async () => {
+        return await supabase!.auth.signInWithPassword({
+          email,
+          password: senha
+        })
       })
 
       if (error) {
@@ -60,14 +76,17 @@ class SupabaseApiClient {
       }
 
       if (data.user) {
-        // Buscar dados do usuário na tabela usuarios
-        const { data: userData, error: userError } = await supabase!
-          .from('usuarios')
-          .select('id, nome, email, tipo, data_registro')
-          .eq('email', email)
-          .single()
+        // Buscar dados do usuário na tabela usuarios com query segura
+        const { data: userData, error: userError } = await safeQuery(async () => {
+          return await supabase!
+            .from('usuarios')
+            .select('id, nome, email, tipo, data_registro')
+            .eq('email', email)
+            .single()
+        })
 
         if (userError) {
+          console.error('Erro ao buscar usuário:', userError)
           return { success: false, error: 'Erro ao carregar dados do usuário' }
         }
 
@@ -82,10 +101,11 @@ class SupabaseApiClient {
           },
           token: data.session?.access_token
         }
-    }
+      }
 
       return { success: false, error: 'Usuário não encontrado' }
     } catch (error: any) {
+      console.error('Erro no login:', error)
       return { success: false, error: error.message }
     }
   }
@@ -97,48 +117,25 @@ class SupabaseApiClient {
       }
 
       if (!isSupabaseConfigured) {
-        // Modo offline - usar localStorage
-        const usuarios = this.getLocalUsers()
-        
-        // Verificar se o email já existe
-        if (usuarios.find(u => u.email === email)) {
-          return { success: false, error: 'Email já cadastrado' }
-        }
-
-        const novoUsuario = {
-          id: `user-${Date.now()}`,
-          nome,
-          email,
-          senha,
-          tipo: 'cliente' as const,
-          dataRegistro: new Date().toISOString()
-        }
-
-        usuarios.push(novoUsuario)
-        localStorage.setItem('dashboardUsers', JSON.stringify(usuarios))
-
-        return {
-          success: true,
+        // Modo offline - simular registro
+        return { 
+          success: true, 
           user: {
-            id: novoUsuario.id,
-            nome: novoUsuario.nome,
-            email: novoUsuario.email,
-            tipo: novoUsuario.tipo,
-            data_registro: novoUsuario.dataRegistro
-          },
-          token: 'local-token'
+            id: `user-${Date.now()}`,
+            nome,
+            email,
+            tipo: 'cliente',
+            data_registro: new Date().toISOString()
+          }
         }
       }
 
       // Modo online - usar Supabase
-      const { data, error } = await supabase!.auth.signUp({
-        email,
-        password: senha,
-        options: {
-          data: {
-            name: nome
-          }
-        }
+      const { data, error } = await safeQuery(async () => {
+        return await supabase!.auth.signUp({
+          email,
+          password: senha
+        })
       })
 
       if (error) {
@@ -147,32 +144,42 @@ class SupabaseApiClient {
 
       if (data.user) {
         // Criar registro na tabela usuarios
-        const { data: userData, error: insertError } = await supabase!
-          .from('usuarios')
-          .insert([
-            {
-              nome,
-              email,
-              tipo: 'cliente',
-              data_registro: new Date().toISOString()
-            }
-          ])
-          .select()
-          .single()
+        const { data: userData, error: insertError } = await safeQuery(async () => {
+          return await supabase!
+            .from('usuarios')
+            .insert([
+              {
+                nome,
+                email,
+                tipo: 'cliente',
+                data_registro: new Date().toISOString()
+              }
+            ])
+            .select('id, nome, email, tipo, data_registro')
+            .single()
+        })
 
         if (insertError) {
+          console.error('Erro ao criar usuário:', insertError)
           return { success: false, error: 'Erro ao criar usuário' }
         }
 
         return { 
           success: true, 
-          user: userData,
+          user: {
+            id: userData.id,
+            nome: userData.nome,
+            email: userData.email,
+            tipo: userData.tipo,
+            data_registro: userData.data_registro
+          },
           token: data.session?.access_token
         }
       }
 
-      return { success: false, error: 'Erro ao registrar usuário' }
+      return { success: false, error: 'Erro ao criar usuário' }
     } catch (error: any) {
+      console.error('Erro no registro:', error)
       return { success: false, error: error.message }
     }
   }
@@ -180,72 +187,85 @@ class SupabaseApiClient {
   async getCurrentUser(): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        // Modo offline - verificar localStorage
-        const userData = localStorage.getItem('dashboardUser')
-        if (userData) {
-          const user = JSON.parse(userData)
-          return { success: true, user }
-        }
-        return { success: false, error: 'Usuário não autenticado' }
-  }
+        return { success: false, error: 'Modo offline' }
+      }
 
-      // Modo online - usar Supabase
-      const { data: { session } } = await supabase!.auth.getSession()
-      
+      const { data: { session }, error } = await safeQuery(async () => {
+        return await supabase!.auth.getSession()
+      })
+
+      if (error) {
+        return { success: false, error: error.message }
+      }
+
       if (!session) {
         return { success: false, error: 'Usuário não autenticado' }
       }
 
-      const { data: userData, error } = await supabase!
-        .from('usuarios')
-        .select('*')
-        .eq('email', session.user.email)
-        .single()
+      const { data: userData, error: userError } = await safeQuery(async () => {
+        return await supabase!
+          .from('usuarios')
+          .select('id, nome, email, tipo, data_registro')
+          .eq('email', session.user.email)
+          .single()
+      })
 
-      if (error) {
+      if (userError) {
+        console.error('Erro ao buscar usuário:', userError)
         return { success: false, error: 'Erro ao carregar usuário' }
       }
 
       return { success: true, user: userData }
     } catch (error: any) {
+      console.error('Erro ao obter usuário:', error)
       return { success: false, error: error.message }
     }
   }
 
-  // === MÉTODOS HELPER PARA MODO OFFLINE ===
-
-  private getLocalUsers() {
+  async logout(): Promise<ApiResponse> {
     try {
-      const stored = localStorage.getItem('dashboardUsers')
-      if (stored) {
-        return JSON.parse(stored)
+      if (!isSupabaseConfigured) {
+        return { success: true }
       }
-    } catch (error) {
-      console.error('Erro ao carregar usuários:', error)
+
+      const { error } = await safeQuery(async () => {
+        return await supabase!.auth.signOut()
+      })
+
+      if (error) {
+        return { success: false, error: error.message }
+      }
+
+      return { success: true }
+    } catch (error: any) {
+      console.error('Erro no logout:', error)
+      return { success: false, error: error.message }
     }
-    return [...usuariosIniciais]
+  }
+
+  // === MÉTODOS AUXILIARES ===
+  
+  private getLocalUsers() {
+    return usuariosIniciais
+  }
+
+  private getLocalClients() {
+    return clientesData
   }
 
   // === MÉTODOS DE CLIENTES ===
-
+  
   async getClientes(): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        // Modo offline - usar dados locais
-        const clientes = Object.values(clientesData)
-        return { success: true, data: clientes }
+        return { success: true, data: Object.values(this.getLocalClients()) }
       }
 
-      // Modo online - usar Supabase
-      const { data, error } = await supabase!
-        .from('clientes')
-        .select(`
-          *,
-          transacoes(*),
-          carteiras(*, tokens(*)),
-          snapshots:daily_snapshots(*)
-        `)
-        .order('created_at', { ascending: false })
+      const { data, error } = await safeQuery(async () => {
+        return await supabase!
+          .from('clientes')
+          .select('*')
+      })
 
       if (error) {
         return { success: false, error: error.message }
@@ -253,39 +273,7 @@ class SupabaseApiClient {
 
       return { success: true, data }
     } catch (error: any) {
-      return { success: false, error: error.message }
-    }
-  }
-
-  async getCliente(id: string): Promise<ApiResponse> {
-    try {
-      if (!isSupabaseConfigured) {
-        // Modo offline - usar dados locais
-        const cliente = clientesData[id]
-        if (cliente) {
-          return { success: true, data: cliente }
-        }
-        return { success: false, error: 'Cliente não encontrado' }
-      }
-
-      // Modo online - usar Supabase
-      const { data, error } = await supabase!
-        .from('clientes')
-        .select(`
-          *,
-          transacoes(*),
-          carteiras(*, tokens(*)),
-          snapshots:daily_snapshots(*)
-        `)
-        .eq('id', id)
-        .single()
-
-      if (error) {
-        return { success: false, error: error.message }
-    }
-    
-      return { success: true, data }
-    } catch (error: any) {
+      console.error('Erro ao buscar clientes:', error)
       return { success: false, error: error.message }
     }
   }
@@ -293,95 +281,394 @@ class SupabaseApiClient {
   async createCliente(clienteData: any): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        // Modo offline - simular criação
-        const novoCliente = {
-          id: `cliente-${Date.now()}`,
-          ...clienteData,
-          transacoes: [],
-          carteiras: [],
-          snapshots: []
-        }
-        
-        return { success: true, data: novoCliente }
+        return { success: true, data: { id: `cliente-${Date.now()}`, ...clienteData } }
       }
 
-      // Modo online - usar Supabase
-      const { data, error } = await supabase!
-        .from('clientes')
-        .insert([clienteData])
-        .select()
-        .single()
+      const { data, error } = await safeQuery(async () => {
+        return await supabase!
+          .from('clientes')
+          .insert([clienteData])
+          .select()
+          .single()
+      })
 
       if (error) {
         return { success: false, error: error.message }
-  }
+      }
 
       return { success: true, data }
     } catch (error: any) {
+      console.error('Erro ao criar cliente:', error)
       return { success: false, error: error.message }
     }
   }
 
-  // Implementar outros métodos conforme necessário...
+  async getCliente(id: string): Promise<ApiResponse> {
+    try {
+      if (!isSupabaseConfigured) {
+        const clientes = this.getLocalClients()
+        const cliente = clientes[id]
+        return cliente ? { success: true, data: cliente } : { success: false, error: 'Cliente não encontrado' }
+      }
+
+      const { data, error } = await safeQuery(async () => {
+        return await supabase!
+          .from('clientes')
+          .select('*')
+          .eq('id', id)
+          .single()
+      })
+
+      if (error) {
+        return { success: false, error: error.message }
+      }
+
+      return { success: true, data }
+    } catch (error: any) {
+      console.error('Erro ao buscar cliente:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
   async updateCliente(id: string, clienteData: any): Promise<ApiResponse> {
-    return { success: true, data: clienteData }
+    try {
+      if (!isSupabaseConfigured) {
+        return { success: true, data: { id, ...clienteData } }
+      }
+
+      const { data, error } = await safeQuery(async () => {
+        return await supabase!
+          .from('clientes')
+          .update(clienteData)
+          .eq('id', id)
+          .select()
+          .single()
+      })
+
+      if (error) {
+        return { success: false, error: error.message }
+      }
+
+      return { success: true, data }
+    } catch (error: any) {
+      console.error('Erro ao atualizar cliente:', error)
+      return { success: false, error: error.message }
+    }
   }
 
   async deleteCliente(id: string): Promise<ApiResponse> {
-    return { success: true }
+    try {
+      if (!isSupabaseConfigured) {
+        return { success: true }
+      }
+
+      const { error } = await safeQuery(async () => {
+        return await supabase!
+          .from('clientes')
+          .delete()
+          .eq('id', id)
+      })
+
+      if (error) {
+        return { success: false, error: error.message }
+      }
+
+      return { success: true }
+    } catch (error: any) {
+      console.error('Erro ao deletar cliente:', error)
+      return { success: false, error: error.message }
+    }
   }
 
   async addTransacao(clienteId: string, transacaoData: any): Promise<ApiResponse> {
-    return { success: true, data: transacaoData }
+    try {
+      if (!isSupabaseConfigured) {
+        return { success: true, data: { id: `transacao-${Date.now()}`, ...transacaoData } }
+      }
+
+      const { data, error } = await safeQuery(async () => {
+        return await supabase!
+          .from('transaco')
+          .insert([{ ...transacaoData, cliente_id: clienteId }])
+          .select()
+          .single()
+      })
+
+      if (error) {
+        return { success: false, error: error.message }
+      }
+
+      return { success: true, data }
+    } catch (error: any) {
+      console.error('Erro ao adicionar transação:', error)
+      return { success: false, error: error.message }
+    }
   }
 
   async getCarteirasCliente(clienteId: string): Promise<ApiResponse> {
-    return { success: true, data: [] }
+    try {
+      if (!isSupabaseConfigured) {
+        return { success: true, data: [] }
+      }
+
+      const { data, error } = await safeQuery(async () => {
+        return await supabase!
+          .from('carteiras')
+          .select('*')
+          .eq('cliente_id', clienteId)
+      })
+
+      if (error) {
+        return { success: false, error: error.message }
+      }
+
+      return { success: true, data }
+    } catch (error: any) {
+      console.error('Erro ao buscar carteiras:', error)
+      return { success: false, error: error.message }
+    }
   }
 
   async getCarteira(id: string): Promise<ApiResponse> {
-    return { success: true, data: null }
+    try {
+      if (!isSupabaseConfigured) {
+        return { success: true, data: null }
+      }
+
+      const { data, error } = await safeQuery(async () => {
+        return await supabase!
+          .from('carteiras')
+          .select('*')
+          .eq('id', id)
+          .single()
+      })
+
+      if (error) {
+        return { success: false, error: error.message }
+      }
+
+      return { success: true, data }
+    } catch (error: any) {
+      console.error('Erro ao buscar carteira:', error)
+      return { success: false, error: error.message }
+    }
   }
 
   async createCarteira(carteiraData: any): Promise<ApiResponse> {
-    return { success: true, data: carteiraData }
+    try {
+      if (!isSupabaseConfigured) {
+        return { success: true, data: { id: `carteira-${Date.now()}`, ...carteiraData } }
+      }
+
+      const { data, error } = await safeQuery(async () => {
+        return await supabase!
+          .from('carteiras')
+          .insert([carteiraData])
+          .select()
+          .single()
+      })
+
+      if (error) {
+        return { success: false, error: error.message }
+      }
+
+      return { success: true, data }
+    } catch (error: any) {
+      console.error('Erro ao criar carteira:', error)
+      return { success: false, error: error.message }
+    }
   }
 
   async updateCarteira(id: string, carteiraData: any): Promise<ApiResponse> {
-    return { success: true, data: carteiraData }
+    try {
+      if (!isSupabaseConfigured) {
+        return { success: true, data: { id, ...carteiraData } }
+      }
+
+      const { data, error } = await safeQuery(async () => {
+        return await supabase!
+          .from('carteiras')
+          .update(carteiraData)
+          .eq('id', id)
+          .select()
+          .single()
+      })
+
+      if (error) {
+        return { success: false, error: error.message }
+      }
+
+      return { success: true, data }
+    } catch (error: any) {
+      console.error('Erro ao atualizar carteira:', error)
+      return { success: false, error: error.message }
+    }
   }
 
   async deleteCarteira(id: string): Promise<ApiResponse> {
-    return { success: true }
+    try {
+      if (!isSupabaseConfigured) {
+        return { success: true }
+      }
+
+      const { error } = await safeQuery(async () => {
+        return await supabase!
+          .from('carteiras')
+          .delete()
+          .eq('id', id)
+      })
+
+      if (error) {
+        return { success: false, error: error.message }
+      }
+
+      return { success: true }
+    } catch (error: any) {
+      console.error('Erro ao deletar carteira:', error)
+      return { success: false, error: error.message }
+    }
   }
 
   async refreshCarteira(id: string): Promise<ApiResponse> {
-    return { success: true, data: null }
+    try {
+      if (!isSupabaseConfigured) {
+        return { success: true, data: null }
+      }
+
+      // Simular refresh de carteira
+      const { data, error } = await safeQuery(async () => {
+        return await supabase!
+          .from('carteiras')
+          .update({ ultima_atualizacao: new Date().toISOString() })
+          .eq('id', id)
+          .select()
+          .single()
+      })
+
+      if (error) {
+        return { success: false, error: error.message }
+      }
+
+      return { success: true, data }
+    } catch (error: any) {
+      console.error('Erro ao atualizar carteira:', error)
+      return { success: false, error: error.message }
+    }
   }
 
   async getDashboardStats(): Promise<ApiResponse> {
-    return { success: true, data: { totalClientes: 2, valorTotal: 500000, rendimentoMedio: 24.5 } }
+    try {
+      if (!isSupabaseConfigured) {
+        return { success: true, data: { totalClientes: 2, valorTotal: 500000, rendimentoMedio: 24.5 } }
+      }
+
+      const { data, error } = await safeQuery(async () => {
+        return await supabase!
+          .from('clientes')
+          .select('*')
+      })
+
+      if (error) {
+        return { success: false, error: error.message }
+      }
+
+      const totalClientes = data?.length || 0
+      const valorTotal = data?.reduce((sum, cliente) => sum + (cliente.valor_atual_usd || 0), 0) || 0
+      const rendimentoMedio = data?.reduce((sum, cliente) => sum + (cliente.apy_medio || 0), 0) / totalClientes || 0
+
+      return { 
+        success: true, 
+        data: { 
+          totalClientes, 
+          valorTotal, 
+          rendimentoMedio 
+        } 
+      }
+    } catch (error: any) {
+      console.error('Erro ao buscar estatísticas:', error)
+      return { success: false, error: error.message }
+    }
   }
 
   async getPerformanceData(): Promise<ApiResponse> {
-    return { success: true, data: [] }
+    try {
+      if (!isSupabaseConfigured) {
+        return { success: true, data: [] }
+      }
+
+      const { data, error } = await safeQuery(async () => {
+        return await supabase!
+          .from('desempenho_data')
+          .select('*')
+          .order('mes', { ascending: true })
+      })
+
+      if (error) {
+        return { success: false, error: error.message }
+      }
+
+      return { success: true, data }
+    } catch (error: any) {
+      console.error('Erro ao buscar dados de performance:', error)
+      return { success: false, error: error.message }
+    }
   }
 
   async getDistributionData(): Promise<ApiResponse> {
-    return { success: true, data: {} }
+    try {
+      if (!isSupabaseConfigured) {
+        return { success: true, data: {} }
+      }
+
+      const { data, error } = await safeQuery(async () => {
+        return await supabase!
+          .from('clientes')
+          .select('tipo, valor_atual_usd')
+      })
+
+      if (error) {
+        return { success: false, error: error.message }
+      }
+
+      const distribution = data?.reduce((acc, cliente) => {
+        const tipo = cliente.tipo || 'outro'
+        acc[tipo] = (acc[tipo] || 0) + (cliente.valor_atual_usd || 0)
+        return acc
+      }, {} as Record<string, number>) || {}
+
+      return { success: true, data: distribution }
+    } catch (error: any) {
+      console.error('Erro ao buscar dados de distribuição:', error)
+      return { success: false, error: error.message }
+    }
   }
 
   async getRecentActivity(): Promise<ApiResponse> {
-    return { success: true, data: [] }
+    try {
+      if (!isSupabaseConfigured) {
+        return { success: true, data: [] }
+      }
+
+      const { data, error } = await safeQuery(async () => {
+        return await supabase!
+          .from('transaco')
+          .select('*')
+          .order('data', { ascending: false })
+          .limit(10)
+      })
+
+      if (error) {
+        return { success: false, error: error.message }
+      }
+
+      return { success: true, data }
+    } catch (error: any) {
+      console.error('Erro ao buscar atividades recentes:', error)
+      return { success: false, error: error.message }
+    }
   }
 }
 
 // Exportar instância única
 export const apiClient = new SupabaseApiClient()
-
-// Exportar tipos
-export type { ApiResponse }
-export { supabase as supabaseClient }
-
-// Exportar status da configuração
-export { isSupabaseConfigured } 
+export const supabaseClient = supabase 
