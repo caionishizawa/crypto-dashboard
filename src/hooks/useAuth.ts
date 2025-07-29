@@ -25,22 +25,22 @@ export const useAuth = () => {
           // Verificar no banco de dados se o usuário ainda existe
           const currentUser = await authService.getCurrentUser();
           if (currentUser) {
-            setAuthState({
+          setAuthState({
               user: currentUser,
-              loading: false,
-              error: null
-            });
+            loading: false,
+            error: null
+          });
           } else {
             // Usuário não existe mais, limpar token
             localStorage.removeItem('userToken');
-            setAuthState({
-              user: null,
-              loading: false,
-              error: null
-            });
-          }
-        } else {
-          setAuthState(prev => ({ ...prev, loading: false }));
+          setAuthState({
+            user: null,
+            loading: false,
+            error: null
+          });
+        }
+      } else {
+        setAuthState(prev => ({ ...prev, loading: false }));
         }
       } catch (error) {
         localStorage.removeItem('userToken');
