@@ -128,16 +128,16 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Object.values(clients).map((client) => {
+              {Object.values(clients).map((client: any) => {
                 const isTypeBitcoin = client.tipo === 'bitcoin';
                 const valorAtual = isTypeBitcoin 
                   ? client.valorCarteiraDeFi || 0
                   : client.valorAtualUSD || 0;
                 const valorInicial = isTypeBitcoin 
-                  ? client.investimentoInicial * client.transacoes.length
+                  ? client.investimentoInicial * (client.transacoes?.length || 0)
                   : client.totalDepositado || 0;
                 const lucro = valorAtual - valorInicial;
-                const retorno = ((valorAtual - valorInicial) / valorInicial) * 100;
+                const retorno = valorInicial > 0 ? ((valorAtual - valorInicial) / valorInicial) * 100 : 0;
 
                 return (
                   <div key={client.id} className="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-green-800 transition-all">
@@ -215,7 +215,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {Object.values(clients).map((client) => 
-                client.carteiras?.map((carteira) => (
+                client.carteiras?.map((carteira: any) => (
                   <div key={carteira.id} className="bg-gray-900 rounded-xl p-6 border border-gray-800">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-3">

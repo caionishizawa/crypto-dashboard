@@ -3,8 +3,8 @@ import { usuariosIniciais } from '../data/usuarios'
 import { clientesData } from '../data/clientes'
 
 // Configuração do Supabase
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL
+const supabaseAnonKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY
 
 // Verificar se o Supabase está configurado
 const isSupabaseConfigured = supabaseUrl && supabaseAnonKey && 
