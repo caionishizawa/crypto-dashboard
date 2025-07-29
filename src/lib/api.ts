@@ -333,10 +333,19 @@ class SupabaseApiClient {
         }
       }
 
+      // Adicionar campos obrigatórios que podem estar faltando
+      const clienteCompleto = {
+        ...clienteData,
+        id: undefined, // Deixar o banco gerar o ID
+        usuarioId: undefined, // Campo opcional
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+
       const { data, error } = await safeQuery(async () => {
         return await supabase!
           .from('clientes')
-          .insert([clienteData])
+          .insert([clienteCompleto])
           .select()
           .single()
       })
