@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import bcrypt from 'bcryptjs'
 import { usuariosIniciais } from '../data/usuarios'
 import { clientesData } from '../data/clientes'
 
@@ -25,6 +26,17 @@ const safeQuery = async (queryFn: () => Promise<any>) => {
     console.error('Erro na query:', error)
     throw error
   }
+}
+
+// Função para criptografar senha
+const hashPassword = async (password: string): Promise<string> => {
+  const saltRounds = 12
+  return await bcrypt.hash(password, saltRounds)
+}
+
+// Função para verificar senha
+const verifyPassword = async (password: string, hash: string): Promise<boolean> => {
+  return await bcrypt.compare(password, hash)
 }
 
 // Tipos para as respostas da API
@@ -69,7 +81,6 @@ class SupabaseApiClient {
           .from('usuarios')
           .select('id, nome, email, senha, tipo, dataRegistro')
           .eq('email', email)
-          .eq('senha', senha)
           .single()
       })
 
@@ -79,16 +90,21 @@ class SupabaseApiClient {
       }
 
       if (userData) {
-        return { 
-          success: true, 
-          user: {
-            id: userData.id,
-            nome: userData.nome,
-            email: userData.email,
-            tipo: userData.tipo,
-            dataRegistro: userData.dataRegistro
-          },
-          token: 'user-token'
+        // Verificar se a senha está correta
+        const senhaCorreta = await verifyPassword(senha, userData.senha)
+        
+        if (senhaCorreta) {
+          return { 
+            success: true, 
+            user: {
+              id: userData.id,
+              nome: userData.nome,
+              email: userData.email,
+              tipo: userData.tipo,
+              dataRegistro: userData.dataRegistro
+            },
+            token: 'user-token'
+          }
         }
       }
 
@@ -131,6 +147,8 @@ class SupabaseApiClient {
       }
 
       // Criar usuário diretamente na tabela usuarios
+      const senhaCriptografada = await hashPassword(senha)
+      
       const { data: userData, error: insertError } = await safeQuery(async () => {
         return await supabase!
           .from('usuarios')
@@ -139,7 +157,7 @@ class SupabaseApiClient {
               id: `user-${Date.now()}`,
               nome,
               email,
-              senha: senha, // Senha escolhida pelo usuário
+              senha: senhaCriptografada, // Senha criptografada
               tipo: 'admin',
               dataRegistro: new Date().toISOString(),
               createdAt: new Date().toISOString(),
