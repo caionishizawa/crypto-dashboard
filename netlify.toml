@@ -19,12 +19,21 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co;"
 
 # Cache para assets estáticos
 [[headers]]
   for = "/assets/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+
+# Headers específicos para Supabase
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
 
 # Configuração de Functions (se necessário no futuro)
 [functions]
@@ -43,6 +52,14 @@
 # Configuração de domínio personalizado
 [context.production.environment]
   NODE_ENV = "production"
+
+# Configuração de variáveis de ambiente para produção
+[context.production.environment]
+  VITE_ENVIRONMENT = "production"
+
+# Configuração para preview
+[context.deploy-preview.environment]
+  VITE_ENVIRONMENT = "preview"
 
 # Sugestões de domínios personalizados
 # Você pode escolher um destes no Netlify Dashboard:

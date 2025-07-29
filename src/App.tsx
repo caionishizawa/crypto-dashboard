@@ -2,100 +2,68 @@ import { useState, useEffect } from 'react';
 import { Shield, Wifi, WifiOff } from 'lucide-react';
 import type { Cliente, ClientesData } from './types/cliente';
 import type { Usuario, LoginData, RegisterData } from './types/usuario';
-import { clientesData } from './data/clientes';
-import { usuariosIniciais } from './data/usuarios';
 import { authService } from './services/authService';
 import { LoginForm } from './components/auth/LoginForm';
 import { RegisterForm } from './components/auth/RegisterForm';
 import { AdminPage } from './pages/AdminPage';
 import { ClientPage } from './pages/ClientPage';
 import { isSupabaseConfigured } from './lib/api';
+import { useAuth } from './hooks/useAuth';
+import { apiClient } from './lib/api';
 
 function App() {
-  const [usuarios, setUsuarios] = useState<Usuario[]>(usuariosIniciais);
-  const [usuarioLogado, setUsuarioLogado] = useState<Usuario | null>(null);
+  const { usuario, token, loading, error, login, register, logout, isAuthenticated } = useAuth();
   const [modoRegistro, setModoRegistro] = useState(false);
   const [clienteVisualizando, setClienteVisualizando] = useState<Cliente | null>(null);
-  const [clientes, setClientes] = useState<ClientesData>(clientesData);
-  const [loading, setLoading] = useState(true);
+  const [clientes, setClientes] = useState<ClientesData>({});
+  const [loadingClientes, setLoadingClientes] = useState(false);
 
-  // Verificar se há sessão salva ao carregar o app
+  // Carregar clientes quando o usuário estiver autenticado
   useEffect(() => {
-    const verificarSessao = async () => {
-      try {
-        // Primeiro, verificar se há sessão no localStorage
-        const sessaoSalva = localStorage.getItem('dashboardUser');
-        if (sessaoSalva) {
-          const dadosSessao = JSON.parse(sessaoSalva);
-          
-          // Verificar se a sessão expirou (apenas se não foi marcado "manter conectado")
-          if (!dadosSessao.manterConectado && dadosSessao.timestamp) {
-            const agora = Date.now();
-            const tempoExpiracao = 24 * 60 * 60 * 1000; // 24 horas
-            
-            if (agora - dadosSessao.timestamp > tempoExpiracao) {
-              // Sessão expirou
-              localStorage.removeItem('dashboardUser');
-              setLoading(false);
-              return;
-            }
+    const carregarClientes = async () => {
+      if (isAuthenticated && token) {
+        setLoadingClientes(true);
+        try {
+          const response = await apiClient.getClientes();
+          if (response.success && response.data) {
+            // Converter array para objeto com IDs como chaves
+            const clientesObj: ClientesData = {};
+            response.data.forEach((cliente: any) => {
+              clientesObj[cliente.id] = cliente;
+            });
+            setClientes(clientesObj);
           }
-          
-          // Buscar usuário na lista atual de usuários
-          const usuario = usuarios.find(u => u.id === dadosSessao.id || u.email === dadosSessao.email);
-          if (usuario) {
-            setUsuarioLogado(usuario);
-          } else {
-            // Se não encontrar o usuário, limpar a sessão
-            localStorage.removeItem('dashboardUser');
-          }
+        } catch (error) {
+          console.error('Erro ao carregar clientes:', error);
+        } finally {
+          setLoadingClientes(false);
         }
-      } catch (error) {
-        console.error('Erro ao verificar sessão:', error);
-        localStorage.removeItem('dashboardUser');
-      } finally {
-        setLoading(false);
       }
     };
 
-    verificarSessao();
-  }, [usuarios]);
+    carregarClientes();
+  }, [isAuthenticated, token]);
 
   const handleLogin = async (dados: LoginData & { manterConectado?: boolean }) => {
-    const resultado = await authService.login(dados);
-    if (resultado.success && resultado.usuario) {
-      setUsuarioLogado(resultado.usuario);
-      
-      // Salvar sessão no localStorage
-      localStorage.setItem('dashboardUser', JSON.stringify({
-        id: resultado.usuario.id,
-        email: resultado.usuario.email,
-        nome: resultado.usuario.nome,
-        tipo: resultado.usuario.tipo,
-        manterConectado: dados.manterConectado || false,
-        timestamp: Date.now()
-      }));
-      
-      return { success: true };
+    const resultado = await login(dados);
+    if (!resultado.success) {
+      return { success: false, error: resultado.error || 'Erro ao fazer login' };
     }
-    return { success: false, error: resultado.error || 'Erro ao fazer login' };
+    return { success: true };
   };
 
   const handleRegister = async (dados: RegisterData) => {
-    const resultado = await authService.register(dados);
-    if (resultado.success && resultado.usuario) {
-      const novosUsuarios = [...usuarios, resultado.usuario];
-      setUsuarios(novosUsuarios);
-      setModoRegistro(false);
-      return { success: true };
+    const resultado = await register(dados);
+    if (!resultado.success) {
+      return { success: false, error: resultado.error || 'Erro ao fazer cadastro' };
     }
-    return { success: false, error: resultado.error || 'Erro ao fazer cadastro' };
+    setModoRegistro(false);
+    return { success: true };
   };
 
   const handleLogout = () => {
-    setUsuarioLogado(null);
+    logout();
     setClienteVisualizando(null);
-    localStorage.removeItem('dashboardUser');
   };
 
   const handleViewClient = (client: Cliente) => {
@@ -108,28 +76,24 @@ function App() {
 
   const handleCreateClient = async (clienteData: Omit<Cliente, 'id' | 'transacoes' | 'carteiras' | 'snapshots'>) => {
     try {
-      // Gerar ID único para o cliente
-      const newClientId = `cliente-${Date.now()}`;
+      if (!token) {
+        alert('Usuário não autenticado');
+        return;
+      }
+
+      const response = await apiClient.createCliente(clienteData);
       
-      // Criar cliente completo
-      const newClient: Cliente = {
-        id: newClientId,
-        ...clienteData,
-        transacoes: [],
-        carteiras: [],
-        snapshots: []
-      };
+      if (response.success && response.data) {
+        // Atualizar estado local
+        setClientes(prev => ({
+          ...prev,
+          [response.data.id]: response.data
+        }));
 
-      // Atualizar estado local
-      setClientes(prev => ({
-        ...prev,
-        [newClientId]: newClient
-      }));
-
-      // Aqui você pode adicionar a lógica para salvar no backend
-      // await clienteService.createCliente(clienteData);
-
-      alert('Cliente criado com sucesso!');
+        alert('Cliente criado com sucesso!');
+      } else {
+        alert('Erro ao criar cliente: ' + (response.error || 'Erro desconhecido'));
+      }
     } catch (error) {
       console.error('Erro ao criar cliente:', error);
       alert('Erro ao criar cliente. Tente novamente.');
@@ -162,121 +126,59 @@ function App() {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
-          <p className="text-white">Verificando autenticação...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Carregando...</p>
         </div>
       </div>
     );
   }
 
-  // Se não estiver logado, mostrar tela de autenticação
-  if (!usuarioLogado) {
+  // Se não estiver autenticado, mostrar tela de login/registro
+  if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
         <ModeIndicator />
+        
         <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center mb-4">
-              <Shield className="w-12 h-12 text-blue-500" />
-            </div>
-            <h1 className="text-3xl font-bold text-white mb-2">Dashboard Crypto</h1>
-            <p className="text-gray-400">Sistema de gestão de investimentos</p>
-            
-            {/* Aviso sobre o modo offline */}
-            {!isSupabaseConfigured && (
-              <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-                <p className="text-yellow-400 text-sm">
-                  ⚠️ Funcionando em modo offline. Para usar o banco de dados, configure o Supabase.
-                </p>
-              </div>
-            )}
-          </div>
-
           {modoRegistro ? (
-            <div>
-              <RegisterForm 
-                onRegister={handleRegister}
-                onSwitchToLogin={() => setModoRegistro(false)}
-              />
-            </div>
+            <RegisterForm onRegister={handleRegister} onSwitchToLogin={() => setModoRegistro(false)} />
           ) : (
-            <div>
-              <LoginForm 
-                onLogin={handleLogin}
-                onSwitchToRegister={() => setModoRegistro(true)}
-              />
-            </div>
+            <LoginForm onLogin={handleLogin} onSwitchToRegister={() => setModoRegistro(true)} />
           )}
         </div>
       </div>
     );
   }
 
-  // Se estiver logado, mostrar dashboard apropriado
-  if (usuarioLogado.tipo === 'admin') {
-    // Se estiver visualizando um cliente específico
-    if (clienteVisualizando) {
-      return (
-        <div>
-          <ModeIndicator />
-          <ClientPage 
-            client={clienteVisualizando}
-            onGoBack={handleBackToAdmin}
-          />
-        </div>
-      );
-    }
-
-    // Painel administrativo principal
+  // Se estiver visualizando um cliente específico
+  if (clienteVisualizando) {
     return (
-      <div>
-        <ModeIndicator />
-        <AdminPage 
-          currentUser={usuarioLogado}
-          clients={clientes}
-          onLogout={handleLogout}
-          onViewClient={handleViewClient}
-          onAddWallet={(clientId: string, walletData: any) => console.log('Adicionar carteira:', clientId, walletData)}
-          onCreateSnapshot={(clientId: string) => console.log('Criar snapshot:', clientId)}
-          onCreateClient={handleCreateClient}
-        />
-      </div>
-    );
-  } else {
-    // Cliente logado
-    const clienteData = Object.values(clientes).find((client: Cliente) => 
-      client.nome.toLowerCase().includes(usuarioLogado.nome.toLowerCase()) ||
-      usuarioLogado.nome.toLowerCase().includes(client.nome.toLowerCase())
-    );
-
-    if (!clienteData) {
-      return (
-        <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-          <ModeIndicator />
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-white mb-4">Dados não encontrados</h2>
-            <p className="text-gray-400 mb-6">Não foi possível localizar seus dados de investimento.</p>
-            <button
-              onClick={handleLogout}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
-            >
-              Fazer novo login
-            </button>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div>
+      <div className="min-h-screen bg-black text-white">
         <ModeIndicator />
         <ClientPage 
-          client={clienteData}
-          onGoBack={handleLogout}
+          client={clienteVisualizando} 
+          onGoBack={handleBackToAdmin}
+          onAddTransaction={() => {}} // Implementar quando necessário
         />
       </div>
     );
   }
+
+  // Dashboard principal (AdminPage)
+  return (
+    <div className="min-h-screen bg-black text-white">
+      <ModeIndicator />
+      <AdminPage
+        currentUser={usuario!}
+        clients={clientes}
+        onLogout={handleLogout}
+        onViewClient={handleViewClient}
+        onAddWallet={() => {}} // Implementar quando necessário
+        onCreateSnapshot={() => {}} // Implementar quando necessário
+        onCreateClient={handleCreateClient}
+      />
+    </div>
+  );
 }
 
 export default App; 

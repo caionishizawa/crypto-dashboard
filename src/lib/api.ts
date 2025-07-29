@@ -1,7 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
 import bcrypt from 'bcryptjs'
-import { usuariosIniciais } from '../data/usuarios'
-import { clientesData } from '../data/clientes'
 
 // Configuração do Supabase
 const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL
@@ -39,6 +37,32 @@ const verifyPassword = async (password: string, hash: string): Promise<boolean> 
   return await bcrypt.compare(password, hash)
 }
 
+// Função para gerar token JWT simples (em produção, use uma biblioteca JWT)
+const generateToken = (userId: string): string => {
+  const payload = {
+    userId,
+    exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // 24 horas
+    iat: Math.floor(Date.now() / 1000)
+  }
+  return btoa(JSON.stringify(payload)) // Base64 encoding (simplificado)
+}
+
+// Função para verificar token
+const verifyToken = (token: string): { userId: string; valid: boolean } => {
+  try {
+    const payload = JSON.parse(atob(token))
+    const now = Math.floor(Date.now() / 1000)
+    
+    if (payload.exp < now) {
+      return { userId: '', valid: false }
+    }
+    
+    return { userId: payload.userId, valid: true }
+  } catch {
+    return { userId: '', valid: false }
+  }
+}
+
 // Tipos para as respostas da API
 interface ApiResponse {
   success?: boolean;
@@ -54,28 +78,10 @@ class SupabaseApiClient {
   async login(email: string, senha: string): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        // Modo offline - usar dados locais
-        const usuarios = this.getLocalUsers()
-        const usuario = usuarios.find(u => u.email === email && u.senha === senha)
-        
-        if (usuario) {
-          return {
-            success: true,
-            user: {
-              id: usuario.id,
-              nome: usuario.nome,
-              email: usuario.email,
-              tipo: usuario.tipo,
-              dataRegistro: usuario.dataRegistro
-            },
-            token: 'local-token'
-          }
-        }
-        
-        return { success: false, error: 'Email ou senha incorretos' }
+        return { success: false, error: 'Supabase não configurado' }
       }
 
-      // Modo online - verificar diretamente na tabela usuarios
+      // Buscar usuário na tabela usuarios
       const { data: userData, error } = await safeQuery(async () => {
         return await supabase!
           .from('usuarios')
@@ -84,27 +90,28 @@ class SupabaseApiClient {
           .single()
       })
 
-      if (error) {
+      if (error || !userData) {
         console.error('Erro ao fazer login:', error)
         return { success: false, error: 'Email ou senha incorretos' }
       }
 
-      if (userData) {
-        // Verificar se a senha está correta
-        const senhaCorreta = await verifyPassword(senha, userData.senha)
+      // Verificar se a senha está correta
+      const senhaCorreta = await verifyPassword(senha, userData.senha)
+      
+      if (senhaCorreta) {
+        // Gerar token JWT
+        const token = generateToken(userData.id)
         
-        if (senhaCorreta) {
-          return { 
-            success: true, 
-            user: {
-              id: userData.id,
-              nome: userData.nome,
-              email: userData.email,
-              tipo: userData.tipo,
-              dataRegistro: userData.dataRegistro
-            },
-            token: 'user-token'
-          }
+        return { 
+          success: true, 
+          user: {
+            id: userData.id,
+            nome: userData.nome,
+            email: userData.email,
+            tipo: userData.tipo,
+            dataRegistro: userData.dataRegistro
+          },
+          token
         }
       }
 
@@ -122,15 +129,7 @@ class SupabaseApiClient {
       }
 
       if (!isSupabaseConfigured) {
-        // Simular registro local
-        const novoUsuario = {
-          id: `user-${Date.now()}`,
-          nome,
-          email,
-          tipo: 'admin',
-          dataRegistro: new Date().toISOString()
-        }
-        return { success: true, user: novoUsuario, token: 'local-token' }
+        return { success: false, error: 'Supabase não configurado' }
       }
 
       // Verificar se o email já existe
@@ -157,7 +156,7 @@ class SupabaseApiClient {
               id: `user-${Date.now()}`,
               nome,
               email,
-              senha: senhaCriptografada, // Senha criptografada
+              senha: senhaCriptografada,
               tipo: 'admin',
               dataRegistro: new Date().toISOString(),
               createdAt: new Date().toISOString(),
@@ -173,6 +172,9 @@ class SupabaseApiClient {
         return { success: false, error: 'Erro ao criar usuário' }
       }
 
+      // Gerar token JWT
+      const token = generateToken(userData.id)
+
       return { 
         success: true, 
         user: {
@@ -182,6 +184,7 @@ class SupabaseApiClient {
           tipo: userData.tipo,
           dataRegistro: userData.dataRegistro
         },
+        token,
         message: 'Conta criada com sucesso!'
       }
     } catch (error: any) {
@@ -190,32 +193,30 @@ class SupabaseApiClient {
     }
   }
 
-  async getCurrentUser(): Promise<ApiResponse> {
+  async getCurrentUser(token: string): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: false, error: 'Modo offline' }
+        return { success: false, error: 'Supabase não configurado' }
       }
 
-      // Verificar se há token salvo
-      const token = localStorage.getItem('userToken');
-      if (!token) {
-        return { success: false, error: 'Usuário não autenticado' }
+      // Verificar token
+      const { userId, valid } = verifyToken(token)
+      if (!valid) {
+        return { success: false, error: 'Token inválido ou expirado' }
       }
 
-      // Buscar o último usuário logado (simplificado)
-      // Em um sistema real, você salvaria o ID do usuário no token
+      // Buscar usuário pelo ID
       const { data: userData, error: userError } = await safeQuery(async () => {
         return await supabase!
           .from('usuarios')
           .select('id, nome, email, tipo, dataRegistro')
-          .order('createdAt', { ascending: false })
-          .limit(1)
+          .eq('id', userId)
           .single()
       })
 
-      if (userError) {
+      if (userError || !userData) {
         console.error('Erro ao buscar usuário:', userError)
-        return { success: false, error: 'Erro ao carregar usuário' }
+        return { success: false, error: 'Usuário não encontrado' }
       }
 
       return { success: true, user: userData }
@@ -227,18 +228,8 @@ class SupabaseApiClient {
 
   async logout(): Promise<ApiResponse> {
     try {
-      if (!isSupabaseConfigured) {
-        return { success: true }
-      }
-
-      const { error } = await safeQuery(async () => {
-        return await supabase!.auth.signOut()
-      })
-
-      if (error) {
-        return { success: false, error: error.message }
-      }
-
+      // Em um sistema real, você poderia invalidar o token no servidor
+      // Por simplicidade, apenas retornamos sucesso
       return { success: true }
     } catch (error: any) {
       console.error('Erro no logout:', error)
@@ -246,22 +237,12 @@ class SupabaseApiClient {
     }
   }
 
-  // === MÉTODOS AUXILIARES ===
-  
-  private getLocalUsers() {
-    return usuariosIniciais
-  }
-
-  private getLocalClients() {
-    return clientesData
-  }
-
   // === MÉTODOS DE CLIENTES ===
   
   async getClientes(): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: true, data: Object.values(this.getLocalClients()) }
+        return { success: false, error: 'Supabase não configurado' }
       }
 
       const { data, error } = await safeQuery(async () => {
@@ -284,7 +265,7 @@ class SupabaseApiClient {
   async createCliente(clienteData: any): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: true, data: { id: `cliente-${Date.now()}`, ...clienteData } }
+        return { success: false, error: 'Supabase não configurado' }
       }
 
       const { data, error } = await safeQuery(async () => {
@@ -309,9 +290,7 @@ class SupabaseApiClient {
   async getCliente(id: string): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        const clientes = this.getLocalClients()
-        const cliente = clientes[id]
-        return cliente ? { success: true, data: cliente } : { success: false, error: 'Cliente não encontrado' }
+        return { success: false, error: 'Supabase não configurado' }
       }
 
       const { data, error } = await safeQuery(async () => {
@@ -336,7 +315,7 @@ class SupabaseApiClient {
   async updateCliente(id: string, clienteData: any): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: true, data: { id, ...clienteData } }
+        return { success: false, error: 'Supabase não configurado' }
       }
 
       const { data, error } = await safeQuery(async () => {
@@ -362,7 +341,7 @@ class SupabaseApiClient {
   async deleteCliente(id: string): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: true }
+        return { success: false, error: 'Supabase não configurado' }
       }
 
       const { error } = await safeQuery(async () => {
@@ -386,7 +365,7 @@ class SupabaseApiClient {
   async addTransacao(clienteId: string, transacaoData: any): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: true, data: { id: `transacao-${Date.now()}`, ...transacaoData } }
+        return { success: false, error: 'Supabase não configurado' }
       }
 
       const { data, error } = await safeQuery(async () => {
@@ -411,7 +390,7 @@ class SupabaseApiClient {
   async getCarteirasCliente(clienteId: string): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: true, data: [] }
+        return { success: false, error: 'Supabase não configurado' }
       }
 
       const { data, error } = await safeQuery(async () => {
@@ -435,7 +414,7 @@ class SupabaseApiClient {
   async getCarteira(id: string): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: true, data: null }
+        return { success: false, error: 'Supabase não configurado' }
       }
 
       const { data, error } = await safeQuery(async () => {
@@ -460,7 +439,7 @@ class SupabaseApiClient {
   async createCarteira(carteiraData: any): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: true, data: { id: `carteira-${Date.now()}`, ...carteiraData } }
+        return { success: false, error: 'Supabase não configurado' }
       }
 
       const { data, error } = await safeQuery(async () => {
@@ -485,7 +464,7 @@ class SupabaseApiClient {
   async updateCarteira(id: string, carteiraData: any): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: true, data: { id, ...carteiraData } }
+        return { success: false, error: 'Supabase não configurado' }
       }
 
       const { data, error } = await safeQuery(async () => {
@@ -511,7 +490,7 @@ class SupabaseApiClient {
   async deleteCarteira(id: string): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: true }
+        return { success: false, error: 'Supabase não configurado' }
       }
 
       const { error } = await safeQuery(async () => {
@@ -535,10 +514,9 @@ class SupabaseApiClient {
   async refreshCarteira(id: string): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: true, data: null }
+        return { success: false, error: 'Supabase não configurado' }
       }
 
-      // Simular refresh de carteira
       const { data, error } = await safeQuery(async () => {
         return await supabase!
           .from('carteiras')
@@ -562,7 +540,7 @@ class SupabaseApiClient {
   async getDashboardStats(): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: true, data: { totalClientes: 2, valorTotal: 500000, rendimentoMedio: 24.5 } }
+        return { success: false, error: 'Supabase não configurado' }
       }
 
       const { data, error } = await safeQuery(async () => {
@@ -596,7 +574,7 @@ class SupabaseApiClient {
   async getPerformanceData(): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: true, data: [] }
+        return { success: false, error: 'Supabase não configurado' }
       }
 
       const { data, error } = await safeQuery(async () => {
@@ -620,7 +598,7 @@ class SupabaseApiClient {
   async getDistributionData(): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: true, data: {} }
+        return { success: false, error: 'Supabase não configurado' }
       }
 
       const { data, error } = await safeQuery(async () => {
@@ -649,7 +627,7 @@ class SupabaseApiClient {
   async getRecentActivity(): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: true, data: [] }
+        return { success: false, error: 'Supabase não configurado' }
       }
 
       const { data, error } = await safeQuery(async () => {
