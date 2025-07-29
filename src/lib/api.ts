@@ -84,41 +84,46 @@ class SupabaseApiClient {
         }
       }
 
-      // Buscar usuário na tabela usuarios
-      const { data: userData, error } = await safeQuery(async () => {
-        return await supabase!
-          .from('usuarios')
-          .select('id, nome, email, senha, tipo, dataRegistro')
-          .eq('email', email)
-          .single()
+      // Fazer login usando Supabase Auth
+      const { data, error } = await supabase!.auth.signInWithPassword({
+        email,
+        password: senha
       })
 
-      if (error || !userData) {
+      if (error) {
         console.error('Erro ao fazer login:', error)
         return { success: false, error: 'Email ou senha incorretos' }
       }
 
-      // Verificar se a senha está correta
-      const senhaCorreta = await verifyPassword(senha, userData.senha)
-      
-      if (senhaCorreta) {
-        // Gerar token JWT
-        const token = generateToken(userData.id)
-        
-        return { 
-          success: true, 
-          user: {
-            id: userData.id,
-            nome: userData.nome,
-            email: userData.email,
-            tipo: userData.tipo,
-            dataRegistro: userData.dataRegistro
-          },
-          token
-        }
+      if (!data.user) {
+        return { success: false, error: 'Usuário não encontrado' }
       }
 
-      return { success: false, error: 'Email ou senha incorretos' }
+      // Buscar dados adicionais do usuário na tabela usuarios
+      const { data: userData, error: userError } = await safeQuery(async () => {
+        return await supabase!
+          .from('usuarios')
+          .select('id, nome, email, tipo, dataRegistro')
+          .eq('id', data.user.id)
+          .single()
+      })
+
+      if (userError || !userData) {
+        console.error('Erro ao buscar dados do usuário:', userError)
+        return { success: false, error: 'Erro ao carregar dados do usuário' }
+      }
+
+      return { 
+        success: true, 
+        user: {
+          id: userData.id,
+          nome: userData.nome,
+          email: userData.email,
+          tipo: userData.tipo,
+          dataRegistro: userData.dataRegistro
+        },
+        token: data.session?.access_token
+      }
     } catch (error: any) {
       console.error('Erro no login:', error)
       return { success: false, error: error.message }
@@ -151,18 +156,36 @@ class SupabaseApiClient {
         return { success: false, error: 'Email já cadastrado' }
       }
 
-      // Criar usuário diretamente na tabela usuarios
-      const senhaCriptografada = await hashPassword(senha)
-      
+      // Criar usuário usando Supabase Auth
+      const { data: authData, error: authError } = await supabase!.auth.signUp({
+        email,
+        password: senha,
+        options: {
+          data: {
+            nome,
+            tipo: 'admin'
+          }
+        }
+      })
+
+      if (authError) {
+        console.error('Erro ao criar usuário no Auth:', authError)
+        return { success: false, error: 'Erro ao criar usuário' }
+      }
+
+      if (!authData.user) {
+        return { success: false, error: 'Erro ao criar usuário' }
+      }
+
+      // Criar registro na tabela usuarios
       const { data: userData, error: insertError } = await safeQuery(async () => {
         return await supabase!
           .from('usuarios')
           .insert([
             {
-              id: `user-${Date.now()}`,
+              id: authData.user.id,
               nome,
               email,
-              senha: senhaCriptografada,
               tipo: 'admin',
               dataRegistro: new Date().toISOString(),
               createdAt: new Date().toISOString(),
@@ -174,12 +197,9 @@ class SupabaseApiClient {
       })
 
       if (insertError) {
-        console.error('Erro ao criar usuário:', insertError)
+        console.error('Erro ao criar usuário na tabela:', insertError)
         return { success: false, error: 'Erro ao criar usuário' }
       }
-
-      // Gerar token JWT
-      const token = generateToken(userData.id)
 
       return { 
         success: true, 
@@ -190,7 +210,7 @@ class SupabaseApiClient {
           tipo: userData.tipo,
           dataRegistro: userData.dataRegistro
         },
-        token,
+        token: authData.session?.access_token,
         message: 'Conta criada com sucesso!'
       }
     } catch (error: any) {
@@ -237,8 +257,18 @@ class SupabaseApiClient {
 
   async logout(): Promise<ApiResponse> {
     try {
-      // Em um sistema real, você poderia invalidar o token no servidor
-      // Por simplicidade, apenas retornamos sucesso
+      if (!isSupabaseConfigured) {
+        return { success: true }
+      }
+
+      // Fazer logout usando Supabase Auth
+      const { error } = await supabase!.auth.signOut()
+      
+      if (error) {
+        console.error('Erro no logout:', error)
+        return { success: false, error: error.message }
+      }
+
       return { success: true }
     } catch (error: any) {
       console.error('Erro no logout:', error)
@@ -280,6 +310,16 @@ class SupabaseApiClient {
         return { 
           success: false, 
           error: 'Supabase não configurado. Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Netlify Dashboard.' 
+        }
+      }
+
+      // Verificar se o usuário está autenticado
+      const { data: { user }, error: authError } = await supabase!.auth.getUser()
+      
+      if (authError || !user) {
+        return { 
+          success: false, 
+          error: 'Usuário não autenticado. Faça login para criar clientes.' 
         }
       }
 
