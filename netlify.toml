@@ -39,3 +39,14 @@
   
 [context.branch-deploy]
   command = "npm run build" 
+
+# Configuração de domínio personalizado
+[context.production.environment]
+  NODE_ENV = "production"
+
+# Sugestões de domínios personalizados
+# Você pode escolher um destes no Netlify Dashboard:
+# - crypto-dashboard-brasil.netlify.app
+# - defi-analytics.netlify.app
+# - dashboard-cripto.netlify.app
+# - crypto-brasil.netlify.app 
