@@ -214,7 +214,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Object.values(clients).map((client) => 
+              {Object.values(clients).map((client: any) => 
                 client.carteiras?.map((carteira: any) => (
                   <div key={carteira.id} className="bg-gray-900 rounded-xl p-6 border border-gray-800">
                     <div className="flex items-center justify-between mb-4">
@@ -286,15 +286,15 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {Object.values(clients).map((client) => {
+                  {Object.values(clients).map((client: any) => {
                     const isTypeBitcoin = client.tipo === 'bitcoin';
                     const valorAtual = isTypeBitcoin 
                       ? client.valorCarteiraDeFi || 0
                       : client.valorAtualUSD || 0;
                     const valorInicial = isTypeBitcoin 
-                      ? client.investimentoInicial * client.transacoes.length
+                      ? client.investimentoInicial * (client.transacoes?.length || 0)
                       : client.totalDepositado || 0;
-                    const retorno = ((valorAtual - valorInicial) / valorInicial) * 100;
+                    const retorno = valorInicial > 0 ? ((valorAtual - valorInicial) / valorInicial) * 100 : 0;
 
                     return (
                       <div key={client.id} className="bg-gray-800 rounded-lg p-4">
@@ -342,15 +342,15 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {Object.values(clients).map((client) => {
+                  {Object.values(clients).map((client: any) => {
                     const isTypeBitcoin = client.tipo === 'bitcoin';
                     const valorOntem = isTypeBitcoin 
                       ? (client.valorCarteiraDeFi || 0) * 0.98 // Simula valor de ontem
                       : (client.valorAtualUSD || 0) * 0.995;
                     const valorInicial = isTypeBitcoin 
-                      ? client.investimentoInicial * client.transacoes.length
+                      ? client.investimentoInicial * (client.transacoes?.length || 0)
                       : client.totalDepositado || 0;
-                    const retornoOntem = ((valorOntem - valorInicial) / valorInicial) * 100;
+                    const retornoOntem = valorInicial > 0 ? ((valorOntem - valorInicial) / valorInicial) * 100 : 0;
 
                     return (
                       <div key={client.id} className="bg-gray-800 rounded-lg p-4">
@@ -398,15 +398,15 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {Object.values(clients).map((client) => {
+                  {Object.values(clients).map((client: any) => {
                     const isTypeBitcoin = client.tipo === 'bitcoin';
                     const valorAnteontem = isTypeBitcoin 
                       ? (client.valorCarteiraDeFi || 0) * 0.96 // Simula valor de anteontem
                       : (client.valorAtualUSD || 0) * 0.99;
                     const valorInicial = isTypeBitcoin 
-                      ? client.investimentoInicial * client.transacoes.length
+                      ? client.investimentoInicial * (client.transacoes?.length || 0)
                       : client.totalDepositado || 0;
-                    const retornoAnteontem = ((valorAnteontem - valorInicial) / valorInicial) * 100;
+                    const retornoAnteontem = valorInicial > 0 ? ((valorAnteontem - valorInicial) / valorInicial) * 100 : 0;
 
                     return (
                       <div key={client.id} className="bg-gray-800 rounded-lg p-4">
@@ -450,7 +450,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 </h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {Object.values(clients).map((client) => {
+                  {Object.values(clients).map((client: any) => {
                     const isTypeBitcoin = client.tipo === 'bitcoin';
                     const valorAtual = isTypeBitcoin 
                       ? client.valorCarteiraDeFi || 0
@@ -511,7 +511,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2"
                   >
                     <option value="">Selecione um cliente</option>
-                    {Object.values(clients).map((client) => (
+                    {Object.values(clients).map((client: any) => (
                       <option key={client.id} value={client.id}>{client.nome}</option>
                     ))}
                   </select>
