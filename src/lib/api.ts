@@ -164,7 +164,8 @@ class SupabaseApiClient {
           data: {
             nome,
             tipo: 'admin'
-          }
+          },
+          emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       })
 
@@ -201,6 +202,15 @@ class SupabaseApiClient {
         return { success: false, error: 'Erro ao criar usuário' }
       }
 
+      // Verificar se o email foi confirmado
+      if (!authData.session) {
+        return { 
+          success: true, 
+          message: 'Conta criada! Verifique seu email e clique no link de confirmação para ativar sua conta.',
+          requiresEmailConfirmation: true
+        }
+      }
+
       return { 
         success: true, 
         user: {
@@ -211,7 +221,7 @@ class SupabaseApiClient {
           dataRegistro: userData.dataRegistro
         },
         token: authData.session?.access_token,
-        message: 'Conta criada com sucesso!'
+        message: 'Conta criada e ativada com sucesso!'
       }
     } catch (error: any) {
       console.error('Erro no registro:', error)
