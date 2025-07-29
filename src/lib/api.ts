@@ -336,10 +336,18 @@ class SupabaseApiClient {
       // Adicionar campos obrigatórios que podem estar faltando
       const clienteCompleto = {
         ...clienteData,
-        id: undefined, // Deixar o banco gerar o ID
-        usuarioId: undefined, // Campo opcional
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        // Campos obrigatórios que precisam ser fornecidos
+        dataInicio: clienteData.dataInicio || new Date().toISOString(),
+        investimentoInicial: clienteData.investimentoInicial || 0,
+        updatedAt: new Date().toISOString(),
+        // Campos opcionais
+        usuarioId: undefined,
+        // Campos com valores padrão (não precisam ser enviados)
+        // id: undefined, // Gerado automaticamente
+        // apyMedio: undefined, // Padrão: 0
+        // tempoMercado: undefined, // Padrão: ''
+        // scoreRisco: undefined, // Padrão: ''
+        // createdAt: undefined // Padrão: CURRENT_TIMESTAMP
       }
 
       const { data, error } = await safeQuery(async () => {
