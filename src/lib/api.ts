@@ -17,7 +17,7 @@ export { isSupabaseConfigured }
 const safeQuery = async (queryFn: () => Promise<any>) => {
   try {
     if (!supabase) {
-      throw new Error('Supabase não configurado')
+      throw new Error('Supabase não configurado - Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY')
     }
     return await queryFn()
   } catch (error: any) {
@@ -78,7 +78,10 @@ class SupabaseApiClient {
   async login(email: string, senha: string): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: false, error: 'Supabase não configurado' }
+        return { 
+          success: false, 
+          error: 'Supabase não configurado. Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Netlify Dashboard.' 
+        }
       }
 
       // Buscar usuário na tabela usuarios
@@ -129,7 +132,10 @@ class SupabaseApiClient {
       }
 
       if (!isSupabaseConfigured) {
-        return { success: false, error: 'Supabase não configurado' }
+        return { 
+          success: false, 
+          error: 'Supabase não configurado. Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Netlify Dashboard.' 
+        }
       }
 
       // Verificar se o email já existe
@@ -196,7 +202,10 @@ class SupabaseApiClient {
   async getCurrentUser(token: string): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: false, error: 'Supabase não configurado' }
+        return { 
+          success: false, 
+          error: 'Supabase não configurado. Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Netlify Dashboard.' 
+        }
       }
 
       // Verificar token
@@ -242,7 +251,10 @@ class SupabaseApiClient {
   async getClientes(): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: false, error: 'Supabase não configurado' }
+        return { 
+          success: false, 
+          error: 'Supabase não configurado. Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Netlify Dashboard.' 
+        }
       }
 
       const { data, error } = await safeQuery(async () => {
@@ -265,7 +277,10 @@ class SupabaseApiClient {
   async createCliente(clienteData: any): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: false, error: 'Supabase não configurado' }
+        return { 
+          success: false, 
+          error: 'Supabase não configurado. Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Netlify Dashboard.' 
+        }
       }
 
       const { data, error } = await safeQuery(async () => {
@@ -290,7 +305,10 @@ class SupabaseApiClient {
   async getCliente(id: string): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: false, error: 'Supabase não configurado' }
+        return { 
+          success: false, 
+          error: 'Supabase não configurado. Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Netlify Dashboard.' 
+        }
       }
 
       const { data, error } = await safeQuery(async () => {
@@ -315,7 +333,10 @@ class SupabaseApiClient {
   async updateCliente(id: string, clienteData: any): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: false, error: 'Supabase não configurado' }
+        return { 
+          success: false, 
+          error: 'Supabase não configurado. Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Netlify Dashboard.' 
+        }
       }
 
       const { data, error } = await safeQuery(async () => {
@@ -341,7 +362,10 @@ class SupabaseApiClient {
   async deleteCliente(id: string): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: false, error: 'Supabase não configurado' }
+        return { 
+          success: false, 
+          error: 'Supabase não configurado. Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Netlify Dashboard.' 
+        }
       }
 
       const { error } = await safeQuery(async () => {
@@ -365,7 +389,10 @@ class SupabaseApiClient {
   async addTransacao(clienteId: string, transacaoData: any): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: false, error: 'Supabase não configurado' }
+        return { 
+          success: false, 
+          error: 'Supabase não configurado. Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Netlify Dashboard.' 
+        }
       }
 
       const { data, error } = await safeQuery(async () => {
@@ -390,7 +417,10 @@ class SupabaseApiClient {
   async getCarteirasCliente(clienteId: string): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: false, error: 'Supabase não configurado' }
+        return { 
+          success: false, 
+          error: 'Supabase não configurado. Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Netlify Dashboard.' 
+        }
       }
 
       const { data, error } = await safeQuery(async () => {
@@ -414,7 +444,10 @@ class SupabaseApiClient {
   async getCarteira(id: string): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: false, error: 'Supabase não configurado' }
+        return { 
+          success: false, 
+          error: 'Supabase não configurado. Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Netlify Dashboard.' 
+        }
       }
 
       const { data, error } = await safeQuery(async () => {
@@ -439,7 +472,10 @@ class SupabaseApiClient {
   async createCarteira(carteiraData: any): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: false, error: 'Supabase não configurado' }
+        return { 
+          success: false, 
+          error: 'Supabase não configurado. Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Netlify Dashboard.' 
+        }
       }
 
       const { data, error } = await safeQuery(async () => {
@@ -464,7 +500,10 @@ class SupabaseApiClient {
   async updateCarteira(id: string, carteiraData: any): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: false, error: 'Supabase não configurado' }
+        return { 
+          success: false, 
+          error: 'Supabase não configurado. Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Netlify Dashboard.' 
+        }
       }
 
       const { data, error } = await safeQuery(async () => {
@@ -490,7 +529,10 @@ class SupabaseApiClient {
   async deleteCarteira(id: string): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: false, error: 'Supabase não configurado' }
+        return { 
+          success: false, 
+          error: 'Supabase não configurado. Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Netlify Dashboard.' 
+        }
       }
 
       const { error } = await safeQuery(async () => {
@@ -514,7 +556,10 @@ class SupabaseApiClient {
   async refreshCarteira(id: string): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: false, error: 'Supabase não configurado' }
+        return { 
+          success: false, 
+          error: 'Supabase não configurado. Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Netlify Dashboard.' 
+        }
       }
 
       const { data, error } = await safeQuery(async () => {
@@ -540,7 +585,10 @@ class SupabaseApiClient {
   async getDashboardStats(): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: false, error: 'Supabase não configurado' }
+        return { 
+          success: false, 
+          error: 'Supabase não configurado. Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Netlify Dashboard.' 
+        }
       }
 
       const { data, error } = await safeQuery(async () => {
@@ -574,7 +622,10 @@ class SupabaseApiClient {
   async getPerformanceData(): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: false, error: 'Supabase não configurado' }
+        return { 
+          success: false, 
+          error: 'Supabase não configurado. Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Netlify Dashboard.' 
+        }
       }
 
       const { data, error } = await safeQuery(async () => {
@@ -598,7 +649,10 @@ class SupabaseApiClient {
   async getDistributionData(): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: false, error: 'Supabase não configurado' }
+        return { 
+          success: false, 
+          error: 'Supabase não configurado. Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Netlify Dashboard.' 
+        }
       }
 
       const { data, error } = await safeQuery(async () => {
@@ -627,7 +681,10 @@ class SupabaseApiClient {
   async getRecentActivity(): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
-        return { success: false, error: 'Supabase não configurado' }
+        return { 
+          success: false, 
+          error: 'Supabase não configurado. Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Netlify Dashboard.' 
+        }
       }
 
       const { data, error } = await safeQuery(async () => {
