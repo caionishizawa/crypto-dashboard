@@ -49,12 +49,9 @@
 [context.branch-deploy]
   command = "npm run build" 
 
-# Configuração de domínio personalizado
-[context.production.environment]
-  NODE_ENV = "production"
-
 # Configuração de variáveis de ambiente para produção
 [context.production.environment]
+  NODE_ENV = "production"
   VITE_ENVIRONMENT = "production"
 
 # Configuração para preview
