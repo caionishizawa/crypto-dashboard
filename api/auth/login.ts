@@ -1,6 +1,27 @@
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || '';
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Supabase configuration missing');
+}
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
 export default async (req, res) => {
-  // Configurar CORS
-  res.setHeader('Access-Control-Allow-Origin', 'https://crypto-dashboard-frontend.onrender.com');
+  // Configurar CORS de forma mais segura
+  const allowedOrigins = [
+    'https://crypto-dashboard-frontend.onrender.com',
+    'https://courageous-jelly-382fd9.netlify.app',
+    'http://localhost:3000'
+  ];
+  
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -21,34 +42,39 @@ export default async (req, res) => {
       return res.status(400).json({ error: 'Email e senha são obrigatórios' });
     }
 
-    // Verificar credenciais do usuário admin
-    if (email === 'admin@dashboard.com' && senha === 'admin123') {
-      
-      // Gerar token simples
-      const userData = {
-        id: 1,
-        email: email,
-        tipo: 'admin',
-        exp: Date.now() + 24 * 60 * 60 * 1000
-      };
-      
-      const token = btoa(JSON.stringify(userData));
+    // Usar Supabase Auth em vez de credenciais hardcoded
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password: senha
+    });
 
-      res.json({
-        success: true,
-        message: 'Login realizado com sucesso',
-        token,
-        user: {
-          id: 1,
-          nome: 'Admin',
-          email: 'admin@dashboard.com',
-          tipo: 'admin'
-        }
-      });
-      
-    } else {
-      res.status(401).json({ error: 'Email ou senha incorretos' });
+    if (error) {
+      console.error('Supabase auth error:', error);
+      return res.status(401).json({ error: 'Email ou senha incorretos' });
     }
+
+    if (!data.user) {
+      return res.status(401).json({ error: 'Usuário não encontrado' });
+    }
+
+    // Buscar dados adicionais do usuário na tabela usuarios
+    const { data: userData, error: userError } = await supabase
+      .from('usuarios')
+      .select('id, nome, email, tipo, dataRegistro')
+      .eq('id', data.user.id)
+      .single();
+
+    if (userError || !userData) {
+      console.error('Erro ao buscar dados do usuário:', userError);
+      return res.status(500).json({ error: 'Erro ao carregar dados do usuário' });
+    }
+
+    res.json({
+      success: true,
+      message: 'Login realizado com sucesso',
+      user: userData,
+      session: data.session
+    });
 
   } catch (error) {
     console.error('Login error:', error);
