@@ -62,15 +62,15 @@ export const useClientes = () => {
       const response = await apiClient.createCliente(clienteData);
       
       if (response.success && response.data) {
-        // Atualizar estado local
-        setState(prev => ({
-          ...prev,
-          clientes: {
-            ...prev.clientes,
+      // Atualizar estado local
+      setState(prev => ({
+        ...prev,
+        clientes: {
+          ...prev.clientes,
             [response.data.id]: response.data
-          },
-          loading: false
-        }));
+        },
+        loading: false
+      }));
 
         return { success: true, cliente: response.data };
       } else {
@@ -98,15 +98,15 @@ export const useClientes = () => {
       const response = await apiClient.updateCliente(clienteId, clienteData);
       
       if (response.success && response.data) {
-        // Atualizar estado local
-        setState(prev => ({
-          ...prev,
-          clientes: {
-            ...prev.clientes,
+      // Atualizar estado local
+      setState(prev => ({
+        ...prev,
+        clientes: {
+          ...prev.clientes,
             [clienteId]: response.data
-          },
-          loading: false
-        }));
+        },
+        loading: false
+      }));
 
         return { success: true, cliente: response.data };
       } else {
@@ -134,17 +134,17 @@ export const useClientes = () => {
       const response = await apiClient.deleteCliente(clienteId);
       
       if (response.success) {
-        // Remover do estado local
-        const novosClientes = { ...state.clientes };
-        delete novosClientes[clienteId];
+      // Remover do estado local
+      const novosClientes = { ...state.clientes };
+      delete novosClientes[clienteId];
 
-        setState(prev => ({
-          ...prev,
-          clientes: novosClientes,
-          loading: false
-        }));
+      setState(prev => ({
+        ...prev,
+        clientes: novosClientes,
+        loading: false
+      }));
 
-        return { success: true };
+      return { success: true };
       } else {
         setState(prev => ({
           ...prev,

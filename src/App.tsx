@@ -184,6 +184,42 @@ function App() {
     }
   };
 
+  const handleDeleteClient = async (clientId: string) => {
+    try {
+      // Excluir do banco de dados
+      const success = await clienteService.deleteCliente(clientId);
+      
+      if (!success) {
+        throw new Error('Falha ao excluir cliente do banco de dados');
+      }
+
+      // Remover do estado local
+      setClientes(prev => {
+        const newClientes = { ...prev };
+        delete newClientes[clientId];
+        return newClientes;
+      });
+
+      // Se o cliente excluído era o que estava sendo visualizado, voltar para a lista
+      if (clienteVisualizando && clienteVisualizando.id === clientId) {
+        setClienteVisualizando(null);
+      }
+
+      setNotification({
+        message: 'Cliente excluído com sucesso!',
+        type: 'success',
+        isVisible: true
+      });
+    } catch (error) {
+      console.error('Erro ao excluir cliente:', error);
+      setNotification({
+        message: `Erro ao excluir cliente: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
+        type: 'error',
+        isVisible: true
+      });
+    }
+  };
+
   const handleAddTransaction = () => {
     setNotification({
       message: 'Funcionalidade de nova transação será implementada em breve!',
@@ -324,6 +360,8 @@ function App() {
           isOpen={showEditModal}
           onClose={() => setShowEditModal(false)}
           onSave={handleSaveClient}
+          onDelete={handleDeleteClient}
+          isAdmin={usuario?.tipo === 'admin'}
         />
       </div>
     );

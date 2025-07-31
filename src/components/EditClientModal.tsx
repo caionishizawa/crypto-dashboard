@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Calculator, RefreshCw } from 'lucide-react';
+import { X, Save, Calculator, RefreshCw, Trash2, AlertTriangle } from 'lucide-react';
 import type { Cliente } from '../types';
 import { cryptoService } from '../services/cryptoService';
 
@@ -8,13 +8,17 @@ interface EditClientModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (updatedClient: Cliente) => void;
+  onDelete?: (clientId: string) => void;
+  isAdmin?: boolean;
 }
 
 export const EditClientModal: React.FC<EditClientModalProps> = ({
   client,
   isOpen,
   onClose,
-  onSave
+  onSave,
+  onDelete,
+  isAdmin = false
 }) => {
   const [formData, setFormData] = useState({
     btcTotal: client.btcTotal || 0,
@@ -29,6 +33,7 @@ export const EditClientModal: React.FC<EditClientModalProps> = ({
   });
   const [currentBtcPrice, setCurrentBtcPrice] = useState(0);
   const [isLoadingPrice, setIsLoadingPrice] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Buscar preço atual do Bitcoin quando o modal abrir
   useEffect(() => {
@@ -110,6 +115,22 @@ export const EditClientModal: React.FC<EditClientModalProps> = ({
     onClose();
   };
 
+  const handleDeleteClick = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (onDelete) {
+      onDelete(client.id);
+    }
+    setShowDeleteConfirm(false);
+    onClose();
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteConfirm(false);
+  };
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -128,7 +149,8 @@ export const EditClientModal: React.FC<EditClientModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-gray-900 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-800">
@@ -263,24 +285,73 @@ export const EditClientModal: React.FC<EditClientModalProps> = ({
           </div>
 
           {/* Botões */}
-          <div className="flex items-center justify-end space-x-3 pt-6 border-t border-gray-800">
+          <div className="flex items-center justify-between pt-6 border-t border-gray-800">
+            {/* Botão de excluir (apenas para admins) */}
+            {isAdmin && onDelete && (
+              <button
+                type="button"
+                onClick={handleDeleteClick}
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg transition-colors flex items-center space-x-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Excluir Cliente</span>
+              </button>
+            )}
+            
+            {/* Botões de ação */}
+            <div className="flex items-center space-x-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-2 rounded-lg transition-colors flex items-center space-x-2"
+              >
+                <Save className="w-4 h-4" />
+                <span>Salvar Alterações</span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    {/* Modal de confirmação de exclusão */}
+    {showDeleteConfirm && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-gray-900 rounded-xl shadow-2xl max-w-md w-full p-6">
+          <div className="flex items-center space-x-3 mb-4">
+            <AlertTriangle className="w-6 h-6 text-red-400" />
+            <h3 className="text-xl font-semibold text-white">Confirmar Exclusão</h3>
+          </div>
+          
+          <p className="text-gray-300 mb-6">
+            Tem certeza que deseja excluir o cliente <strong className="text-white">{client.nome}</strong>?
+            <br />
+            <span className="text-red-400 text-sm">Esta ação não pode ser desfeita.</span>
+          </p>
+          
+          <div className="flex items-center justify-end space-x-3">
             <button
-              type="button"
-              onClick={onClose}
+              onClick={handleCancelDelete}
               className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
             >
               Cancelar
             </button>
             <button
-              type="submit"
-              className="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-2 rounded-lg transition-colors flex items-center space-x-2"
+              onClick={handleConfirmDelete}
+              className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg transition-colors"
             >
-              <Save className="w-4 h-4" />
-              <span>Salvar Alterações</span>
+              Excluir Definitivamente
             </button>
           </div>
-        </form>
+        </div>
       </div>
-    </div>
+    )}
+  </>
   );
 }; 
