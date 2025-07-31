@@ -23,6 +23,9 @@ function App() {
   const [clientes, setClientes] = useState<ClientesData>({});
   const [loadingClientes, setLoadingClientes] = useState(false);
   
+  // Sistema de roteamento para manter a página atual
+  const [currentPage, setCurrentPage] = useState<'admin' | 'client'>('admin');
+  
   // Estados para notificações e verificação de email
   const [notification, setNotification] = useState<{
     message: string;
@@ -36,6 +39,41 @@ function App() {
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
   const [showEditModal, setShowEditModal] = useState(false);
+
+  // Sistema de roteamento - salvar e restaurar página atual
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Salvar página atual no sessionStorage
+      const pageData = {
+        currentPage,
+        clienteId: clienteVisualizando?.id || null
+      };
+      sessionStorage.setItem('currentPage', JSON.stringify(pageData));
+    }
+  }, [currentPage, clienteVisualizando, isAuthenticated]);
+
+  // Restaurar página atual ao carregar
+  useEffect(() => {
+    if (isAuthenticated && !loading) {
+      const savedPage = sessionStorage.getItem('currentPage');
+      if (savedPage) {
+        try {
+          const pageData = JSON.parse(savedPage);
+          setCurrentPage(pageData.currentPage);
+          
+          // Se estava visualizando um cliente, restaurar
+          if (pageData.currentPage === 'client' && pageData.clienteId) {
+            const cliente = clientes[pageData.clienteId];
+            if (cliente) {
+              setClienteVisualizando(cliente);
+            }
+          }
+        } catch (error) {
+          console.error('Erro ao restaurar página:', error);
+        }
+      }
+    }
+  }, [isAuthenticated, loading, clientes]);
 
   // Carregar clientes quando o usuário estiver autenticado
   useEffect(() => {
@@ -115,6 +153,9 @@ function App() {
   const handleLogout = () => {
     logout();
     setClienteVisualizando(null);
+    setCurrentPage('admin');
+    // Limpar dados de roteamento
+    sessionStorage.removeItem('currentPage');
   };
 
   // Funções para a tela de verificação de email
@@ -137,10 +178,12 @@ function App() {
 
   const handleViewClient = (client: Cliente) => {
     setClienteVisualizando(client);
+    setCurrentPage('client');
   };
 
   const handleBackToAdmin = () => {
     setClienteVisualizando(null);
+    setCurrentPage('admin');
   };
 
   const handleEditClient = () => {
@@ -338,8 +381,8 @@ function App() {
     );
   }
 
-  // Se estiver visualizando um cliente específico
-  if (clienteVisualizando) {
+  // Renderizar página baseada no estado atual
+  if (currentPage === 'client' && clienteVisualizando) {
     return (
       <div className="min-h-screen bg-black text-white">
         <ModeIndicator />
