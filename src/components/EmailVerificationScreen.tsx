@@ -16,7 +16,7 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
   const [checkCount, setCheckCount] = useState(0);
   const [isVerified, setIsVerified] = useState(false);
 
-  // Verificar status da verificação a cada 5 segundos
+  // Verificar status da verificação a cada 10 segundos
   useEffect(() => {
     const checkVerification = async () => {
       if (isVerified) return;
@@ -25,18 +25,22 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
       setCheckCount(prev => prev + 1);
       
       try {
-        // Verificar se o usuário está autenticado no Supabase
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        // Verificar se o usuário existe na tabela usuarios
+        const { data: users, error } = await supabase
+          .from('usuarios')
+          .select('id, email, dataRegistro')
+          .eq('email', email)
+          .maybeSingle();
         
-        if (userError) {
-          console.log('Usuário não autenticado:', userError);
+        if (error) {
+          console.log('Erro ao buscar usuário:', error);
           setIsChecking(false);
           return;
         }
         
-        // Se o usuário está autenticado e o email confere, significa que foi confirmado
-        if (user && user.email === email && user.email_confirmed_at) {
-          console.log('🔍 Usuário autenticado e email confirmado!');
+        // Se o usuário existe na tabela, considerar como verificado
+        if (users && users.id) {
+          console.log('🔍 Usuário encontrado na tabela usuarios!');
           setIsVerified(true);
           setIsChecking(false);
           
@@ -47,7 +51,7 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
           return;
         }
         
-        console.log('Usuário ainda não confirmou o email');
+        console.log('Usuário ainda não encontrado na tabela');
       } catch (error) {
         console.log('Erro na verificação:', error);
       } finally {
@@ -55,15 +59,15 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
       }
     };
 
-    // Primeira verificação após 3 segundos
-    const initialTimer = setTimeout(checkVerification, 3000);
+    // Primeira verificação após 5 segundos
+    const initialTimer = setTimeout(checkVerification, 5000);
 
-    // Verificações subsequentes a cada 5 segundos
+    // Verificações subsequentes a cada 10 segundos
     const interval = setInterval(() => {
       if (!isVerified) {
         checkVerification();
       }
-    }, 5000);
+    }, 10000);
 
     return () => {
       clearTimeout(initialTimer);
