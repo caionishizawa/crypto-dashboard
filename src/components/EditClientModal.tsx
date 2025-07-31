@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Calculator } from 'lucide-react';
+import { X, Save, Calculator, RefreshCw } from 'lucide-react';
 import type { Cliente } from '../types';
+import { cryptoService } from '../services/cryptoService';
 
 interface EditClientModalProps {
   client: Cliente;
@@ -26,12 +27,34 @@ export const EditClientModal: React.FC<EditClientModalProps> = ({
     totalDepositado: 0,
     apyMedio: 0
   });
+  const [currentBtcPrice, setCurrentBtcPrice] = useState(0);
+  const [isLoadingPrice, setIsLoadingPrice] = useState(false);
+
+  // Buscar preço atual do Bitcoin quando o modal abrir
+  useEffect(() => {
+    const fetchBtcPrice = async () => {
+      if (client.tipo === 'bitcoin') {
+        setIsLoadingPrice(true);
+        try {
+          const price = await cryptoService.getBitcoinPriceWithCache();
+          setCurrentBtcPrice(price);
+        } catch (error) {
+          console.error('Erro ao buscar preço do Bitcoin:', error);
+          setCurrentBtcPrice(45000); // Preço padrão
+        } finally {
+          setIsLoadingPrice(false);
+        }
+      }
+    };
+
+    fetchBtcPrice();
+  }, [client.tipo]);
 
   // Calcular valores automaticamente quando os campos principais mudam
   useEffect(() => {
     if (client.tipo === 'bitcoin') {
       // Para clientes Bitcoin
-      const valorAtualBTC = formData.btcTotal * (client.valorAtualBTC || 0);
+      const valorAtualBTC = formData.btcTotal * currentBtcPrice;
       const valorAtualUSD = formData.valorCarteiraDeFi;
       const totalDepositado = valorAtualUSD - formData.rendimentoTotal;
       const apyMedio = totalDepositado > 0 ? (formData.rendimentoTotal / totalDepositado) * 100 : 0;
@@ -55,7 +78,19 @@ export const EditClientModal: React.FC<EditClientModalProps> = ({
         apyMedio
       });
     }
-  }, [formData, client.tipo, client.valorAtualBTC]);
+  }, [formData, client.tipo, currentBtcPrice]);
+
+  const handleRefreshBtcPrice = async () => {
+    setIsLoadingPrice(true);
+    try {
+      const price = await cryptoService.getBitcoinPrice();
+      setCurrentBtcPrice(price);
+    } catch (error) {
+      console.error('Erro ao atualizar preço do Bitcoin:', error);
+    } finally {
+      setIsLoadingPrice(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,6 +143,28 @@ export const EditClientModal: React.FC<EditClientModalProps> = ({
 
         {/* Content */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Preço atual do Bitcoin */}
+          {client.tipo === 'bitcoin' && (
+            <div className="bg-gray-800 rounded-lg p-4 mb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-medium text-gray-400 mb-1">Preço Atual do Bitcoin</h4>
+                  <p className="text-xl font-bold text-green-400">
+                    {formatCurrency(currentBtcPrice)}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRefreshBtcPrice}
+                  disabled={isLoadingPrice}
+                  className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-600 text-white p-2 rounded-lg transition-colors"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isLoadingPrice ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Campos Editáveis */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium text-white mb-4">Campos Editáveis</h3>
