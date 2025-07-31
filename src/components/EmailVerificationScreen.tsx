@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { supabase } from '../lib/api';
 
 interface EmailVerificationScreenProps {
@@ -12,110 +12,31 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
   onVerificationComplete,
   onBackToLogin
 }) => {
-  const [isChecking, setIsChecking] = useState(false);
-  const [checkCount, setCheckCount] = useState(0);
-  const [isVerified, setIsVerified] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
 
-  // Verificar status da verificação a cada 10 segundos
-  useEffect(() => {
-    const checkVerification = async () => {
-      if (isVerified) return;
+  const handleResendEmail = async () => {
+    setIsResending(true);
+    setResendSuccess(false);
+    
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email
+      });
       
-      setIsChecking(true);
-      setCheckCount(prev => prev + 1);
-      
-      try {
-        // Usar a API de autenticação do Supabase para verificar o status
-        // Primeiro, tentar obter o usuário atual (se estiver logado)
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        
-        if (userError) {
-          console.log('Usuário não autenticado ainda:', userError);
-          setIsChecking(false);
-          return;
-        }
-        
-        // Se o usuário está autenticado e o email confere
-        if (user && user.email === email) {
-          // Verificar se o email foi confirmado
-          if (user.email_confirmed_at) {
-            console.log('🔍 Email confirmado no Supabase!', user.email_confirmed_at);
-            setIsVerified(true);
-            setIsChecking(false);
-            
-            // Aguarda 2 segundos para mostrar a mensagem de sucesso
-            setTimeout(() => {
-              onVerificationComplete();
-            }, 2000);
-            return;
-          } else {
-            console.log('Usuário autenticado mas email ainda não foi confirmado');
-            setIsChecking(false);
-            return;
-          }
-        }
-        
-        // Se não há usuário autenticado, verificar se existe na tabela usuarios
-        // como fallback para detectar se o usuário foi criado
-        const { data: usuarios, error: usuariosError } = await supabase
-          .from('usuarios')
-          .select('id, email, dataRegistro')
-          .eq('email', email)
-          .maybeSingle();
-        
-        if (usuariosError) {
-          console.log('Erro ao verificar na tabela usuarios:', usuariosError);
-          setIsChecking(false);
-          return;
-        }
-        
-        // Se encontrou na tabela usuarios, verificar se foi criado há mais de 5 minutos
-        if (usuarios && usuarios.id) {
-          const userCreatedAt = new Date(usuarios.dataRegistro).getTime();
-          const timeSinceCreation = Date.now() - userCreatedAt;
-          const fiveMinutes = 5 * 60 * 1000;
-          
-          // Se foi criado há mais de 5 minutos, considerar como confirmado
-          if (timeSinceCreation > fiveMinutes) {
-            console.log('🔍 Usuário criado há mais de 5 minutos, considerando como confirmado!');
-            setIsVerified(true);
-            setIsChecking(false);
-            
-            setTimeout(() => {
-              onVerificationComplete();
-            }, 2000);
-            return;
-          } else {
-            console.log('Usuário criado recentemente, aguardando confirmação');
-            setIsChecking(false);
-            return;
-          }
-        }
-        
-        console.log('Usuário não encontrado');
-        setIsChecking(false);
-        
-      } catch (error) {
-        console.log('Erro na verificação:', error);
-        setIsChecking(false);
+      if (error) {
+        console.error('Erro ao reenviar email:', error);
+      } else {
+        setResendSuccess(true);
+        console.log('Email reenviado com sucesso!');
       }
-    };
-
-    // Primeira verificação após 10 segundos (dar tempo para o email chegar)
-    const initialTimer = setTimeout(checkVerification, 10000);
-
-    // Verificações subsequentes a cada 10 segundos
-    const interval = setInterval(() => {
-      if (!isVerified) {
-        checkVerification();
-      }
-    }, 10000);
-
-    return () => {
-      clearTimeout(initialTimer);
-      clearInterval(interval);
-    };
-  }, [email, isVerified, onVerificationComplete]);
+    } catch (error) {
+      console.error('Erro ao reenviar email:', error);
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
@@ -130,8 +51,8 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
           </div>
 
           {/* Título */}
-          <h2 className="text-2xl font-semibold text-white mb-6 text-center flex items-center justify-center">
-            <span className="mr-2">Verifique seu email</span>
+          <h2 className="text-2xl font-semibold text-white mb-6 text-center">
+            Verifique seu email
           </h2>
 
           {/* Mensagem */}
@@ -143,28 +64,13 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
             <p className="text-green-400 font-medium text-center">{email}</p>
           </div>
 
-          {/* Status da verificação */}
-          <div className="mb-6">
-            {isVerified ? (
-              <div className="flex items-center justify-center text-green-400">
-                <span className="text-lg mr-2">✅</span>
-                <span className="font-medium">Email verificado com sucesso!</span>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center text-green-400">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-green-500 mr-2"></div>
-                <span className="font-medium">
-                  {isChecking ? 'Verificando...' : 'Aguardando verificação...'}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Contador de tentativas */}
-          {!isVerified && checkCount > 0 && (
-            <p className="text-sm text-gray-400 mb-4 text-center">
-              Tentativa {checkCount} de verificação
-            </p>
+          {/* Status do reenvio */}
+          {resendSuccess && (
+            <div className="mb-6 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+              <p className="text-green-400 text-sm text-center">
+                ✅ Email reenviado com sucesso!
+              </p>
+            </div>
           )}
 
           {/* Instruções */}
@@ -173,26 +79,29 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
             <ul className="text-sm text-gray-300 space-y-1">
               <li>• Verifique sua caixa de entrada</li>
               <li>• Clique no link de verificação</li>
-              <li>• Aguarde o redirecionamento automático</li>
+              <li>• Você será redirecionado para a página de login</li>
+              <li>• Faça login com suas credenciais</li>
             </ul>
+          </div>
+
+          {/* Informação importante */}
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mb-6 text-left">
+            <h4 className="font-medium text-blue-400 mb-2">ℹ️ Importante:</h4>
+            <p className="text-sm text-gray-300">
+              Após clicar no link de verificação, você será redirecionado para a página de login. 
+              Faça login normalmente com seu email e senha.
+            </p>
           </div>
 
           {/* Botões */}
           <div className="space-y-3">
-            {!isVerified && (
-              <button
-                onClick={() => {
-                  // Reenviar email de verificação
-                  supabase.auth.resend({
-                    type: 'signup',
-                    email: email
-                  });
-                }}
-                className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-all transform hover:scale-105"
-              >
-                Reenviar email
-              </button>
-            )}
+            <button
+              onClick={handleResendEmail}
+              disabled={isResending}
+              className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-all transform hover:scale-105 disabled:transform-none"
+            >
+              {isResending ? 'Reenviando...' : 'Reenviar email'}
+            </button>
             
             <button
               onClick={onBackToLogin}
@@ -202,10 +111,15 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
             </button>
           </div>
 
-          {/* Dica */}
-          <p className="text-xs text-gray-400 mt-4 text-center">
-            Não recebeu o email? Verifique sua pasta de spam.
-          </p>
+          {/* Dicas */}
+          <div className="mt-6 space-y-2">
+            <p className="text-xs text-gray-400 text-center">
+              Não recebeu o email? Verifique sua pasta de spam.
+            </p>
+            <p className="text-xs text-gray-400 text-center">
+              O link de verificação expira em 24 horas.
+            </p>
+          </div>
         </div>
       </div>
     </div>
