@@ -21,6 +21,29 @@ export const useAuth = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        // Verificar se o usuário vem de uma confirmação de email
+        const urlParams = new URLSearchParams(window.location.search);
+        const isEmailConfirmation = urlParams.get('type') === 'signup' || 
+                                   urlParams.get('type') === 'recovery' ||
+                                   window.location.hash.includes('access_token');
+        
+        // Se vem de confirmação de email, fazer logout e limpar a sessão
+        if (isEmailConfirmation) {
+          console.log('🔍 Detectada confirmação de email, fazendo logout automático...');
+          await authService.logout();
+          
+          // Limpar a URL para remover os parâmetros
+          window.history.replaceState({}, document.title, window.location.pathname);
+          
+          setAuthState({
+            usuario: null,
+            token: null,
+            loading: false,
+            error: null
+          });
+          return;
+        }
+
         // Verificar se há sessão ativa do Supabase
         const result = await authService.getCurrentUser('');
         

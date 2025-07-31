@@ -1,11 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { CheckCircle, ArrowRight } from 'lucide-react';
+import { authService } from '../services/authService';
 
 const EmailConfirmationPage: React.FC = () => {
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [countdown, setCountdown] = useState(5);
 
   useEffect(() => {
+    // Limpar a sessão imediatamente quando a página carrega
+    const clearSession = async () => {
+      try {
+        await authService.logout();
+        console.log('🔍 Sessão limpa com sucesso');
+      } catch (error) {
+        console.error('Erro ao limpar sessão:', error);
+      }
+    };
+
+    clearSession();
+
     // Simular confirmação bem-sucedida
     const timer = setTimeout(() => {
       setIsConfirmed(true);
@@ -15,9 +29,32 @@ const EmailConfirmationPage: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleGoToLogin = () => {
-    // Redirecionar para a página principal (que mostrará o login)
-    window.location.href = '/';
+  // Countdown para redirecionamento automático
+  useEffect(() => {
+    if (isConfirmed && countdown > 0) {
+      const timer = setTimeout(() => {
+        setCountdown(countdown - 1);
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    } else if (isConfirmed && countdown === 0) {
+      // Redirecionar automaticamente após o countdown
+      window.location.href = '/';
+    }
+  }, [isConfirmed, countdown]);
+
+  const handleGoToLogin = async () => {
+    try {
+      // Limpar a sessão do Supabase para garantir que o usuário não seja automaticamente logado
+      await authService.logout();
+      
+      // Redirecionar para a página principal (que mostrará o login)
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+      // Mesmo com erro, redirecionar para a página de login
+      window.location.href = '/';
+    }
   };
 
   if (isLoading) {
@@ -62,15 +99,15 @@ const EmailConfirmationPage: React.FC = () => {
           {/* Botão para ir ao login */}
           <button
             onClick={handleGoToLogin}
-            className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 px-4 rounded-lg transition-all transform hover:scale-105 flex items-center justify-center"
+            className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 px-4 rounded-lg transition-all transform hover:scale-105 flex items-center justify-center mb-4"
           >
             <span>Ir para o login</span>
             <ArrowRight className="w-5 h-5 ml-2" />
           </button>
 
           {/* Informação adicional */}
-          <p className="text-xs text-gray-400 mt-4">
-            Você será redirecionado automaticamente para a página de login.
+          <p className="text-xs text-gray-400">
+            Redirecionamento automático em {countdown} segundos...
           </p>
         </div>
       </div>
