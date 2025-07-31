@@ -55,7 +55,7 @@ function App() {
 
   // Restaurar página atual ao carregar
   useEffect(() => {
-    if (isAuthenticated && !loading) {
+    if (isAuthenticated && !loading && !loadingClientes && Object.keys(clientes).length > 0) {
       const savedPage = sessionStorage.getItem('currentPage');
       console.log('🔍 Tentando restaurar página. Saved page:', savedPage);
       
@@ -85,7 +85,7 @@ function App() {
         console.log('🔍 Nenhuma página salva encontrada');
       }
     }
-  }, [isAuthenticated, loading, clientes]);
+  }, [isAuthenticated, loading, loadingClientes, clientes]);
 
   // Carregar clientes quando o usuário estiver autenticado
   useEffect(() => {
@@ -190,8 +190,10 @@ function App() {
 
   const handleViewClient = (client: Cliente) => {
     console.log('🔍 Navegando para cliente:', client.id, client.nome);
+    console.log('🔍 Estado atual antes da navegação:', { currentPage, clienteVisualizando: clienteVisualizando?.id });
     setClienteVisualizando(client);
     setCurrentPage('client');
+    console.log('🔍 Estado definido para:', { currentPage: 'client', clienteId: client.id });
   };
 
   const handleBackToAdmin = () => {
