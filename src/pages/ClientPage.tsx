@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Bitcoin, Shield, DollarSign, TrendingUp, Settings, Plus } from 'lucide-react';
 import type { Cliente, PerformanceData } from '../types';
 import { formatarMoeda, formatarPercentual, getCorRetorno } from '../utils';
@@ -17,6 +17,11 @@ export const ClientPage: React.FC<ClientPageProps> = ({
   onAddTransaction,
   onEditClient
 }) => {
+  // Debug quando o cliente muda
+  useEffect(() => {
+    console.log('Debug - Cliente atualizado:', client);
+  }, [client]);
+
   if (!client) return null;
 
   const isTypeBitcoin = client.tipo === 'bitcoin';
@@ -41,6 +46,22 @@ export const ClientPage: React.FC<ClientPageProps> = ({
     baseInvestimento,
     valorCarteiraDeFi: client.valorCarteiraDeFi,
     retornoDeFi
+  });
+
+  // Debug completo do cliente
+  console.log('Debug - Dados completos do cliente:', {
+    id: client.id,
+    nome: client.nome,
+    tipo: client.tipo,
+    investimentoInicial: client.investimentoInicial,
+    btcTotal: client.btcTotal,
+    valorAtualBTC: client.valorAtualBTC,
+    valorCarteiraDeFi: client.valorCarteiraDeFi,
+    totalDepositado: client.totalDepositado,
+    valorAtualUSD: client.valorAtualUSD,
+    rendimentoTotal: client.rendimentoTotal,
+    apyMedio: client.apyMedio,
+    transacoes: client.transacoes
   });
 
   // Cálculos para Cliente Conservador
