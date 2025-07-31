@@ -13,6 +13,7 @@ import { apiClient } from './lib/api';
 import Notification from './components/Notification';
 import EmailVerificationScreen from './components/EmailVerificationScreen';
 import EmailConfirmationPage from './components/EmailConfirmationPage';
+import { EditClientModal } from './components/EditClientModal';
 
 function App() {
   const { usuario, token, loading, error, login, register, logout, isAuthenticated } = useAuth();
@@ -33,6 +34,7 @@ function App() {
   });
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
+  const [showEditModal, setShowEditModal] = useState(false);
 
   // Carregar clientes quando o usuário estiver autenticado
   useEffect(() => {
@@ -143,11 +145,35 @@ function App() {
   };
 
   const handleEditClient = () => {
-    setNotification({
-      message: 'Funcionalidade de edição será implementada em breve!',
-      type: 'info',
-      isVisible: true
-    });
+    setShowEditModal(true);
+  };
+
+  const handleSaveClient = async (updatedClient: Cliente) => {
+    try {
+      // Atualizar no estado local
+      setClientes(prev => ({
+        ...prev,
+        [updatedClient.id]: updatedClient
+      }));
+
+      // Atualizar cliente visualizando se for o mesmo
+      if (clienteVisualizando && clienteVisualizando.id === updatedClient.id) {
+        setClienteVisualizando(updatedClient);
+      }
+
+      setNotification({
+        message: 'Cliente atualizado com sucesso!',
+        type: 'success',
+        isVisible: true
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar cliente:', error);
+      setNotification({
+        message: 'Erro ao atualizar cliente. Tente novamente.',
+        type: 'error',
+        isVisible: true
+      });
+    }
   };
 
   const handleAddTransaction = () => {
@@ -156,6 +182,8 @@ function App() {
       type: 'info',
       isVisible: true
     });
+
+    
   };
 
   const handleCreateClient = async (clienteData: Omit<Cliente, 'id' | 'transacoes' | 'carteiras' | 'snapshots'>) => {
@@ -282,6 +310,12 @@ function App() {
           onGoBack={handleBackToAdmin}
           onAddTransaction={handleAddTransaction}
           onEditClient={handleEditClient}
+        />
+        <EditClientModal
+          client={clienteVisualizando}
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          onSave={handleSaveClient}
         />
       </div>
     );
