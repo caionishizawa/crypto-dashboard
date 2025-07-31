@@ -49,6 +49,7 @@ function App() {
         clienteId: clienteVisualizando?.id || null
       };
       sessionStorage.setItem('currentPage', JSON.stringify(pageData));
+      console.log('🔍 Salvando página:', pageData);
     }
   }, [currentPage, clienteVisualizando, isAuthenticated]);
 
@@ -56,21 +57,32 @@ function App() {
   useEffect(() => {
     if (isAuthenticated && !loading) {
       const savedPage = sessionStorage.getItem('currentPage');
+      console.log('🔍 Tentando restaurar página. Saved page:', savedPage);
+      
       if (savedPage) {
         try {
           const pageData = JSON.parse(savedPage);
+          console.log('🔍 Dados da página restaurada:', pageData);
+          console.log('🔍 Clientes disponíveis:', Object.keys(clientes));
+          
           setCurrentPage(pageData.currentPage);
           
           // Se estava visualizando um cliente, restaurar
           if (pageData.currentPage === 'client' && pageData.clienteId) {
             const cliente = clientes[pageData.clienteId];
+            console.log('🔍 Cliente encontrado:', cliente);
             if (cliente) {
               setClienteVisualizando(cliente);
+            } else {
+              console.log('🔍 Cliente não encontrado, voltando para admin');
+              setCurrentPage('admin');
             }
           }
         } catch (error) {
           console.error('Erro ao restaurar página:', error);
         }
+      } else {
+        console.log('🔍 Nenhuma página salva encontrada');
       }
     }
   }, [isAuthenticated, loading, clientes]);
@@ -177,11 +189,13 @@ function App() {
   };
 
   const handleViewClient = (client: Cliente) => {
+    console.log('🔍 Navegando para cliente:', client.id, client.nome);
     setClienteVisualizando(client);
     setCurrentPage('client');
   };
 
   const handleBackToAdmin = () => {
+    console.log('🔍 Voltando para admin');
     setClienteVisualizando(null);
     setCurrentPage('admin');
   };
@@ -380,6 +394,9 @@ function App() {
       </div>
     );
   }
+
+  // Debug da renderização
+  console.log('🔍 Renderizando página:', { currentPage, clienteVisualizando: clienteVisualizando?.id });
 
   // Renderizar página baseada no estado atual
   if (currentPage === 'client' && clienteVisualizando) {
