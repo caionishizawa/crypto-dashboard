@@ -128,6 +128,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {console.log('🔍 Renderizando clientes:', Object.values(clients))}
               {Object.values(clients).map((client: any) => {
                 const isTypeBitcoin = client.tipo === 'bitcoin';
                 const valorAtual = isTypeBitcoin 
