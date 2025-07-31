@@ -43,7 +43,11 @@ export const useAuth = () => {
         // Se vem de confirmação de email mas não está na página de confirmação, fazer logout
         if (isEmailConfirmation) {
           console.log('🔍 Detectada confirmação de email, fazendo logout automático...');
-          await authService.logout();
+          try {
+            await authService.logout();
+          } catch (error) {
+            console.log('🔍 Erro no logout (normal):', error);
+          }
           
           // Limpar a URL para remover os parâmetros
           window.history.replaceState({}, document.title, window.location.pathname);
@@ -57,17 +61,27 @@ export const useAuth = () => {
           return;
         }
 
-        // Verificar se há sessão ativa do Supabase
-        const result = await authService.getCurrentUser('');
-        
-        if (result.success && result.usuario) {
-          setAuthState({
-            usuario: result.usuario,
-            token: 'supabase-session', // Token simbólico para indicar sessão ativa
-            loading: false,
-            error: null
-          });
-        } else {
+        // Verificar se há sessão ativa do Supabase apenas se não for confirmação de email
+        try {
+          const result = await authService.getCurrentUser('');
+          
+          if (result.success && result.usuario) {
+            setAuthState({
+              usuario: result.usuario,
+              token: 'supabase-session', // Token simbólico para indicar sessão ativa
+              loading: false,
+              error: null
+            });
+          } else {
+            setAuthState({
+              usuario: null,
+              token: null,
+              loading: false,
+              error: null
+            });
+          }
+        } catch (sessionError) {
+          console.log('🔍 Sem sessão ativa (normal):', sessionError);
           setAuthState({
             usuario: null,
             token: null,
