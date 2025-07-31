@@ -8,12 +8,14 @@ interface ClientPageProps {
   client: Cliente;
   onGoBack: () => void;
   onAddTransaction?: () => void;
+  onEditClient?: () => void;
 }
 
 export const ClientPage: React.FC<ClientPageProps> = ({ 
   client, 
   onGoBack, 
-  onAddTransaction 
+  onAddTransaction,
+  onEditClient
 }) => {
   if (!client) return null;
 
@@ -85,10 +87,15 @@ export const ClientPage: React.FC<ClientPageProps> = ({
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              <button className="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2">
-                <Settings className="w-4 h-4" />
-                <span>Editar</span>
-              </button>
+              {onEditClient && (
+                <button 
+                  onClick={onEditClient}
+                  className="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+                >
+                  <Settings className="w-4 h-4" />
+                  <span>Editar</span>
+                </button>
+              )}
               {onAddTransaction && (
                 <button 
                   onClick={onAddTransaction}

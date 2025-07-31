@@ -142,6 +142,22 @@ function App() {
     setClienteVisualizando(null);
   };
 
+  const handleEditClient = () => {
+    setNotification({
+      message: 'Funcionalidade de edição será implementada em breve!',
+      type: 'info',
+      isVisible: true
+    });
+  };
+
+  const handleAddTransaction = () => {
+    setNotification({
+      message: 'Funcionalidade de nova transação será implementada em breve!',
+      type: 'info',
+      isVisible: true
+    });
+  };
+
   const handleCreateClient = async (clienteData: Omit<Cliente, 'id' | 'transacoes' | 'carteiras' | 'snapshots'>) => {
     try {
       if (!token) {
@@ -264,7 +280,8 @@ function App() {
         <ClientPage 
           client={clienteVisualizando} 
           onGoBack={handleBackToAdmin}
-          onAddTransaction={() => {}} // Implementar quando necessário
+          onAddTransaction={handleAddTransaction}
+          onEditClient={handleEditClient}
         />
       </div>
     );
