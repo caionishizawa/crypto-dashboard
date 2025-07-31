@@ -149,11 +149,13 @@ function App() {
 
   const handleSaveClient = async (updatedClient: Cliente) => {
     try {
+      console.log('Salvando cliente:', updatedClient);
+      
       // Salvar no banco de dados
       const savedClient = await clienteService.updateCliente(updatedClient.id, updatedClient);
       
       if (!savedClient) {
-        throw new Error('Falha ao salvar no banco de dados');
+        throw new Error('Falha ao salvar no banco de dados - clienteService.updateCliente retornou null');
       }
 
       // Atualizar no estado local
@@ -175,7 +177,7 @@ function App() {
     } catch (error) {
       console.error('Erro ao atualizar cliente:', error);
       setNotification({
-        message: 'Erro ao atualizar cliente. Tente novamente.',
+        message: `Erro ao atualizar cliente: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
         type: 'error',
         isVisible: true
       });

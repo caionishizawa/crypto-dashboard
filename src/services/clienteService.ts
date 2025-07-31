@@ -71,11 +71,13 @@ class ClienteService {
   // Atualizar cliente
   async updateCliente(id: string, clienteData: Partial<Cliente>): Promise<Cliente | null> {
     try {
+      console.log('Dados recebidos para atualização:', clienteData);
+      
       const dadosParaDB = {
         ...(clienteData.nome && { nome: clienteData.nome }),
         ...(clienteData.tipo && { tipo: clienteData.tipo }),
         ...(clienteData.dataInicio && { data_inicio: clienteData.dataInicio }),
-        ...(clienteData.investimentoInicial && { investimento_inicial: clienteData.investimentoInicial }),
+        ...(clienteData.investimentoInicial !== undefined && { investimento_inicial: clienteData.investimentoInicial }),
         ...(clienteData.btcTotal !== undefined && { btc_total: clienteData.btcTotal }),
         ...(clienteData.precoMedio !== undefined && { preco_medio: clienteData.precoMedio }),
         ...(clienteData.valorAtualBTC !== undefined && { valor_atual_btc: clienteData.valorAtualBTC }),
@@ -88,12 +90,19 @@ class ClienteService {
         ...(clienteData.scoreRisco && { score_risco: clienteData.scoreRisco })
       };
 
+      console.log('Dados convertidos para DB:', dadosParaDB);
+
       const response = await apiClient.updateCliente(id, dadosParaDB);
       
+      console.log('Resposta da API:', response);
+      
       if (response.success && response.data) {
-        return this.formatClienteFromDB(response.data);
+        const clienteFormatado = this.formatClienteFromDB(response.data);
+        console.log('Cliente formatado:', clienteFormatado);
+        return clienteFormatado;
       }
       
+      console.error('Falha na atualização:', response.error);
       return null;
     } catch (error) {
       console.error('Erro ao atualizar cliente:', error);
