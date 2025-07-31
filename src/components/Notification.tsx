@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react';
 
 interface NotificationProps {
   message: string;
@@ -54,15 +55,15 @@ const Notification: React.FC<NotificationProps> = ({
   const getIcon = () => {
     switch (type) {
       case 'success':
-        return '✅';
+        return <CheckCircle className="w-5 h-5 text-green-400" />;
       case 'error':
-        return '❌';
+        return <XCircle className="w-5 h-5 text-red-400" />;
       case 'warning':
-        return '⚠️';
+        return <AlertTriangle className="w-5 h-5 text-yellow-400" />;
       case 'info':
-        return 'ℹ️';
+        return <Info className="w-5 h-5 text-blue-400" />;
       default:
-        return '💬';
+        return <Info className="w-5 h-5 text-gray-400" />;
     }
   };
 
@@ -84,9 +85,9 @@ const Notification: React.FC<NotificationProps> = ({
                 setIsAnimating(false);
                 setTimeout(onClose, 300);
               }}
-              className="text-gray-400 hover:text-gray-200 transition-colors"
+              className="text-gray-400 hover:text-gray-200 transition-colors p-1 rounded-full hover:bg-gray-800"
             >
-              ✕
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
