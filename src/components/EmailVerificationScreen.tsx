@@ -15,6 +15,7 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
   const [isChecking, setIsChecking] = useState(false);
   const [checkCount, setCheckCount] = useState(0);
   const [isVerified, setIsVerified] = useState(false);
+  const [startTime] = useState(Date.now());
 
   // Verificar status da verificação a cada 10 segundos
   useEffect(() => {
@@ -25,7 +26,29 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
       setCheckCount(prev => prev + 1);
       
       try {
-        // Verificar se o usuário existe na tabela usuarios
+        // Verificar se o usuário está autenticado no Supabase (indicando que confirmou o email)
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError) {
+          console.log('Usuário não autenticado ainda:', userError);
+          setIsChecking(false);
+          return;
+        }
+        
+        // Se o usuário está autenticado e o email confere, significa que confirmou
+        if (user && user.email === email && user.email_confirmed_at) {
+          console.log('🔍 Usuário autenticado e email confirmado!');
+          setIsVerified(true);
+          setIsChecking(false);
+          
+          // Aguarda 2 segundos para mostrar a mensagem de sucesso
+          setTimeout(() => {
+            onVerificationComplete();
+          }, 2000);
+          return;
+        }
+        
+        // Verificação alternativa: verificar se o usuário foi criado recentemente (últimos 5 minutos)
         const { data: users, error } = await supabase
           .from('usuarios')
           .select('id, email, dataRegistro')
@@ -38,20 +61,26 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
           return;
         }
         
-        // Se o usuário existe na tabela, considerar como verificado
+        // Se o usuário existe e foi criado nos últimos 5 minutos, considerar como não confirmado ainda
         if (users && users.id) {
-          console.log('🔍 Usuário encontrado na tabela usuarios!');
-          setIsVerified(true);
-          setIsChecking(false);
+          const userCreatedAt = new Date(users.dataRegistro).getTime();
+          const timeSinceCreation = Date.now() - userCreatedAt;
+          const fiveMinutes = 5 * 60 * 1000;
           
-          // Aguarda 2 segundos para mostrar a mensagem de sucesso
-          setTimeout(() => {
-            onVerificationComplete();
-          }, 2000);
-          return;
+          // Se foi criado há mais de 5 minutos, considerar como confirmado
+          if (timeSinceCreation > fiveMinutes) {
+            console.log('🔍 Usuário criado há mais de 5 minutos, considerando como confirmado!');
+            setIsVerified(true);
+            setIsChecking(false);
+            
+            setTimeout(() => {
+              onVerificationComplete();
+            }, 2000);
+            return;
+          }
         }
         
-        console.log('Usuário ainda não encontrado na tabela');
+        console.log('Usuário ainda não confirmou o email');
       } catch (error) {
         console.log('Erro na verificação:', error);
       } finally {
@@ -59,8 +88,8 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
       }
     };
 
-    // Primeira verificação após 5 segundos
-    const initialTimer = setTimeout(checkVerification, 5000);
+    // Primeira verificação após 10 segundos (dar tempo para o email chegar)
+    const initialTimer = setTimeout(checkVerification, 10000);
 
     // Verificações subsequentes a cada 10 segundos
     const interval = setInterval(() => {
@@ -73,7 +102,7 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
       clearTimeout(initialTimer);
       clearInterval(interval);
     };
-  }, [email, isVerified, onVerificationComplete]);
+  }, [email, isVerified, onVerificationComplete, startTime]);
 
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
