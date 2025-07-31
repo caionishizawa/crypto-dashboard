@@ -24,7 +24,20 @@ function App() {
   const [loadingClientes, setLoadingClientes] = useState(false);
   
   // Sistema de roteamento para manter a página atual
-  const [currentPage, setCurrentPage] = useState<'admin' | 'client'>('admin');
+  const [currentPage, setCurrentPage] = useState<'admin' | 'client'>(() => {
+    // Tentar restaurar a página do sessionStorage na inicialização
+    try {
+      const savedPage = sessionStorage.getItem('currentPage');
+      if (savedPage) {
+        const pageData = JSON.parse(savedPage);
+        console.log('🔍 Inicializando currentPage com:', pageData.currentPage);
+        return pageData.currentPage;
+      }
+    } catch (error) {
+      console.error('Erro ao inicializar currentPage:', error);
+    }
+    return 'admin';
+  });
   
   // Estados para notificações e verificação de email
   const [notification, setNotification] = useState<{
@@ -48,8 +61,13 @@ function App() {
         currentPage,
         clienteId: clienteVisualizando?.id || null
       };
-      sessionStorage.setItem('currentPage', JSON.stringify(pageData));
+      
+      // Log detalhado para debug
+      const oldData = sessionStorage.getItem('currentPage');
       console.log('🔍 Salvando página:', pageData);
+      console.log('🔍 Dados anteriores:', oldData ? JSON.parse(oldData) : 'null');
+      
+      sessionStorage.setItem('currentPage', JSON.stringify(pageData));
     }
   }, [currentPage, clienteVisualizando, isAuthenticated]);
 
