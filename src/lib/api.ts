@@ -165,8 +165,8 @@ class SupabaseApiClient {
           data: {
             nome,
             tipo: 'admin'
-          },
-          emailRedirectTo: `${window.location.origin}`
+          }
+          // Removido emailRedirectTo para que apenas confirme o email sem redirecionar
         }
       })
 

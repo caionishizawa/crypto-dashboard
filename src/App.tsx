@@ -213,15 +213,8 @@ function App() {
     );
   }
 
-  // Verificar se está na página de confirmação de email
-  const isEmailConfirmationPage = window.location.pathname === '/auth/callback' || 
-                                  window.location.search.includes('token=') ||
-                                  window.location.search.includes('type=signup');
-
-  // Se estiver na página de confirmação de email
-  if (isEmailConfirmationPage) {
-    return <EmailConfirmationPage />;
-  }
+  // Removido: não vamos mais redirecionar para página de confirmação
+  // O email será confirmado diretamente no Supabase sem redirecionamento
 
   // Se não estiver autenticado, mostrar tela de login/registro ou verificação de email
   if (!isAuthenticated) {
