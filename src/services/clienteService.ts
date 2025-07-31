@@ -41,18 +41,18 @@ class ClienteService {
       const dadosParaDB = {
         nome: clienteData.nome,
         tipo: clienteData.tipo,
-        data_inicio: clienteData.dataInicio,
-        investimento_inicial: clienteData.investimentoInicial,
-        btc_total: clienteData.btcTotal || 0,
-        preco_medio: clienteData.precoMedio || 0,
-        valor_atual_btc: clienteData.valorAtualBTC || 0,
-        valor_carteira_defi: clienteData.valorCarteiraDeFi || 0,
-        total_depositado: clienteData.totalDepositado || 0,
-        valor_atual_usd: clienteData.valorAtualUSD || 0,
-        rendimento_total: clienteData.rendimentoTotal || 0,
-        apy_medio: clienteData.apyMedio || 0,
-        tempo_mercado: clienteData.tempoMercado || '',
-        score_risco: clienteData.scoreRisco || ''
+        dataInicio: clienteData.dataInicio,
+        investimentoInicial: clienteData.investimentoInicial,
+        btcTotal: clienteData.btcTotal || 0,
+        precoMedio: clienteData.precoMedio || 0,
+        valorAtualBTC: clienteData.valorAtualBTC || 0,
+        valorCarteiraDeFi: clienteData.valorCarteiraDeFi || 0,
+        totalDepositado: clienteData.totalDepositado || 0,
+        valorAtualUSD: clienteData.valorAtualUSD || 0,
+        rendimentoTotal: clienteData.rendimentoTotal || 0,
+        apyMedio: clienteData.apyMedio || 0,
+        tempoMercado: clienteData.tempoMercado || '',
+        scoreRisco: clienteData.scoreRisco || ''
       };
 
       const response = await apiClient.createCliente(dadosParaDB);
@@ -76,18 +76,18 @@ class ClienteService {
       const dadosParaDB = {
         ...(clienteData.nome && { nome: clienteData.nome }),
         ...(clienteData.tipo && { tipo: clienteData.tipo }),
-        ...(clienteData.dataInicio && { data_inicio: clienteData.dataInicio }),
-        ...(clienteData.investimentoInicial !== undefined && { investimento_inicial: clienteData.investimentoInicial }),
-        ...(clienteData.btcTotal !== undefined && { btc_total: clienteData.btcTotal }),
-        ...(clienteData.precoMedio !== undefined && { preco_medio: clienteData.precoMedio }),
-        ...(clienteData.valorAtualBTC !== undefined && { valor_atual_btc: clienteData.valorAtualBTC }),
-        ...(clienteData.valorCarteiraDeFi !== undefined && { valor_carteira_defi: clienteData.valorCarteiraDeFi }),
-        ...(clienteData.totalDepositado !== undefined && { total_depositado: clienteData.totalDepositado }),
-        ...(clienteData.valorAtualUSD !== undefined && { valor_atual_usd: clienteData.valorAtualUSD }),
-        ...(clienteData.rendimentoTotal !== undefined && { rendimento_total: clienteData.rendimentoTotal }),
-        ...(clienteData.apyMedio !== undefined && { apy_medio: clienteData.apyMedio }),
-        ...(clienteData.tempoMercado && { tempo_mercado: clienteData.tempoMercado }),
-        ...(clienteData.scoreRisco && { score_risco: clienteData.scoreRisco })
+        ...(clienteData.dataInicio && { dataInicio: clienteData.dataInicio }),
+        ...(clienteData.investimentoInicial !== undefined && { investimentoInicial: clienteData.investimentoInicial }),
+        ...(clienteData.btcTotal !== undefined && { btcTotal: clienteData.btcTotal }),
+        ...(clienteData.precoMedio !== undefined && { precoMedio: clienteData.precoMedio }),
+        ...(clienteData.valorAtualBTC !== undefined && { valorAtualBTC: clienteData.valorAtualBTC }),
+        ...(clienteData.valorCarteiraDeFi !== undefined && { valorCarteiraDeFi: clienteData.valorCarteiraDeFi }),
+        ...(clienteData.totalDepositado !== undefined && { totalDepositado: clienteData.totalDepositado }),
+        ...(clienteData.valorAtualUSD !== undefined && { valorAtualUSD: clienteData.valorAtualUSD }),
+        ...(clienteData.rendimentoTotal !== undefined && { rendimentoTotal: clienteData.rendimentoTotal }),
+        ...(clienteData.apyMedio !== undefined && { apyMedio: clienteData.apyMedio }),
+        ...(clienteData.tempoMercado && { tempoMercado: clienteData.tempoMercado }),
+        ...(clienteData.scoreRisco && { scoreRisco: clienteData.scoreRisco })
       };
 
       console.log('Dados convertidos para DB:', dadosParaDB);
@@ -238,21 +238,21 @@ class ClienteService {
       id: dbCliente.id,
       nome: dbCliente.nome,
       tipo: dbCliente.tipo,
-      dataInicio: dbCliente.data_inicio,
-      investimentoInicial: dbCliente.investimento_inicial,
+      dataInicio: dbCliente.dataInicio,
+      investimentoInicial: dbCliente.investimentoInicial,
       transacoes: dbCliente.transacoes || [],
       carteiras: dbCliente.carteiras || [],
       snapshots: dbCliente.snapshots || [],
-      btcTotal: dbCliente.btc_total,
-      precoMedio: dbCliente.preco_medio,
-      valorAtualBTC: dbCliente.valor_atual_btc,
-      valorCarteiraDeFi: dbCliente.valor_carteira_defi,
-      totalDepositado: dbCliente.total_depositado,
-      valorAtualUSD: dbCliente.valor_atual_usd,
-      rendimentoTotal: dbCliente.rendimento_total,
-      apyMedio: dbCliente.apy_medio || 0,
-      tempoMercado: dbCliente.tempo_mercado || '',
-      scoreRisco: dbCliente.score_risco || ''
+      btcTotal: dbCliente.btcTotal,
+      precoMedio: dbCliente.precoMedio,
+      valorAtualBTC: dbCliente.valorAtualBTC,
+      valorCarteiraDeFi: dbCliente.valorCarteiraDeFi,
+      totalDepositado: dbCliente.totalDepositado,
+      valorAtualUSD: dbCliente.valorAtualUSD,
+      rendimentoTotal: dbCliente.rendimentoTotal,
+      apyMedio: dbCliente.apyMedio || 0,
+      tempoMercado: dbCliente.tempoMercado || '',
+      scoreRisco: dbCliente.scoreRisco || ''
     };
   }
 
