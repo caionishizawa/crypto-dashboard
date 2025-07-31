@@ -189,6 +189,8 @@ function App() {
   };
 
   const handleViewClient = (client: Cliente) => {
+    console.log('🔍 === FUNÇÃO handleViewClient CHAMADA ===');
+    console.log('🔍 Cliente recebido:', client);
     console.log('🔍 Navegando para cliente:', client.id, client.nome);
     console.log('🔍 Estado atual antes da navegação:', { currentPage, clienteVisualizando: clienteVisualizando?.id });
     setClienteVisualizando(client);
@@ -398,7 +400,14 @@ function App() {
   }
 
   // Debug da renderização
-  console.log('🔍 Renderizando página:', { currentPage, clienteVisualizando: clienteVisualizando?.id });
+  console.log('🔍 Renderizando página:', { 
+    currentPage, 
+    clienteVisualizando: clienteVisualizando?.id,
+    isAuthenticated,
+    loading,
+    loadingClientes,
+    clientesCount: Object.keys(clientes).length
+  });
 
   // Renderizar página baseada no estado atual
   if (currentPage === 'client' && clienteVisualizando) {
