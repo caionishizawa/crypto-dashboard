@@ -26,10 +26,22 @@ export const ClientPage: React.FC<ClientPageProps> = ({
   const valorAtualBTCPuro = (client.btcTotal || 0) * (client.valorAtualBTC || 0);
   const valorDiferencaDeFi = (client.valorCarteiraDeFi || 0) - valorAtualBTCPuro;
   
+  // Usar investimento inicial se não há transações
+  const baseInvestimento = valorTotalInvestidoBTC > 0 ? valorTotalInvestidoBTC : (client.investimentoInicial || 0);
+  
   // Corrigir cálculo do retorno para evitar Infinity
-  const retornoDeFi = valorTotalInvestidoBTC > 0 
-    ? (((client.valorCarteiraDeFi || 0) - valorTotalInvestidoBTC) / valorTotalInvestidoBTC) * 100
+  const retornoDeFi = baseInvestimento > 0 
+    ? (((client.valorCarteiraDeFi || 0) - baseInvestimento) / baseInvestimento) * 100
     : 0;
+
+  // Debug logs
+  console.log('Debug - Cálculo de Retorno:', {
+    valorTotalInvestidoBTC,
+    investimentoInicial: client.investimentoInicial,
+    baseInvestimento,
+    valorCarteiraDeFi: client.valorCarteiraDeFi,
+    retornoDeFi
+  });
 
   // Cálculos para Cliente Conservador
   const retornoUSDDeFi = (client.totalDepositado || 0) > 0
