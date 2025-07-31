@@ -12,6 +12,7 @@ import { useAuth } from './hooks/useAuth';
 import { apiClient } from './lib/api';
 import Notification from './components/Notification';
 import EmailVerificationScreen from './components/EmailVerificationScreen';
+import EmailConfirmationPage from './components/EmailConfirmationPage';
 
 function App() {
   const { usuario, token, loading, error, login, register, logout, isAuthenticated } = useAuth();
@@ -210,6 +211,16 @@ function App() {
         </div>
       </div>
     );
+  }
+
+  // Verificar se está na página de confirmação de email
+  const isEmailConfirmationPage = window.location.pathname === '/auth/callback' || 
+                                  window.location.search.includes('token=') ||
+                                  window.location.search.includes('type=signup');
+
+  // Se estiver na página de confirmação de email
+  if (isEmailConfirmationPage) {
+    return <EmailConfirmationPage />;
   }
 
   // Se não estiver autenticado, mostrar tela de login/registro ou verificação de email

@@ -166,7 +166,7 @@ class SupabaseApiClient {
             nome,
             tipo: 'admin'
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          emailRedirectTo: `${window.location.origin}`
         }
       })
 
