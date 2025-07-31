@@ -18,9 +18,9 @@ Confirme seu cadastro - Crypto Dashboard
 ```
 
 #### **Corpo do Email (HTML):**
-Copie e cole o conteúdo do arquivo `SUPABASE_EMAIL_TEMPLATE_SIMPLES.html` na aba **"Source"**.
+Copie e cole o conteúdo do arquivo `SUPABASE_EMAIL_TEMPLATE_COMPATIVEL.html` na aba **"Source"**.
 
-**Use o template simples** que não tem redirecionamento automático.
+**Use o template compatível** que funciona em Gmail, Hotmail, Outlook e outros clientes de email.
 
 ### **4. Configurações Adicionais**
 
@@ -49,6 +49,7 @@ https://courageous-jelly-382fd9.netlify.app/
 - ✅ **Tema verde** - Combina com o site
 - ✅ **Profissional** - Design moderno e elegante
 - ✅ **Português** - Texto em português brasileiro
+- ✅ **Compatível** - Funciona em Gmail, Hotmail, Outlook, Yahoo, etc.
 
 ### **Funcionalidades:**
 - ✅ **Botão de confirmação** - Link direto para confirmar
@@ -61,6 +62,7 @@ https://courageous-jelly-382fd9.netlify.app/
 - ✅ **Ícones** - Emojis para melhor UX
 - ✅ **Tipografia** - Fontes modernas e legíveis
 - ✅ **Espaçamento** - Layout bem estruturado
+- ✅ **Tabelas HTML** - Compatibilidade máxima com clientes de email
 
 ## 🔧 Configurações Importantes
 

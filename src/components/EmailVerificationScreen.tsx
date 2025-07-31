@@ -23,9 +23,55 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
       
       setIsChecking(true);
       try {
-        const { data: { user }, error } = await supabase.auth.getUser();
+        // Verificar status da sessão atual
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (user && user.email_confirmed_at) {
+        if (sessionError) {
+          console.log('Erro ao verificar sessão:', sessionError);
+        }
+        
+        // Verificar usuário atual
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError) {
+          console.log('Erro ao verificar usuário:', userError);
+        }
+        
+        // Verificação mais robusta
+        const isEmailConfirmed = user && (
+          user.email_confirmed_at || 
+          user.email_verified_at || 
+          (session && session.user && session.user.email_confirmed_at)
+        );
+        
+        // Verificação adicional na tabela de usuários
+        let dbUserConfirmed = false;
+        if (user?.id) {
+          try {
+            const { data: dbUser, error: dbError } = await supabase
+              .from('usuarios')
+              .select('email_confirmed_at, email_verified_at')
+              .eq('id', user.id)
+              .single();
+            
+            if (!dbError && dbUser) {
+              dbUserConfirmed = !!(dbUser.email_confirmed_at || dbUser.email_verified_at);
+            }
+          } catch (dbError) {
+            console.log('Erro ao verificar usuário na tabela:', dbError);
+          }
+        }
+        
+        console.log('Status da verificação:', {
+          user: user?.email,
+          email_confirmed_at: user?.email_confirmed_at,
+          email_verified_at: user?.email_verified_at,
+          session_user_confirmed: session?.user?.email_confirmed_at,
+          db_user_confirmed: dbUserConfirmed,
+          isEmailConfirmed: isEmailConfirmed || dbUserConfirmed
+        });
+        
+        if (isEmailConfirmed || dbUserConfirmed) {
           setIsVerified(true);
           // Aguarda 2 segundos para mostrar a mensagem de sucesso
           setTimeout(() => {
@@ -34,7 +80,7 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
           return;
         }
       } catch (error) {
-        console.log('Verificação em andamento...');
+        console.log('Erro na verificação:', error);
       } finally {
         setIsChecking(false);
       }
