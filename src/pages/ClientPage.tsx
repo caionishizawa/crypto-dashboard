@@ -25,39 +25,56 @@ export const ClientPage: React.FC<ClientPageProps> = ({
   const valorTotalInvestidoBTC = client.transacoes?.reduce((acc, t) => acc + t.usdValue, 0) || 0;
   const valorAtualBTCPuro = (client.btcTotal || 0) * (client.valorAtualBTC || 0);
   const valorDiferencaDeFi = (client.valorCarteiraDeFi || 0) - valorAtualBTCPuro;
-  const retornoDeFi = (((client.valorCarteiraDeFi || 0) - valorTotalInvestidoBTC) / valorTotalInvestidoBTC) * 100;
+  
+  // Corrigir cálculo do retorno para evitar Infinity
+  const retornoDeFi = valorTotalInvestidoBTC > 0 
+    ? (((client.valorCarteiraDeFi || 0) - valorTotalInvestidoBTC) / valorTotalInvestidoBTC) * 100
+    : 0;
 
   // Cálculos para Cliente Conservador
-  const retornoUSDDeFi = (((client.valorAtualUSD || 0) - (client.totalDepositado || 0)) / (client.totalDepositado || 1)) * 100;
+  const retornoUSDDeFi = (client.totalDepositado || 0) > 0
+    ? (((client.valorAtualUSD || 0) - (client.totalDepositado || 0)) / (client.totalDepositado || 0)) * 100
+    : 0;
 
-  // Dados do gráfico
-  const performanceData: PerformanceData[] = isTypeBitcoin ? [
-    { month: 'Jan', btcPuro: 50000, btcDeFi: 50000 },
-    { month: 'Fev', btcPuro: 48000, btcDeFi: 52000 },
-    { month: 'Mar', btcPuro: 55000, btcDeFi: 60000 },
-    { month: 'Abr', btcPuro: 58000, btcDeFi: 68000 },
-    { month: 'Mai', btcPuro: 54000, btcDeFi: 75000 },
-    { month: 'Jun', btcPuro: 60000, btcDeFi: 85000 },
-    { month: 'Jul', btcPuro: 65000, btcDeFi: 98000 },
-    { month: 'Ago', btcPuro: 70000, btcDeFi: 112000 },
-    { month: 'Set', btcPuro: 68000, btcDeFi: 125000 },
-    { month: 'Out', btcPuro: 75000, btcDeFi: 145000 },
-    { month: 'Nov', btcPuro: 80000, btcDeFi: 160000 },
-    { month: 'Dez', btcPuro: 85000, btcDeFi: 180000 }
-  ] : [
-    { month: 'Jan', usdParado: 100000, usdDeFi: 100000 },
-    { month: 'Fev', usdParado: 100000, usdDeFi: 101250 },
-    { month: 'Mar', usdParado: 100000, usdDeFi: 102500 },
-    { month: 'Abr', usdParado: 150000, usdDeFi: 153750 },
-    { month: 'Mai', usdParado: 150000, usdDeFi: 155625 },
-    { month: 'Jun', usdParado: 150000, usdDeFi: 157500 },
-    { month: 'Jul', usdParado: 200000, usdDeFi: 211250 },
-    { month: 'Ago', usdParado: 200000, usdDeFi: 213750 },
-    { month: 'Set', usdParado: 200000, usdDeFi: 216250 },
-    { month: 'Out', usdParado: 250000, usdDeFi: 271875 },
-    { month: 'Nov', usdParado: 250000, usdDeFi: 275000 },
-    { month: 'Dez', usdParado: 250000, usdDeFi: 287500 }
-  ];
+  // Calcular preço médio real
+  const precoMedioReal = (client.btcTotal || 0) > 0 
+    ? (client.investimentoInicial || 0) / (client.btcTotal || 1)
+    : 0;
+
+  // Dados do gráfico calculados em tempo real
+  const generatePerformanceData = (): PerformanceData[] => {
+    const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    const baseInvestment = client.investimentoInicial || 0;
+    const currentValue = client.valorCarteiraDeFi || 0;
+    const btcTotal = client.btcTotal || 0;
+    const btcPrice = client.valorAtualBTC || 0;
+    
+    return months.map((month, index) => {
+      const progress = (index + 1) / 12; // Progresso do ano (0 a 1)
+      
+      if (isTypeBitcoin) {
+        // Para Bitcoin: simular crescimento do BTC e DeFi
+        const btcGrowth = 1 + (progress * 0.3); // 30% de crescimento no ano
+        const defiGrowth = 1 + (progress * 0.8); // 80% de crescimento no ano
+        
+        const btcPuro = baseInvestment * btcGrowth;
+        const btcDeFi = currentValue * defiGrowth;
+        
+        return { month, btcPuro, btcDeFi };
+      } else {
+        // Para Conservador: simular crescimento USD
+        const usdGrowth = 1 + (progress * 0.05); // 5% de crescimento no ano
+        const defiGrowth = 1 + (progress * 0.15); // 15% de crescimento no ano
+        
+        const usdParado = baseInvestment * usdGrowth;
+        const usdDeFi = currentValue * defiGrowth;
+        
+        return { month, usdParado, usdDeFi };
+      }
+    });
+  };
+
+  const performanceData = generatePerformanceData();
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -134,7 +151,7 @@ export const ClientPage: React.FC<ClientPageProps> = ({
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-400 text-sm">Preço Médio</span>
-                      <span className="font-semibold">{formatarMoeda(client.precoMedio || 0)}</span>
+                      <span className="font-semibold">{formatarMoeda(precoMedioReal)}</span>
                     </div>
                   </div>
                 </div>

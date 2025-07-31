@@ -10,7 +10,15 @@ export const formatarMoeda = (value: number): string => {
 
 // Formatação de percentual
 export const formatarPercentual = (value: number): string => {
-  return `${value > 0 ? '+' : ''}${value.toFixed(2)}%`;
+  // Verificar se é Infinity, -Infinity ou NaN
+  if (!isFinite(value) || isNaN(value)) {
+    return '0.00%';
+  }
+  
+  // Limitar valores extremos
+  const limitedValue = Math.max(-999.99, Math.min(999.99, value));
+  
+  return `${limitedValue > 0 ? '+' : ''}${limitedValue.toFixed(2)}%`;
 };
 
 // Obter cor baseada no retorno
