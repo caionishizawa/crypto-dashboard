@@ -166,7 +166,7 @@ class SupabaseApiClient {
             nome,
             tipo: 'admin'
           }
-          // Removido emailRedirectTo para que apenas confirme o email sem redirecionar
+          // Sem emailRedirectTo - apenas confirma o email sem redirecionar
         }
       })
 
