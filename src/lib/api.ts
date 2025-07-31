@@ -203,26 +203,12 @@ class SupabaseApiClient {
         return { success: false, error: 'Erro ao criar usuário' }
       }
 
-      // Verificar se o email foi confirmado
-      if (!authData.session) {
-        return { 
-          success: true, 
-          message: 'Conta criada! Verifique seu email e clique no link de confirmação para ativar sua conta.',
-          requiresEmailConfirmation: true
-        }
-      }
-
+      // SEMPRE requer confirmação de email para todos os provedores
+      // Isso garante que Hotmail, Gmail, Yahoo, etc. funcionem igual
       return { 
         success: true, 
-        user: {
-          id: userData.id,
-          nome: userData.nome,
-          email: userData.email,
-          tipo: userData.tipo,
-          dataRegistro: userData.dataRegistro
-        },
-        token: authData.session?.access_token,
-        message: 'Conta criada e ativada com sucesso!'
+        message: 'Conta criada! Verifique seu email e clique no link de confirmação para ativar sua conta.',
+        requiresEmailConfirmation: true
       }
     } catch (error: any) {
       console.error('Erro no registro:', error)

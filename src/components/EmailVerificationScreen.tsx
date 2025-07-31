@@ -37,13 +37,16 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
           console.log('Erro ao verificar usuário:', userError);
         }
         
-        // Verificação mais robusta
-        const isEmailConfirmed = user && (
-          user.email_confirmed_at || 
-          (session && session.user && session.user.email_confirmed_at)
+        // Verificação mais rigorosa - só confirma se realmente estiver confirmado
+        const isEmailConfirmed = user && user.email_confirmed_at && (
+          // Verifica se tem timestamp de confirmação
+          new Date(user.email_confirmed_at).getTime() > 0 &&
+          // Verifica se não é um valor inválido
+          user.email_confirmed_at !== 'null' &&
+          user.email_confirmed_at !== 'undefined'
         );
         
-        // Verificação adicional na tabela de usuários
+        // Verificação adicional na tabela de usuários - mais rigorosa
         let dbUserConfirmed = false;
         if (user?.id) {
           try {
@@ -53,8 +56,12 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
               .eq('id', user.id)
               .single();
             
-            if (!dbError && dbUser) {
-              dbUserConfirmed = !!dbUser.email_confirmed_at;
+            if (!dbError && dbUser && dbUser.email_confirmed_at) {
+              // Verifica se o timestamp é válido
+              const confirmedAt = new Date(dbUser.email_confirmed_at);
+              dbUserConfirmed = confirmedAt.getTime() > 0 && 
+                               dbUser.email_confirmed_at !== 'null' &&
+                               dbUser.email_confirmed_at !== 'undefined';
             }
           } catch (dbError) {
             console.log('Erro ao verificar usuário na tabela:', dbError);
@@ -64,9 +71,13 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
         console.log('Status da verificação:', {
           user: user?.email,
           email_confirmed_at: user?.email_confirmed_at,
+          email_confirmed_timestamp: user?.email_confirmed_at ? new Date(user.email_confirmed_at).getTime() : null,
           session_user_confirmed: session?.user?.email_confirmed_at,
           db_user_confirmed: dbUserConfirmed,
-          isEmailConfirmed: isEmailConfirmed || dbUserConfirmed
+          isEmailConfirmed: isEmailConfirmed || dbUserConfirmed,
+          provider: user?.email?.includes('@hotmail') ? 'Hotmail' : 
+                   user?.email?.includes('@outlook') ? 'Outlook' : 
+                   user?.email?.includes('@gmail') ? 'Gmail' : 'Outro'
         });
         
         if (isEmailConfirmed || dbUserConfirmed) {
