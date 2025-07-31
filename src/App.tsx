@@ -10,6 +10,7 @@ import { ClientPage } from './pages/ClientPage';
 import { isSupabaseConfigured } from './lib/api';
 import { useAuth } from './hooks/useAuth';
 import { apiClient } from './lib/api';
+import { clienteService } from './services/clienteService';
 import Notification from './components/Notification';
 import EmailVerificationScreen from './components/EmailVerificationScreen';
 import EmailConfirmationPage from './components/EmailConfirmationPage';
@@ -42,15 +43,13 @@ function App() {
       if (isAuthenticated && token) {
         setLoadingClientes(true);
         try {
-          const response = await apiClient.getClientes();
-          if (response.success && response.data) {
-            // Converter array para objeto com IDs como chaves
-            const clientesObj: ClientesData = {};
-            response.data.forEach((cliente: any) => {
-              clientesObj[cliente.id] = cliente;
-            });
-            setClientes(clientesObj);
-          }
+          const clientesArray = await clienteService.getClientes();
+          // Converter array para objeto com IDs como chaves
+          const clientesObj: ClientesData = {};
+          clientesArray.forEach((cliente: Cliente) => {
+            clientesObj[cliente.id] = cliente;
+          });
+          setClientes(clientesObj);
         } catch (error) {
           console.error('Erro ao carregar clientes:', error);
         } finally {
@@ -150,15 +149,22 @@ function App() {
 
   const handleSaveClient = async (updatedClient: Cliente) => {
     try {
+      // Salvar no banco de dados
+      const savedClient = await clienteService.updateCliente(updatedClient.id, updatedClient);
+      
+      if (!savedClient) {
+        throw new Error('Falha ao salvar no banco de dados');
+      }
+
       // Atualizar no estado local
       setClientes(prev => ({
         ...prev,
-        [updatedClient.id]: updatedClient
+        [updatedClient.id]: savedClient
       }));
 
       // Atualizar cliente visualizando se for o mesmo
       if (clienteVisualizando && clienteVisualizando.id === updatedClient.id) {
-        setClienteVisualizando(updatedClient);
+        setClienteVisualizando(savedClient);
       }
 
       setNotification({
