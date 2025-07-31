@@ -27,7 +27,20 @@ export const useAuth = () => {
                                    urlParams.get('type') === 'recovery' ||
                                    window.location.hash.includes('access_token');
         
-        // Se vem de confirmação de email, fazer logout e limpar a sessão
+        // Se estamos na página de confirmação de email, não fazer logout automático
+        // Deixar que a página de confirmação detecte o sucesso primeiro
+        if (isEmailConfirmation && window.location.pathname.includes('confirm')) {
+          console.log('🔍 Detectada confirmação de email na página de confirmação, não fazendo logout automático...');
+          setAuthState({
+            usuario: null,
+            token: null,
+            loading: false,
+            error: null
+          });
+          return;
+        }
+        
+        // Se vem de confirmação de email mas não está na página de confirmação, fazer logout
         if (isEmailConfirmation) {
           console.log('🔍 Detectada confirmação de email, fazendo logout automático...');
           await authService.logout();
