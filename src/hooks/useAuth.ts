@@ -17,40 +17,30 @@ export const useAuth = () => {
     error: null
   });
 
-  // Verificar se há token salvo na sessão ao carregar
+  // Verificar se há sessão ativa do Supabase ao carregar
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Verificar se há token na sessão (sessionStorage é mais seguro que localStorage)
-        const token = sessionStorage.getItem('authToken');
+        // Verificar se há sessão ativa do Supabase
+        const result = await authService.getCurrentUser('');
         
-        if (token) {
-          // Verificar se o token ainda é válido
-          const result = await authService.getCurrentUser(token);
-          
-          if (result.success && result.usuario) {
-            setAuthState({
-              usuario: result.usuario,
-              token,
-              loading: false,
-              error: null
-            });
-          } else {
-            // Token inválido, limpar sessão
-            sessionStorage.removeItem('authToken');
-            setAuthState({
-              usuario: null,
-              token: null,
-              loading: false,
-              error: null
-            });
-          }
+        if (result.success && result.usuario) {
+          setAuthState({
+            usuario: result.usuario,
+            token: 'supabase-session', // Token simbólico para indicar sessão ativa
+            loading: false,
+            error: null
+          });
         } else {
-          setAuthState(prev => ({ ...prev, loading: false }));
+          setAuthState({
+            usuario: null,
+            token: null,
+            loading: false,
+            error: null
+          });
         }
       } catch (error) {
         console.error('Erro ao verificar autenticação:', error);
-        sessionStorage.removeItem('authToken');
         setAuthState({
           usuario: null,
           token: null,
@@ -69,13 +59,10 @@ export const useAuth = () => {
     try {
       const result = await authService.login(loginData);
       
-      if (result.success && result.usuario && result.token) {
-        // Salvar token na sessão
-        sessionStorage.setItem('authToken', result.token);
-        
+      if (result.success && result.usuario) {
         setAuthState({
           usuario: result.usuario,
-          token: result.token,
+          token: 'supabase-session', // Token simbólico para indicar sessão ativa
           loading: false,
           error: null
         });
@@ -107,13 +94,10 @@ export const useAuth = () => {
     try {
       const result = await authService.register(registerData);
       
-      if (result.success && result.usuario && result.token) {
-        // Salvar token na sessão
-        sessionStorage.setItem('authToken', result.token);
-        
+      if (result.success && result.usuario) {
         setAuthState({
           usuario: result.usuario,
-          token: result.token,
+          token: 'supabase-session', // Token simbólico para indicar sessão ativa
           loading: false,
           error: null
         });
@@ -150,14 +134,10 @@ export const useAuth = () => {
 
   const logout = async () => {
     try {
-      if (authState.token) {
-        await authService.logout();
-      }
+      await authService.logout();
     } catch (error) {
       console.error('Erro no logout:', error);
     } finally {
-      // Limpar sessão independente do resultado
-      sessionStorage.removeItem('authToken');
       setAuthState({
         usuario: null,
         token: null,

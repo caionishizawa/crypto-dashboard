@@ -3,7 +3,7 @@ import { apiClient } from '../lib/api';
 
 class AuthService {
   // Login do usuário
-  async login(loginData: LoginData): Promise<{ success: boolean; usuario?: Usuario; error?: string; token?: string }> {
+  async login(loginData: LoginData): Promise<{ success: boolean; usuario?: Usuario; error?: string }> {
     try {
       const response = await apiClient.login(loginData.email, loginData.senha);
       
@@ -19,8 +19,7 @@ class AuthService {
 
         return { 
           success: true, 
-          usuario: userData,
-          token: response.token
+          usuario: userData
         };
       }
       
@@ -32,7 +31,7 @@ class AuthService {
   }
 
   // Registro de novo usuário
-  async register(registerData: RegisterData): Promise<{ success: boolean; usuario?: Usuario; error?: string; token?: string; requiresEmailConfirmation?: boolean }> {
+  async register(registerData: RegisterData): Promise<{ success: boolean; usuario?: Usuario; error?: string; requiresEmailConfirmation?: boolean }> {
     try {
       const response = await apiClient.register(
         registerData.nome,
@@ -52,8 +51,7 @@ class AuthService {
 
         return { 
           success: true, 
-          usuario: userData,
-          token: response.token
+          usuario: userData
         };
       }
       

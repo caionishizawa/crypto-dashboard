@@ -122,8 +122,7 @@ class SupabaseApiClient {
           email: userData.email,
           tipo: userData.tipo,
           dataRegistro: userData.dataRegistro
-        },
-        token: data.session?.access_token
+        }
       }
     } catch (error: any) {
       console.error('Erro no login:', error)
@@ -225,18 +224,19 @@ class SupabaseApiClient {
         }
       }
 
-      // Verificar token
-      const { userId, valid } = verifyToken(token)
-      if (!valid) {
-        return { success: false, error: 'Token inválido ou expirado' }
+      // Usar a sessão atual do Supabase
+      const { data: { session }, error: sessionError } = await supabase!.auth.getSession()
+      
+      if (sessionError || !session) {
+        return { success: false, error: 'Sessão não encontrada' }
       }
 
-      // Buscar usuário pelo ID
+      // Buscar dados do usuário na tabela usuarios
       const { data: userData, error: userError } = await safeQuery(async () => {
         return await supabase!
           .from('usuarios')
           .select('id, nome, email, tipo, dataRegistro')
-          .eq('id', userId)
+          .eq('email', session.user.email)
           .single()
       })
 
