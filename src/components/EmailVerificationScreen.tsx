@@ -51,24 +51,6 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
           return;
         }
         
-        // Verificar também na tabela auth.users do Supabase
-        const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-        
-        if (!authError && authUsers) {
-          const user = authUsers.users.find(u => u.email === email);
-          if (user && user.email_confirmed_at) {
-            console.log('🔍 Email confirmado na tabela auth!');
-            setIsVerified(true);
-            setIsChecking(false);
-            
-            // Aguarda 2 segundos para mostrar a mensagem de sucesso
-            setTimeout(() => {
-              onVerificationComplete();
-            }, 2000);
-            return;
-          }
-        }
-        
         console.log('Email ainda não confirmado');
       } catch (error) {
         console.log('Erro na verificação:', error);
