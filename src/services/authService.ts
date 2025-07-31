@@ -32,7 +32,7 @@ class AuthService {
   }
 
   // Registro de novo usuário
-  async register(registerData: RegisterData): Promise<{ success: boolean; usuario?: Usuario; error?: string; token?: string }> {
+  async register(registerData: RegisterData): Promise<{ success: boolean; usuario?: Usuario; error?: string; token?: string; requiresEmailConfirmation?: boolean }> {
     try {
       const response = await apiClient.register(
         registerData.nome,
@@ -54,6 +54,14 @@ class AuthService {
           success: true, 
           usuario: userData,
           token: response.token
+        };
+      }
+      
+      // Se requer confirmação de email
+      if (response.success && response.requiresEmailConfirmation) {
+        return { 
+          success: true, 
+          requiresEmailConfirmation: true
         };
       }
       

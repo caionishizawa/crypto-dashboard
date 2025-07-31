@@ -10,6 +10,8 @@ import { ClientPage } from './pages/ClientPage';
 import { isSupabaseConfigured } from './lib/api';
 import { useAuth } from './hooks/useAuth';
 import { apiClient } from './lib/api';
+import Notification from './components/Notification';
+import EmailVerificationScreen from './components/EmailVerificationScreen';
 
 function App() {
   const { usuario, token, loading, error, login, register, logout, isAuthenticated } = useAuth();
@@ -17,6 +19,19 @@ function App() {
   const [clienteVisualizando, setClienteVisualizando] = useState<Cliente | null>(null);
   const [clientes, setClientes] = useState<ClientesData>({});
   const [loadingClientes, setLoadingClientes] = useState(false);
+  
+  // Estados para notificações e verificação de email
+  const [notification, setNotification] = useState<{
+    message: string;
+    type: 'success' | 'error' | 'info' | 'warning';
+    isVisible: boolean;
+  }>({
+    message: '',
+    type: 'info',
+    isVisible: false
+  });
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState('');
 
   // Carregar clientes quando o usuário estiver autenticado
   useEffect(() => {
@@ -47,8 +62,19 @@ function App() {
   const handleLogin = async (dados: LoginData & { manterConectado?: boolean }) => {
     const resultado = await login(dados);
     if (!resultado.success) {
+      setNotification({
+        message: resultado.error || 'Erro ao fazer login',
+        type: 'error',
+        isVisible: true
+      });
       return { success: false, error: resultado.error || 'Erro ao fazer login' };
     }
+    
+    setNotification({
+      message: 'Login realizado com sucesso!',
+      type: 'success',
+      isVisible: true
+    });
     return { success: true };
   };
 
@@ -57,13 +83,54 @@ function App() {
     if (!resultado.success) {
       return { success: false, error: resultado.error || 'Erro ao fazer cadastro' };
     }
+    
+    // Se o registro foi bem-sucedido e requer confirmação de email
+    if (resultado.requiresEmailConfirmation) {
+      setVerificationEmail(dados.email);
+      setShowEmailVerification(true);
+      setNotification({
+        message: 'Conta criada com sucesso! Verifique seu email para confirmar.',
+        type: 'success',
+        isVisible: true
+      });
+      return { 
+        success: true, 
+        requiresEmailConfirmation: true,
+        message: 'Verifique seu email para confirmar sua conta.'
+      };
+    }
+    
+    // Se não requer confirmação, voltar para login
     setModoRegistro(false);
+    setNotification({
+      message: 'Conta criada com sucesso! Faça login para continuar.',
+      type: 'success',
+      isVisible: true
+    });
     return { success: true };
   };
 
   const handleLogout = () => {
     logout();
     setClienteVisualizando(null);
+  };
+
+  // Funções para a tela de verificação de email
+  const handleVerificationComplete = () => {
+    setShowEmailVerification(false);
+    setVerificationEmail('');
+    setModoRegistro(false);
+    setNotification({
+      message: 'Email verificado com sucesso! Faça login para continuar.',
+      type: 'success',
+      isVisible: true
+    });
+  };
+
+  const handleBackToLogin = () => {
+    setShowEmailVerification(false);
+    setVerificationEmail('');
+    setModoRegistro(false);
   };
 
   const handleViewClient = (client: Cliente) => {
@@ -90,13 +157,25 @@ function App() {
           [response.data.id]: response.data
         }));
 
-        alert('Cliente criado com sucesso!');
+        setNotification({
+          message: 'Cliente criado com sucesso!',
+          type: 'success',
+          isVisible: true
+        });
       } else {
-        alert('Erro ao criar cliente: ' + (response.error || 'Erro desconhecido'));
+        setNotification({
+          message: 'Erro ao criar cliente: ' + (response.error || 'Erro desconhecido'),
+          type: 'error',
+          isVisible: true
+        });
       }
     } catch (error) {
       console.error('Erro ao criar cliente:', error);
-      alert('Erro ao criar cliente. Tente novamente.');
+      setNotification({
+        message: 'Erro ao criar cliente. Tente novamente.',
+        type: 'error',
+        isVisible: true
+      });
     }
   };
 
@@ -133,19 +212,36 @@ function App() {
     );
   }
 
-  // Se não estiver autenticado, mostrar tela de login/registro
+  // Se não estiver autenticado, mostrar tela de login/registro ou verificação de email
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
         <ModeIndicator />
         
-        <div className="w-full max-w-md">
-          {modoRegistro ? (
-            <RegisterForm onRegister={handleRegister} onSwitchToLogin={() => setModoRegistro(false)} />
-          ) : (
-            <LoginForm onLogin={handleLogin} onSwitchToRegister={() => setModoRegistro(true)} />
-          )}
-        </div>
+        {/* Notificação */}
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          isVisible={notification.isVisible}
+          onClose={() => setNotification(prev => ({ ...prev, isVisible: false }))}
+        />
+        
+        {/* Tela de verificação de email */}
+        {showEmailVerification ? (
+          <EmailVerificationScreen
+            email={verificationEmail}
+            onVerificationComplete={handleVerificationComplete}
+            onBackToLogin={handleBackToLogin}
+          />
+        ) : (
+          <div className="w-full max-w-md">
+            {modoRegistro ? (
+              <RegisterForm onRegister={handleRegister} onSwitchToLogin={() => setModoRegistro(false)} />
+            ) : (
+              <LoginForm onLogin={handleLogin} onSwitchToRegister={() => setModoRegistro(true)} />
+            )}
+          </div>
+        )}
       </div>
     );
   }
@@ -155,6 +251,12 @@ function App() {
     return (
       <div className="min-h-screen bg-black text-white">
         <ModeIndicator />
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          isVisible={notification.isVisible}
+          onClose={() => setNotification(prev => ({ ...prev, isVisible: false }))}
+        />
         <ClientPage 
           client={clienteVisualizando} 
           onGoBack={handleBackToAdmin}
@@ -168,6 +270,12 @@ function App() {
   return (
     <div className="min-h-screen bg-black text-white">
       <ModeIndicator />
+      <Notification
+        message={notification.message}
+        type={notification.type}
+        isVisible={notification.isVisible}
+        onClose={() => setNotification(prev => ({ ...prev, isVisible: false }))}
+      />
       <AdminPage
         currentUser={usuario!}
         clients={clientes}

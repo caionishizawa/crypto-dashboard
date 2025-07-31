@@ -1,2 +1,4 @@
 // Exporta todos os componentes do projeto
-export * from './auth'; 
+export * from './auth';
+export { default as Notification } from './Notification';
+export { default as EmailVerificationScreen } from './EmailVerificationScreen'; 

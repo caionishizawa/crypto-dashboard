@@ -68,6 +68,7 @@ interface ApiResponse {
   success?: boolean;
   message?: string;
   error?: string;
+  requiresEmailConfirmation?: boolean;
   [key: string]: any;
 }
 

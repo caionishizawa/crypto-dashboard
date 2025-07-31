@@ -119,6 +119,15 @@ export const useAuth = () => {
         });
         
         return { success: true };
+      } else if (result.success && result.requiresEmailConfirmation) {
+        // Usuário criado mas precisa confirmar email
+        setAuthState(prev => ({
+          ...prev,
+          loading: false,
+          error: null
+        }));
+        
+        return { success: true, requiresEmailConfirmation: true };
       } else {
         setAuthState(prev => ({
           ...prev,
