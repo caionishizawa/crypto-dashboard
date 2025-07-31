@@ -426,6 +426,22 @@ function App() {
 
   // Se não estiver autenticado, mostrar tela de login/registro ou verificação de email
   if (!isAuthenticated) {
+    // Verificar se o usuário vem de uma confirmação de email
+    const urlParams = new URLSearchParams(window.location.search);
+    const isEmailConfirmation = urlParams.get('type') === 'signup' || 
+                               urlParams.get('type') === 'recovery' ||
+                               window.location.hash.includes('access_token');
+    
+    // Se vem de confirmação de email, mostrar a página de confirmação
+    if (isEmailConfirmation) {
+      return (
+        <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
+          <ModeIndicator />
+          <EmailConfirmationPage />
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
         <ModeIndicator />
