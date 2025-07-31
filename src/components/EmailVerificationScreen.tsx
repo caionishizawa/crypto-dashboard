@@ -15,7 +15,6 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
   const [isChecking, setIsChecking] = useState(false);
   const [checkCount, setCheckCount] = useState(0);
   const [isVerified, setIsVerified] = useState(false);
-  const [startTime] = useState(Date.now());
 
   // Verificar status da verificação a cada 10 segundos
   useEffect(() => {
@@ -26,18 +25,23 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
       setCheckCount(prev => prev + 1);
       
       try {
-        // Verificar se o usuário está autenticado no Supabase (indicando que confirmou o email)
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        // Verificar diretamente na tabela auth.users do Supabase
+        // Esta é a tabela onde o Supabase armazena o status real de confirmação
+        const { data: authUsers, error } = await supabase
+          .from('auth.users')
+          .select('id, email, email_confirmed_at, created_at')
+          .eq('email', email)
+          .maybeSingle();
         
-        if (userError) {
-          console.log('Usuário não autenticado ainda:', userError);
+        if (error) {
+          console.log('Erro ao verificar usuário no auth.users:', error);
           setIsChecking(false);
           return;
         }
         
-        // Se o usuário está autenticado e o email confere, significa que confirmou
-        if (user && user.email === email && user.email_confirmed_at) {
-          console.log('🔍 Usuário autenticado e email confirmado!');
+        // Se encontrou o usuário e o email foi confirmado
+        if (authUsers && authUsers.email_confirmed_at) {
+          console.log('🔍 Email confirmado no Supabase!', authUsers.email_confirmed_at);
           setIsVerified(true);
           setIsChecking(false);
           
@@ -48,42 +52,19 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
           return;
         }
         
-        // Verificação alternativa: verificar se o usuário foi criado recentemente (últimos 5 minutos)
-        const { data: users, error } = await supabase
-          .from('usuarios')
-          .select('id, email, dataRegistro')
-          .eq('email', email)
-          .maybeSingle();
-        
-        if (error) {
-          console.log('Erro ao buscar usuário:', error);
+        // Se encontrou o usuário mas o email ainda não foi confirmado
+        if (authUsers && !authUsers.email_confirmed_at) {
+          console.log('Usuário existe mas email ainda não foi confirmado');
           setIsChecking(false);
           return;
         }
         
-        // Se o usuário existe e foi criado nos últimos 5 minutos, considerar como não confirmado ainda
-        if (users && users.id) {
-          const userCreatedAt = new Date(users.dataRegistro).getTime();
-          const timeSinceCreation = Date.now() - userCreatedAt;
-          const fiveMinutes = 5 * 60 * 1000;
-          
-          // Se foi criado há mais de 5 minutos, considerar como confirmado
-          if (timeSinceCreation > fiveMinutes) {
-            console.log('🔍 Usuário criado há mais de 5 minutos, considerando como confirmado!');
-            setIsVerified(true);
-            setIsChecking(false);
-            
-            setTimeout(() => {
-              onVerificationComplete();
-            }, 2000);
-            return;
-          }
-        }
+        // Se não encontrou o usuário
+        console.log('Usuário não encontrado na tabela auth.users');
+        setIsChecking(false);
         
-        console.log('Usuário ainda não confirmou o email');
       } catch (error) {
         console.log('Erro na verificação:', error);
-      } finally {
         setIsChecking(false);
       }
     };
@@ -102,7 +83,7 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
       clearTimeout(initialTimer);
       clearInterval(interval);
     };
-  }, [email, isVerified, onVerificationComplete, startTime]);
+  }, [email, isVerified, onVerificationComplete]);
 
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
