@@ -25,22 +25,18 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
       setCheckCount(prev => prev + 1);
       
       try {
-        // Verificar se o usuário existe na tabela usuarios (indicando que foi registrado)
-        const { data: users, error } = await supabase
-          .from('usuarios')
-          .select('id, email, dataRegistro')
-          .eq('email', email)
-          .single();
+        // Verificar se o usuário está autenticado no Supabase
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
         
-        if (error) {
-          console.log('Erro ao buscar usuário:', error);
+        if (userError) {
+          console.log('Usuário não autenticado:', userError);
           setIsChecking(false);
           return;
         }
         
-        // Se o usuário existe na tabela, significa que foi registrado com sucesso
-        if (users && users.id) {
-          console.log('🔍 Usuário encontrado na tabela usuarios!');
+        // Se o usuário está autenticado e o email confere, significa que foi confirmado
+        if (user && user.email === email && user.email_confirmed_at) {
+          console.log('🔍 Usuário autenticado e email confirmado!');
           setIsVerified(true);
           setIsChecking(false);
           
@@ -51,7 +47,7 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
           return;
         }
         
-        console.log('Usuário ainda não encontrado na tabela');
+        console.log('Usuário ainda não confirmou o email');
       } catch (error) {
         console.log('Erro na verificação:', error);
       } finally {
