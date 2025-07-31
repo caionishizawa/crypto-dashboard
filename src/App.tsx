@@ -38,6 +38,22 @@ function App() {
     }
     return 'admin';
   });
+
+  // Estado para armazenar o ID do cliente que estava sendo visualizado
+  const [savedClienteId, setSavedClienteId] = useState<string | null>(() => {
+    // Tentar restaurar o ID do cliente do sessionStorage na inicialização
+    try {
+      const savedPage = sessionStorage.getItem('currentPage');
+      if (savedPage) {
+        const pageData = JSON.parse(savedPage);
+        console.log('🔍 Inicializando savedClienteId com:', pageData.clienteId);
+        return pageData.clienteId;
+      }
+    } catch (error) {
+      console.error('Erro ao inicializar savedClienteId:', error);
+    }
+    return null;
+  });
   
   // Estados para notificações e verificação de email
   const [notification, setNotification] = useState<{
@@ -59,7 +75,7 @@ function App() {
       // Salvar página atual no sessionStorage
       const pageData = {
         currentPage,
-        clienteId: clienteVisualizando?.id || null
+        clienteId: savedClienteId || clienteVisualizando?.id || null
       };
       
       // Log detalhado para debug
@@ -69,41 +85,28 @@ function App() {
       
       sessionStorage.setItem('currentPage', JSON.stringify(pageData));
     }
-  }, [currentPage, clienteVisualizando, isAuthenticated]);
+  }, [currentPage, clienteVisualizando, savedClienteId, isAuthenticated]);
 
-  // Restaurar página atual ao carregar
+  // Restaurar cliente visualizando quando os clientes carregarem
   useEffect(() => {
     if (isAuthenticated && !loading && !loadingClientes && Object.keys(clientes).length > 0) {
-      const savedPage = sessionStorage.getItem('currentPage');
-      console.log('🔍 Tentando restaurar página. Saved page:', savedPage);
-      
-      if (savedPage) {
-        try {
-          const pageData = JSON.parse(savedPage);
-          console.log('🔍 Dados da página restaurada:', pageData);
-          console.log('🔍 Clientes disponíveis:', Object.keys(clientes));
-          
-          setCurrentPage(pageData.currentPage);
-          
-          // Se estava visualizando um cliente, restaurar
-          if (pageData.currentPage === 'client' && pageData.clienteId) {
-            const cliente = clientes[pageData.clienteId];
-            console.log('🔍 Cliente encontrado:', cliente);
-            if (cliente) {
-              setClienteVisualizando(cliente);
-            } else {
-              console.log('🔍 Cliente não encontrado, voltando para admin');
-              setCurrentPage('admin');
-            }
-          }
-        } catch (error) {
-          console.error('Erro ao restaurar página:', error);
+      // Se temos um cliente salvo e estamos na página de cliente
+      if (currentPage === 'client' && savedClienteId) {
+        const cliente = clientes[savedClienteId];
+        console.log('🔍 Tentando restaurar cliente:', savedClienteId);
+        console.log('🔍 Cliente encontrado:', cliente);
+        
+        if (cliente) {
+          setClienteVisualizando(cliente);
+          console.log('🔍 Cliente restaurado com sucesso!');
+        } else {
+          console.log('🔍 Cliente não encontrado, voltando para admin');
+          setCurrentPage('admin');
+          setSavedClienteId(null);
         }
-      } else {
-        console.log('🔍 Nenhuma página salva encontrada');
       }
     }
-  }, [isAuthenticated, loading, loadingClientes, clientes]);
+  }, [isAuthenticated, loading, loadingClientes, clientes, currentPage, savedClienteId]);
 
   // Carregar clientes quando o usuário estiver autenticado
   useEffect(() => {
@@ -213,6 +216,7 @@ function App() {
     console.log('🔍 Estado atual antes da navegação:', { currentPage, clienteVisualizando: clienteVisualizando?.id });
     setClienteVisualizando(client);
     setCurrentPage('client');
+    setSavedClienteId(client.id);
     console.log('🔍 Estado definido para:', { currentPage: 'client', clienteId: client.id });
   };
 
@@ -220,6 +224,7 @@ function App() {
     console.log('🔍 Voltando para admin');
     setClienteVisualizando(null);
     setCurrentPage('admin');
+    setSavedClienteId(null);
   };
 
   const handleEditClient = () => {
