@@ -27,20 +27,7 @@ export const useAuth = () => {
                                    urlParams.get('type') === 'recovery' ||
                                    window.location.hash.includes('access_token');
         
-        // Se estamos na página de confirmação de email, não fazer logout automático
-        // Deixar que a página de confirmação detecte o sucesso primeiro
-        if (isEmailConfirmation && window.location.pathname.includes('confirm')) {
-          console.log('🔍 Detectada confirmação de email na página de confirmação, não fazendo logout automático...');
-          setAuthState({
-            usuario: null,
-            token: null,
-            loading: false,
-            error: null
-          });
-          return;
-        }
-        
-        // Se vem de confirmação de email mas não está na página de confirmação, fazer logout
+        // Se vem de confirmação de email, fazer logout e limpar a sessão
         if (isEmailConfirmation) {
           console.log('🔍 Detectada confirmação de email, fazendo logout automático...');
           try {
@@ -61,14 +48,14 @@ export const useAuth = () => {
           return;
         }
 
-        // Verificar se há sessão ativa do Supabase apenas se não for confirmação de email
+        // Verificar se há sessão ativa do Supabase apenas uma vez
         try {
           const result = await authService.getCurrentUser('');
           
           if (result.success && result.usuario) {
             setAuthState({
               usuario: result.usuario,
-              token: 'supabase-session', // Token simbólico para indicar sessão ativa
+              token: 'supabase-session',
               loading: false,
               error: null
             });
@@ -112,7 +99,7 @@ export const useAuth = () => {
       if (result.success && result.usuario) {
         setAuthState({
           usuario: result.usuario,
-          token: 'supabase-session', // Token simbólico para indicar sessão ativa
+          token: 'supabase-session',
           loading: false,
           error: null
         });
@@ -147,14 +134,13 @@ export const useAuth = () => {
       if (result.success && result.usuario) {
         setAuthState({
           usuario: result.usuario,
-          token: 'supabase-session', // Token simbólico para indicar sessão ativa
+          token: 'supabase-session',
           loading: false,
           error: null
         });
         
         return { success: true };
       } else if (result.success && result.requiresEmailConfirmation) {
-        // Usuário criado mas precisa confirmar email
         setAuthState(prev => ({
           ...prev,
           loading: false,

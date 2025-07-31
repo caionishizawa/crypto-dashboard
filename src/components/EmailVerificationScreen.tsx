@@ -16,92 +16,38 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
   const [checkCount, setCheckCount] = useState(0);
   const [isVerified, setIsVerified] = useState(false);
 
-  // Verificar status da verificação a cada 5 segundos (mais lento para evitar falsos positivos)
+  // Verificar status da verificação a cada 10 segundos
   useEffect(() => {
     const checkVerification = async () => {
       if (isVerified) return;
       
       setIsChecking(true);
+      setCheckCount(prev => prev + 1);
+      
       try {
         // Verificar usuário atual
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         
         if (userError) {
-          console.log('Erro ao verificar usuário:', userError);
+          console.log('Sem sessão ativa (normal):', userError);
           setIsChecking(false);
           return;
         }
         
-        // Verificação ULTRA rigorosa - só confirma se realmente estiver confirmado
-        let isEmailConfirmed = false;
-        
+        // Verificar se o email foi confirmado
         if (user && user.email_confirmed_at) {
-          try {
-            // Verifica se o timestamp é válido e recente
-            const confirmedAt = new Date(user.email_confirmed_at);
-            const now = new Date();
-            const timeDiff = now.getTime() - confirmedAt.getTime();
-            
-            // Só confirma se:
-            // 1. Timestamp é válido
-            // 2. Não é um valor inválido
-            // 3. A confirmação foi feita nos últimos 5 minutos (evita confirmações antigas)
-            isEmailConfirmed = confirmedAt.getTime() > 0 && 
-                              user.email_confirmed_at !== 'null' &&
-                              user.email_confirmed_at !== 'undefined' &&
-                              timeDiff < 5 * 60 * 1000; // 5 minutos
-          } catch (error) {
-            console.log('Erro ao verificar timestamp:', error);
-            isEmailConfirmed = false;
-          }
-        }
-        
-        // Verificação adicional na tabela de usuários
-        let dbUserConfirmed = false;
-        if (user?.id && !isEmailConfirmed) {
-          try {
-            const { data: dbUser, error: dbError } = await supabase
-              .from('usuarios')
-              .select('email_confirmed_at')
-              .eq('id', user.id)
-              .single();
-            
-            if (!dbError && dbUser && dbUser.email_confirmed_at) {
-              const confirmedAt = new Date(dbUser.email_confirmed_at);
-              const now = new Date();
-              const timeDiff = now.getTime() - confirmedAt.getTime();
-              
-              dbUserConfirmed = confirmedAt.getTime() > 0 && 
-                               dbUser.email_confirmed_at !== 'null' &&
-                               dbUser.email_confirmed_at !== 'undefined' &&
-                               timeDiff < 5 * 60 * 1000; // 5 minutos
-            }
-          } catch (dbError) {
-            console.log('Erro ao verificar usuário na tabela:', dbError);
-          }
-        }
-        
-        console.log('Status da verificação:', {
-          user: user?.email,
-          email_confirmed_at: user?.email_confirmed_at,
-          email_confirmed_timestamp: user?.email_confirmed_at ? new Date(user.email_confirmed_at).getTime() : null,
-          time_diff_minutes: user?.email_confirmed_at ? Math.round((new Date().getTime() - new Date(user.email_confirmed_at).getTime()) / (1000 * 60)) : null,
-          isEmailConfirmed,
-          db_user_confirmed: dbUserConfirmed,
-          final_confirmed: isEmailConfirmed || dbUserConfirmed,
-          provider: user?.email?.includes('@hotmail') ? 'Hotmail' : 
-                   user?.email?.includes('@outlook') ? 'Outlook' : 
-                   user?.email?.includes('@gmail') ? 'Gmail' : 'Outro'
-        });
-        
-        if (isEmailConfirmed || dbUserConfirmed) {
+          console.log('🔍 Email confirmado!');
           setIsVerified(true);
+          setIsChecking(false);
+          
           // Aguarda 2 segundos para mostrar a mensagem de sucesso
           setTimeout(() => {
             onVerificationComplete();
           }, 2000);
           return;
         }
+        
+        console.log('Email ainda não confirmado');
       } catch (error) {
         console.log('Erro na verificação:', error);
       } finally {
@@ -109,14 +55,15 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
       }
     };
 
-    // Primeira verificação após 10 segundos (mais tempo para o email chegar)
-    const initialTimer = setTimeout(checkVerification, 10000);
+    // Primeira verificação após 5 segundos
+    const initialTimer = setTimeout(checkVerification, 5000);
 
-    // Verificações subsequentes a cada 5 segundos
+    // Verificações subsequentes a cada 10 segundos
     const interval = setInterval(() => {
-      setCheckCount(prev => prev + 1);
-      checkVerification();
-    }, 5000);
+      if (!isVerified) {
+        checkVerification();
+      }
+    }, 10000);
 
     return () => {
       clearTimeout(initialTimer);
