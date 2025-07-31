@@ -23,8 +23,8 @@ function App() {
   const [clientes, setClientes] = useState<ClientesData>({});
   const [loadingClientes, setLoadingClientes] = useState(false);
   
-  // Sistema de roteamento para manter a página atual
-  const [currentPage, setCurrentPage] = useState<'admin' | 'client'>(() => {
+  // Sistema de roteamento expandido para manter todas as páginas
+  const [currentPage, setCurrentPage] = useState<'admin' | 'client' | 'carteiras' | 'snapshots' | 'criando-cliente' | 'editando-cliente'>(() => {
     // Tentar restaurar a página do sessionStorage na inicialização
     try {
       const savedPage = sessionStorage.getItem('currentPage');
@@ -54,6 +54,22 @@ function App() {
     }
     return null;
   });
+
+  // Estado para armazenar a aba ativa do admin
+  const [activeAdminTab, setActiveAdminTab] = useState<'clientes' | 'carteiras' | 'snapshots'>(() => {
+    // Tentar restaurar a aba do sessionStorage na inicialização
+    try {
+      const savedPage = sessionStorage.getItem('currentPage');
+      if (savedPage) {
+        const pageData = JSON.parse(savedPage);
+        console.log('🔍 Inicializando activeAdminTab com:', pageData.activeTab);
+        return pageData.activeTab || 'clientes';
+      }
+    } catch (error) {
+      console.error('Erro ao inicializar activeAdminTab:', error);
+    }
+    return 'clientes';
+  });
   
   // Estados para notificações e verificação de email
   const [notification, setNotification] = useState<{
@@ -75,7 +91,8 @@ function App() {
       // Salvar página atual no sessionStorage
       const pageData = {
         currentPage,
-        clienteId: savedClienteId || clienteVisualizando?.id || null
+        clienteId: savedClienteId || clienteVisualizando?.id || null,
+        activeTab: activeAdminTab
       };
       
       // Log detalhado para debug
@@ -85,7 +102,7 @@ function App() {
       
       sessionStorage.setItem('currentPage', JSON.stringify(pageData));
     }
-  }, [currentPage, clienteVisualizando, savedClienteId, isAuthenticated]);
+  }, [currentPage, clienteVisualizando, savedClienteId, activeAdminTab, isAuthenticated]);
 
   // Restaurar cliente visualizando quando os clientes carregarem
   useEffect(() => {
@@ -107,6 +124,24 @@ function App() {
       }
     }
   }, [isAuthenticated, loading, loadingClientes, clientes, currentPage, savedClienteId]);
+
+  // Restaurar aba ativa do admin
+  useEffect(() => {
+    if (isAuthenticated && !loading) {
+      const savedPage = sessionStorage.getItem('currentPage');
+      if (savedPage) {
+        try {
+          const pageData = JSON.parse(savedPage);
+          if (pageData.activeTab && pageData.currentPage === 'admin') {
+            console.log('🔍 Restaurando aba ativa:', pageData.activeTab);
+            setActiveAdminTab(pageData.activeTab);
+          }
+        } catch (error) {
+          console.error('Erro ao restaurar aba ativa:', error);
+        }
+      }
+    }
+  }, [isAuthenticated, loading]);
 
   // Carregar clientes quando o usuário estiver autenticado
   useEffect(() => {
@@ -225,6 +260,7 @@ function App() {
     setClienteVisualizando(null);
     setCurrentPage('admin');
     setSavedClienteId(null);
+    // Manter a aba ativa que estava sendo usada
   };
 
   const handleEditClient = () => {
@@ -479,6 +515,8 @@ function App() {
         onAddWallet={() => {}} // Implementar quando necessário
         onCreateSnapshot={() => {}} // Implementar quando necessário
         onCreateClient={handleCreateClient}
+        activeTab={activeAdminTab}
+        onTabChange={setActiveAdminTab}
       />
     </div>
   );

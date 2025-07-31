@@ -12,6 +12,8 @@ interface AdminPageProps {
   onAddWallet: (clientId: string, walletData: Omit<Carteira, 'id'>) => void;
   onCreateSnapshot: (clientId: string) => void;
   onCreateClient: (clienteData: Omit<Cliente, 'id' | 'transacoes' | 'carteiras' | 'snapshots'>) => void;
+  activeTab?: 'clientes' | 'carteiras' | 'snapshots';
+  onTabChange?: (tab: 'clientes' | 'carteiras' | 'snapshots') => void;
 }
 
 export const AdminPage: React.FC<AdminPageProps> = ({
@@ -21,9 +23,15 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   onViewClient,
   onAddWallet,
   onCreateSnapshot,
-  onCreateClient
+  onCreateClient,
+  activeTab: externalActiveTab,
+  onTabChange
 }) => {
-  const [activeTab, setActiveTab] = useState<'clientes' | 'carteiras' | 'snapshots'>('clientes');
+  const [internalActiveTab, setInternalActiveTab] = useState<'clientes' | 'carteiras' | 'snapshots'>(externalActiveTab || 'clientes');
+  
+  // Usar o tab externo se fornecido, senão usar o interno
+  const activeTab = externalActiveTab || internalActiveTab;
+  const setActiveTab = onTabChange || setInternalActiveTab;
   const [showAddWallet, setShowAddWallet] = useState(false);
   const [selectedClientForWallet, setSelectedClientForWallet] = useState('');
   const [newWalletAddress, setNewWalletAddress] = useState('');
