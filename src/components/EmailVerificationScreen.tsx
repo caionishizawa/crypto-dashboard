@@ -16,7 +16,7 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
   const [checkCount, setCheckCount] = useState(0);
   const [isVerified, setIsVerified] = useState(false);
 
-  // Verificar status da verificação a cada 10 segundos
+  // Verificar status da verificação a cada 5 segundos
   useEffect(() => {
     const checkVerification = async () => {
       if (isVerified) return;
@@ -25,18 +25,22 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
       setCheckCount(prev => prev + 1);
       
       try {
-        // Verificar usuário atual
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        // Verificar diretamente na tabela de usuários se o email foi confirmado
+        const { data: users, error } = await supabase
+          .from('usuarios')
+          .select('email_confirmed_at, email')
+          .eq('email', email)
+          .single();
         
-        if (userError) {
-          console.log('Sem sessão ativa (normal):', userError);
+        if (error) {
+          console.log('Erro ao buscar usuário:', error);
           setIsChecking(false);
           return;
         }
         
         // Verificar se o email foi confirmado
-        if (user && user.email_confirmed_at) {
-          console.log('🔍 Email confirmado!');
+        if (users && users.email_confirmed_at) {
+          console.log('🔍 Email confirmado no banco de dados!');
           setIsVerified(true);
           setIsChecking(false);
           
@@ -47,6 +51,24 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
           return;
         }
         
+        // Verificar também na tabela auth.users do Supabase
+        const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+        
+        if (!authError && authUsers) {
+          const user = authUsers.users.find(u => u.email === email);
+          if (user && user.email_confirmed_at) {
+            console.log('🔍 Email confirmado na tabela auth!');
+            setIsVerified(true);
+            setIsChecking(false);
+            
+            // Aguarda 2 segundos para mostrar a mensagem de sucesso
+            setTimeout(() => {
+              onVerificationComplete();
+            }, 2000);
+            return;
+          }
+        }
+        
         console.log('Email ainda não confirmado');
       } catch (error) {
         console.log('Erro na verificação:', error);
@@ -55,15 +77,15 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
       }
     };
 
-    // Primeira verificação após 5 segundos
-    const initialTimer = setTimeout(checkVerification, 5000);
+    // Primeira verificação após 3 segundos
+    const initialTimer = setTimeout(checkVerification, 3000);
 
-    // Verificações subsequentes a cada 10 segundos
+    // Verificações subsequentes a cada 5 segundos
     const interval = setInterval(() => {
       if (!isVerified) {
         checkVerification();
       }
-    }, 10000);
+    }, 5000);
 
     return () => {
       clearTimeout(initialTimer);
