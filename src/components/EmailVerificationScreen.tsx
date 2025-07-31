@@ -40,7 +40,6 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
         // Verificação mais robusta
         const isEmailConfirmed = user && (
           user.email_confirmed_at || 
-          user.email_verified_at || 
           (session && session.user && session.user.email_confirmed_at)
         );
         
@@ -50,12 +49,12 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
           try {
             const { data: dbUser, error: dbError } = await supabase
               .from('usuarios')
-              .select('email_confirmed_at, email_verified_at')
+              .select('email_confirmed_at')
               .eq('id', user.id)
               .single();
             
             if (!dbError && dbUser) {
-              dbUserConfirmed = !!(dbUser.email_confirmed_at || dbUser.email_verified_at);
+              dbUserConfirmed = !!dbUser.email_confirmed_at;
             }
           } catch (dbError) {
             console.log('Erro ao verificar usuário na tabela:', dbError);
@@ -65,7 +64,6 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
         console.log('Status da verificação:', {
           user: user?.email,
           email_confirmed_at: user?.email_confirmed_at,
-          email_verified_at: user?.email_verified_at,
           session_user_confirmed: session?.user?.email_confirmed_at,
           db_user_confirmed: dbUserConfirmed,
           isEmailConfirmed: isEmailConfirmed || dbUserConfirmed
