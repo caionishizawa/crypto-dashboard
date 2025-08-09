@@ -97,51 +97,34 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
     }
 
     // Validação avançada de email
-    console.log('🔍 Validando email:', formData.email);
-    const emailValido = validarEmailAvancado(formData.email);
-    console.log('📧 Email válido?', emailValido);
-    
-    if (!emailValido) {
-      console.log('❌ Email rejeitado pela validação');
+    if (!validarEmailAvancado(formData.email)) {
       setError('Por favor, use um email válido de um provedor conhecido (Gmail, Outlook, Yahoo, etc.)');
       setLoading(false);
       return;
     }
-    
-    console.log('✅ Email aprovado, prosseguindo...');
 
-    try {
-      console.log('🚀 Tentando registrar:', formData.email);
-      const result = await onRegister(formData);
-      console.log('📝 Resultado do registro:', result);
+    const result = await onRegister(formData);
+    
+    if (result.success) {
+      // Sempre mostrar sucesso e redirecionar para login
+      setSuccess('✅ Conta criada com sucesso!');
+      setRedirectCountdown(5); // Inicia countdown de 5 segundos
       
-      if (result.success) {
-        console.log('✅ Registro bem-sucedido!');
-        // Sempre mostrar sucesso e redirecionar para login
-        setSuccess('✅ Conta criada com sucesso!');
-        setRedirectCountdown(3); // Inicia countdown de 3 segundos
-        
-        // Limpar formulário
-        setFormData({
-          nome: '',
-          email: '',
-          senha: '',
-          confirmarSenha: ''
-        });
-        
-        // Redirecionamento direto após 3 segundos
-        setTimeout(() => {
-          console.log('🔄 Redirecionando para login...');
-          onSwitchToLogin();
-        }, 3000);
-        
-      } else {
-        console.log('❌ Erro no registro:', result.error);
-        setError(result.error || 'Erro ao criar conta');
-      }
-    } catch (error) {
-      console.error('💥 Erro na função de registro:', error);
-      setError('Erro interno. Tente novamente.');
+      // Limpar formulário
+      setFormData({
+        nome: '',
+        email: '',
+        senha: '',
+        confirmarSenha: ''
+      });
+      
+      // Redirecionamento direto após 5 segundos (mais tempo para ver)
+      setTimeout(() => {
+        onSwitchToLogin();
+      }, 5000);
+      
+    } else {
+      setError(result.error || 'Erro ao criar conta');
     }
     setLoading(false);
   };
