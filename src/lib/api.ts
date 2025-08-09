@@ -156,7 +156,7 @@ class SupabaseApiClient {
         return { success: false, error: 'Email já cadastrado' }
       }
 
-      // Criar usuário usando Supabase Auth
+      // Criar usuário usando Supabase Auth (SEM confirmação por email)
       const { data: authData, error: authError } = await supabase!.auth.signUp({
         email,
         password: senha,
@@ -164,8 +164,10 @@ class SupabaseApiClient {
           data: {
             nome,
             tipo: 'admin'
-          }
-          // Sem emailRedirectTo - apenas confirma o email sem redirecionar
+          },
+          // Desabilitar completamente o envio de email de confirmação
+          emailRedirectTo: undefined,
+          captchaToken: undefined
         }
       })
 
@@ -202,12 +204,13 @@ class SupabaseApiClient {
         return { success: false, error: 'Erro ao criar usuário' }
       }
 
-      // SEMPRE requer confirmação de email para todos os provedores
-      // Isso garante que Hotmail, Gmail, Yahoo, etc. funcionem igual
+      // SEMPRE fazer logout após criar conta (sem confirmação por email)
+      await supabase!.auth.signOut();
+      
       return { 
         success: true, 
-        message: 'Conta criada! Verifique seu email e clique no link de confirmação para ativar sua conta.',
-        requiresEmailConfirmation: true
+        message: 'Conta criada com sucesso! Faça login para acessar sua conta.',
+        requiresEmailConfirmation: false
       }
     } catch (error: any) {
       console.error('Erro no registro:', error)

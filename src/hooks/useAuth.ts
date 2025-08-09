@@ -21,32 +21,7 @@ export const useAuth = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Verificar se o usuário vem de uma confirmação de email
-        const urlParams = new URLSearchParams(window.location.search);
-        const isEmailConfirmation = urlParams.get('type') === 'signup' || 
-                                   urlParams.get('type') === 'recovery' ||
-                                   window.location.hash.includes('access_token');
-        
-        // Se vem de confirmação de email, fazer logout e limpar a sessão
-        if (isEmailConfirmation) {
-          console.log('🔍 Detectada confirmação de email, fazendo logout automático...');
-          try {
-            await authService.logout();
-          } catch (error) {
-            console.log('🔍 Erro no logout (normal):', error);
-          }
-          
-          // Limpar a URL para remover os parâmetros
-          window.history.replaceState({}, document.title, window.location.pathname);
-          
-          setAuthState({
-            usuario: null,
-            token: null,
-            loading: false,
-            error: null
-          });
-          return;
-        }
+        // Não há mais confirmação de email - removido essa lógica
 
         // Verificar se há sessão ativa do Supabase apenas uma vez
         try {
@@ -131,23 +106,20 @@ export const useAuth = () => {
     try {
       const result = await authService.register(registerData);
       
-      if (result.success && result.usuario) {
-        setAuthState({
-          usuario: result.usuario,
-          token: 'supabase-session',
-          loading: false,
-          error: null
-        });
-        
-        return { success: true };
-      } else if (result.success && result.requiresEmailConfirmation) {
-        setAuthState(prev => ({
-          ...prev,
-          loading: false,
-          error: null
-        }));
-        
+      // NUNCA fazer login automático após registro
+      // Sempre manter o usuário deslogado após o registro
+      setAuthState({
+        usuario: null,
+        token: null,
+        loading: false,
+        error: null
+      });
+      
+      if (result.success && result.requiresEmailConfirmation) {
         return { success: true, requiresEmailConfirmation: true };
+      } else if (result.success) {
+        // Mesmo se não requer confirmação, manter deslogado
+        return { success: true, requiresEmailConfirmation: false };
       } else {
         setAuthState(prev => ({
           ...prev,

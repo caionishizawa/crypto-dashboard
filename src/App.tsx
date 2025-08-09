@@ -16,12 +16,35 @@ import EmailVerificationScreen from './components/EmailVerificationScreen';
 import EmailConfirmationPage from './components/EmailConfirmationPage';
 import { EditClientModal } from './components/EditClientModal';
 
+// Sistema de transição de cores
+const coresPredefinidas = [
+  [69, 26, 3],      // Dourado escuro
+  [20, 83, 45],     // Verde escuro
+  [30, 58, 138],    // Azul escuro
+  [88, 28, 135],    // Roxo escuro
+  [120, 53, 15],    // Laranja escuro
+  [15, 23, 42],     // Azul muito escuro
+];
+
+function calcularCor(cor1: number[], cor2: number[], progresso: number): number[] {
+  const ret = [];
+  for (let i = 0; i < cor1.length; i++) {
+    ret[i] = Math.round(cor2[i] * progresso + cor1[i] * (1 - progresso));
+  }
+  return ret;
+}
+
 function App() {
   const { usuario, token, loading, error, login, register, logout, isAuthenticated } = useAuth();
   const [modoRegistro, setModoRegistro] = useState(false);
   const [clienteVisualizando, setClienteVisualizando] = useState<Cliente | null>(null);
   const [clientes, setClientes] = useState<ClientesData>({});
   const [loadingClientes, setLoadingClientes] = useState(false);
+  
+  // Estados para transição de cores
+  const [corAtual, setCorAtual] = useState([69, 26, 3]);
+  const [progresso, setProgresso] = useState(0);
+  const [indiceCores, setIndiceCores] = useState(0);
   
   // Sistema de roteamento expandido para manter todas as páginas
   const [currentPage, setCurrentPage] = useState<'admin' | 'client' | 'carteiras' | 'snapshots' | 'criando-cliente' | 'editando-cliente'>(() => {
@@ -84,6 +107,41 @@ function App() {
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
   const [showEditModal, setShowEditModal] = useState(false);
+
+  // Animação de transição de cores
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setProgresso(prev => {
+        const novoProgresso = prev + 0.003; // Mais lento para transição suave
+        
+        if (novoProgresso > 1) {
+          // Próxima cor
+          setIndiceCores(prev => {
+            const novoIndice = (prev + 1) % coresPredefinidas.length;
+            return novoIndice;
+          });
+          return 0;
+        }
+        
+        return novoProgresso;
+      });
+    }, 30); // 30ms para transição mais suave
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Calcular cor atual baseada no progresso entre duas cores
+  const corAtualIndex = indiceCores;
+  const proximaCorIndex = (indiceCores + 1) % coresPredefinidas.length;
+  
+  const corAtualRGB = coresPredefinidas[corAtualIndex];
+  const proximaCorRGB = coresPredefinidas[proximaCorIndex];
+  
+  const corCalculada = calcularCor(corAtualRGB, proximaCorRGB, progresso);
+  
+  const backgroundStyle = {
+    background: `linear-gradient(135deg, rgb(${corCalculada.join(',')}) 0%, rgb(${Math.round(corCalculada[0] * 0.7)}, ${Math.round(corCalculada[1] * 0.7)}, ${Math.round(corCalculada[2] * 0.7)}) 100%)`
+  };
 
   // Sistema de roteamento - salvar e restaurar página atual
   useEffect(() => {
@@ -192,23 +250,7 @@ function App() {
       return { success: false, error: resultado.error || 'Erro ao fazer cadastro' };
     }
     
-    // Se o registro foi bem-sucedido e requer confirmação de email
-    if (resultado.requiresEmailConfirmation) {
-      setVerificationEmail(dados.email);
-      setShowEmailVerification(true);
-      setNotification({
-        message: 'Conta criada com sucesso! Verifique seu email para confirmar.',
-        type: 'success',
-        isVisible: true
-      });
-      return { 
-        success: true, 
-        requiresEmailConfirmation: true,
-        message: 'Verifique seu email para confirmar sua conta.'
-      };
-    }
-    
-    // Se não requer confirmação, voltar para login
+    // Sempre voltar para login após criar conta (sem confirmação de email)
     setModoRegistro(false);
     setNotification({
       message: 'Conta criada com sucesso! Faça login para continuar.',
@@ -435,41 +477,105 @@ function App() {
     // Se vem de confirmação de email, mostrar a página de confirmação
     if (isEmailConfirmation) {
       return (
-        <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
-          <ModeIndicator />
-          <EmailConfirmationPage />
+        <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white flex items-center justify-center p-4">
+          {/* Fundo animado com gradientes */}
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-900"></div>
+          
+          {/* Elementos decorativos de fundo */}
+          <div className="absolute top-0 left-0 w-full h-full">
+            {/* Gradiente radial superior esquerdo */}
+            <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-green-500/25 via-transparent to-transparent rounded-full blur-3xl animate-pulse"></div>
+            
+            {/* Gradiente radial superior direito */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-blue-500/25 via-transparent to-transparent rounded-full blur-3xl animate-pulse delay-1000"></div>
+            
+            {/* Gradiente radial inferior esquerdo */}
+            <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-purple-500/25 via-transparent to-transparent rounded-full blur-3xl animate-pulse delay-2000"></div>
+            
+            {/* Gradiente radial inferior direito */}
+            <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-cyan-500/25 via-transparent to-transparent rounded-full blur-3xl animate-pulse delay-3000"></div>
+            
+            {/* Partículas flutuantes */}
+            <div className="absolute top-20 left-20 w-3 h-3 bg-green-400/60 rounded-full animate-bounce shadow-lg shadow-green-400/30"></div>
+            <div className="absolute top-40 right-32 w-2 h-2 bg-blue-400/70 rounded-full animate-bounce delay-1000 shadow-lg shadow-blue-400/40"></div>
+            <div className="absolute bottom-32 left-40 w-2.5 h-2.5 bg-purple-400/65 rounded-full animate-bounce delay-2000 shadow-lg shadow-purple-400/35"></div>
+            <div className="absolute bottom-20 right-20 w-2 h-2 bg-cyan-400/75 rounded-full animate-bounce delay-3000 shadow-lg shadow-cyan-400/45"></div>
+            <div className="absolute top-1/2 left-10 w-2 h-2 bg-green-400/55 rounded-full animate-bounce delay-1500 shadow-lg shadow-green-400/25"></div>
+            <div className="absolute top-1/3 right-10 w-2.5 h-2.5 bg-blue-400/60 rounded-full animate-bounce delay-2500 shadow-lg shadow-blue-400/30"></div>
+          </div>
+          
+          {/* Overlay sutil para melhorar legibilidade */}
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]"></div>
+          
+          {/* Conteúdo principal */}
+          <div className="relative z-10 w-full max-w-md">
+            <ModeIndicator />
+            <EmailConfirmationPage />
+          </div>
         </div>
       );
     }
 
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
-        <ModeIndicator />
+      <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white flex items-center justify-center p-4">
+        {/* Fundo animado com gradientes */}
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-900"></div>
         
-        {/* Notificação */}
-        <Notification
-          message={notification.message}
-          type={notification.type}
-          isVisible={notification.isVisible}
-          onClose={() => setNotification(prev => ({ ...prev, isVisible: false }))}
-        />
+        {/* Elementos decorativos de fundo */}
+        <div className="absolute top-0 left-0 w-full h-full">
+          {/* Gradiente radial superior esquerdo */}
+          <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-green-500/10 via-transparent to-transparent rounded-full blur-3xl animate-pulse"></div>
+          
+          {/* Gradiente radial superior direito */}
+          <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-blue-500/10 via-transparent to-transparent rounded-full blur-3xl animate-pulse delay-1000"></div>
+          
+          {/* Gradiente radial inferior esquerdo */}
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-purple-500/10 via-transparent to-transparent rounded-full blur-3xl animate-pulse delay-2000"></div>
+          
+          {/* Gradiente radial inferior direito */}
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-cyan-500/10 via-transparent to-transparent rounded-full blur-3xl animate-pulse delay-3000"></div>
+          
+          {/* Partículas flutuantes */}
+          <div className="absolute top-20 left-20 w-2 h-2 bg-green-400/30 rounded-full animate-bounce"></div>
+          <div className="absolute top-40 right-32 w-1 h-1 bg-blue-400/40 rounded-full animate-bounce delay-1000"></div>
+          <div className="absolute bottom-32 left-40 w-1.5 h-1.5 bg-purple-400/35 rounded-full animate-bounce delay-2000"></div>
+          <div className="absolute bottom-20 right-20 w-1 h-1 bg-cyan-400/45 rounded-full animate-bounce delay-3000"></div>
+          <div className="absolute top-1/2 left-10 w-1 h-1 bg-green-400/25 rounded-full animate-bounce delay-1500"></div>
+          <div className="absolute top-1/3 right-10 w-1.5 h-1.5 bg-blue-400/30 rounded-full animate-bounce delay-2500"></div>
+        </div>
         
-        {/* Tela de verificação de email */}
-        {showEmailVerification ? (
-          <EmailVerificationScreen
-            email={verificationEmail}
-            onVerificationComplete={handleVerificationComplete}
-            onBackToLogin={handleBackToLogin}
+        {/* Overlay sutil para melhorar legibilidade */}
+        <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]"></div>
+        
+        {/* Conteúdo principal */}
+        <div className="relative z-10 w-full max-w-md">
+          <ModeIndicator />
+          
+          {/* Notificação */}
+          <Notification
+            message={notification.message}
+            type={notification.type}
+            isVisible={notification.isVisible}
+            onClose={() => setNotification(prev => ({ ...prev, isVisible: false }))}
           />
-        ) : (
-          <div className="w-full max-w-md">
-            {modoRegistro ? (
-              <RegisterForm onRegister={handleRegister} onSwitchToLogin={() => setModoRegistro(false)} />
-            ) : (
-              <LoginForm onLogin={handleLogin} onSwitchToRegister={() => setModoRegistro(true)} />
-            )}
-          </div>
-        )}
+          
+          {/* Tela de verificação de email */}
+          {showEmailVerification ? (
+            <EmailVerificationScreen
+              email={verificationEmail}
+              onVerificationComplete={handleVerificationComplete}
+              onBackToLogin={handleBackToLogin}
+            />
+          ) : (
+            <div className="w-full">
+              {modoRegistro ? (
+                <RegisterForm onRegister={handleRegister} onSwitchToLogin={() => setModoRegistro(false)} />
+              ) : (
+                <LoginForm onLogin={handleLogin} onSwitchToRegister={() => setModoRegistro(true)} />
+              )}
+            </div>
+          )}
+        </div>
       </div>
     );
   }
@@ -487,7 +593,92 @@ function App() {
   // Renderizar página baseada no estado atual
   if (currentPage === 'client' && clienteVisualizando) {
     return (
-      <div className="min-h-screen bg-black text-white">
+      <div className="min-h-screen relative overflow-hidden text-white" style={backgroundStyle}>
+        {/* Elementos decorativos para páginas logadas - tema crypto */}
+        <div className="absolute top-0 left-0 w-full h-full">
+          {/* Gradientes radiais crypto */}
+          <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-yellow-400/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-green-400/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-blue-400/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse delay-2000"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-purple-400/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse delay-3000"></div>
+          
+          {/* Linhas decorativas crypto */}
+          <div className="absolute top-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-yellow-400/30 to-transparent"></div>
+          <div className="absolute top-3/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-green-400/30 to-transparent"></div>
+          <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-blue-400/30 to-transparent"></div>
+          <div className="absolute top-0 left-3/4 w-px h-full bg-gradient-to-b from-transparent via-purple-400/30 to-transparent"></div>
+          
+          {/* Partículas crypto */}
+          <div className="absolute top-20 left-20 w-3 h-3 bg-yellow-400/60 rounded-full animate-bounce shadow-lg shadow-yellow-400/30"></div>
+          <div className="absolute top-40 right-32 w-2 h-2 bg-green-400/70 rounded-full animate-bounce delay-1000 shadow-lg shadow-green-400/40"></div>
+          <div className="absolute bottom-32 left-40 w-2.5 h-2.5 bg-blue-400/65 rounded-full animate-bounce delay-2000 shadow-lg shadow-blue-400/35"></div>
+          <div className="absolute bottom-20 right-20 w-2 h-2 bg-purple-400/75 rounded-full animate-bounce delay-3000 shadow-lg shadow-purple-400/45"></div>
+          <div className="absolute top-1/2 left-10 w-2 h-2 bg-yellow-400/55 rounded-full animate-bounce delay-1500 shadow-lg shadow-yellow-400/25"></div>
+          <div className="absolute top-1/3 right-10 w-2.5 h-2.5 bg-green-400/60 rounded-full animate-bounce delay-2500 shadow-lg shadow-green-400/30"></div>
+        </div>
+        
+        {/* Overlay sutil */}
+        <div className="absolute inset-0 bg-black/10"></div>
+        
+        {/* Conteúdo principal */}
+        <div className="relative z-10">
+          <ModeIndicator />
+          <Notification
+            message={notification.message}
+            type={notification.type}
+            isVisible={notification.isVisible}
+            onClose={() => setNotification(prev => ({ ...prev, isVisible: false }))}
+          />
+          <ClientPage 
+            client={clienteVisualizando} 
+            onGoBack={handleBackToAdmin}
+            onAddTransaction={handleAddTransaction}
+            onEditClient={handleEditClient}
+          />
+          <EditClientModal
+            client={clienteVisualizando}
+            isOpen={showEditModal}
+            onClose={() => setShowEditModal(false)}
+            onSave={handleSaveClient}
+            onDelete={handleDeleteClient}
+            isAdmin={usuario?.tipo === 'admin'}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Dashboard principal (AdminPage)
+  return (
+    <div className="min-h-screen relative overflow-hidden text-white" style={backgroundStyle}>
+      {/* Elementos decorativos para páginas logadas - tema crypto */}
+      <div className="absolute top-0 left-0 w-full h-full">
+        {/* Gradientes radiais crypto */}
+        <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-yellow-400/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-green-400/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-blue-400/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse delay-2000"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-purple-400/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse delay-3000"></div>
+        
+        {/* Linhas decorativas crypto */}
+        <div className="absolute top-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-yellow-400/30 to-transparent"></div>
+        <div className="absolute top-3/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-green-400/30 to-transparent"></div>
+        <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-blue-400/30 to-transparent"></div>
+        <div className="absolute top-0 left-3/4 w-px h-full bg-gradient-to-b from-transparent via-purple-400/30 to-transparent"></div>
+        
+        {/* Partículas crypto */}
+        <div className="absolute top-20 left-20 w-3 h-3 bg-yellow-400/60 rounded-full animate-bounce shadow-lg shadow-yellow-400/30"></div>
+        <div className="absolute top-40 right-32 w-2 h-2 bg-green-400/70 rounded-full animate-bounce delay-1000 shadow-lg shadow-green-400/40"></div>
+        <div className="absolute bottom-32 left-40 w-2.5 h-2.5 bg-blue-400/65 rounded-full animate-bounce delay-2000 shadow-lg shadow-blue-400/35"></div>
+        <div className="absolute bottom-20 right-20 w-2 h-2 bg-purple-400/75 rounded-full animate-bounce delay-3000 shadow-lg shadow-purple-400/45"></div>
+        <div className="absolute top-1/2 left-10 w-2 h-2 bg-yellow-400/55 rounded-full animate-bounce delay-1500 shadow-lg shadow-yellow-400/25"></div>
+        <div className="absolute top-1/3 right-10 w-2.5 h-2.5 bg-green-400/60 rounded-full animate-bounce delay-2500 shadow-lg shadow-green-400/30"></div>
+      </div>
+      
+      {/* Overlay sutil */}
+      <div className="absolute inset-0 bg-black/10"></div>
+      
+      {/* Conteúdo principal */}
+      <div className="relative z-10">
         <ModeIndicator />
         <Notification
           message={notification.message}
@@ -495,45 +686,18 @@ function App() {
           isVisible={notification.isVisible}
           onClose={() => setNotification(prev => ({ ...prev, isVisible: false }))}
         />
-        <ClientPage 
-          client={clienteVisualizando} 
-          onGoBack={handleBackToAdmin}
-          onAddTransaction={handleAddTransaction}
-          onEditClient={handleEditClient}
-        />
-        <EditClientModal
-          client={clienteVisualizando}
-          isOpen={showEditModal}
-          onClose={() => setShowEditModal(false)}
-          onSave={handleSaveClient}
-          onDelete={handleDeleteClient}
-          isAdmin={usuario?.tipo === 'admin'}
+        <AdminPage
+          currentUser={usuario!}
+          clients={clientes}
+          onLogout={handleLogout}
+          onViewClient={handleViewClient}
+          onAddWallet={() => {}} // Implementar quando necessário
+          onCreateSnapshot={() => {}} // Implementar quando necessário
+          onCreateClient={handleCreateClient}
+          activeTab={activeAdminTab}
+          onTabChange={setActiveAdminTab}
         />
       </div>
-    );
-  }
-
-  // Dashboard principal (AdminPage)
-  return (
-    <div className="min-h-screen bg-black text-white">
-      <ModeIndicator />
-      <Notification
-        message={notification.message}
-        type={notification.type}
-        isVisible={notification.isVisible}
-        onClose={() => setNotification(prev => ({ ...prev, isVisible: false }))}
-      />
-      <AdminPage
-        currentUser={usuario!}
-        clients={clientes}
-        onLogout={handleLogout}
-        onViewClient={handleViewClient}
-        onAddWallet={() => {}} // Implementar quando necessário
-        onCreateSnapshot={() => {}} // Implementar quando necessário
-        onCreateClient={handleCreateClient}
-        activeTab={activeAdminTab}
-        onTabChange={setActiveAdminTab}
-      />
     </div>
   );
 }
