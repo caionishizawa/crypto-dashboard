@@ -110,9 +110,9 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
       console.log('🎯 FRONTEND - Definindo mensagem de sucesso...');
       // Sempre mostrar sucesso e redirecionar para login
       setSuccess('✅ Conta criada com sucesso!');
-      setRedirectCountdown(5); // Inicia countdown de 5 segundos
+      setRedirectCountdown(8); // Inicia countdown de 8 segundos
       console.log('🎯 FRONTEND - Mensagem definida! Success:', '✅ Conta criada com sucesso!');
-      console.log('🎯 FRONTEND - Countdown definido:', 5);
+      console.log('🎯 FRONTEND - Countdown definido:', 8);
       
       // Limpar formulário
       setFormData({
@@ -122,11 +122,11 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
         confirmarSenha: ''
       });
       
-      // Redirecionamento direto após 5 segundos (mais tempo para ver)
+      // Redirecionamento direto após 8 segundos (ainda mais tempo para ver)
       setTimeout(() => {
         console.log('🎯 FRONTEND - Executando redirecionamento...');
         onSwitchToLogin();
-      }, 5000);
+      }, 8000);
       
     } else {
       console.log('🎯 FRONTEND - Definindo erro:', result.error);
@@ -251,18 +251,18 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
           )}
 
           {success && (
-            <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4 text-green-400 text-sm flex items-center">
-              <div className="w-2 h-2 bg-green-400 rounded-full mr-3 animate-pulse"></div>
+            <div className="bg-green-500/20 border-2 border-green-400 rounded-xl p-6 text-green-300 text-lg flex items-center mb-4 shadow-lg animate-pulse">
+              <div className="w-4 h-4 bg-green-400 rounded-full mr-4 animate-bounce"></div>
               <div className="flex-1">
                 {redirectCountdown > 0 ? (
                   <div>
-                    <div>✅ Conta criada com sucesso!</div>
-                    <div className="text-green-300 mt-1">
-                      Redirecionando para login em {redirectCountdown} segundo{redirectCountdown !== 1 ? 's' : ''}...
+                    <div className="text-xl font-bold">🎉 CONTA CRIADA COM SUCESSO! 🎉</div>
+                    <div className="text-green-200 mt-2 text-base font-semibold">
+                      ⏰ Redirecionando para login em {redirectCountdown} segundo{redirectCountdown !== 1 ? 's' : ''}...
                     </div>
                   </div>
                 ) : (
-                  <div>{success}</div>
+                  <div className="text-xl font-bold">{success}</div>
                 )}
               </div>
             </div>
