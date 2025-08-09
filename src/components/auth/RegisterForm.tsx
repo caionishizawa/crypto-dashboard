@@ -2,6 +2,36 @@ import React, { useState } from 'react';
 import { UserPlus, Mail, Lock, User, Eye, EyeOff, Sparkles, Shield } from 'lucide-react';
 import type { RegisterData } from '../../types/usuario';
 
+// Função para validar email com provedores conhecidos
+const validarEmailAvancado = (email: string): boolean => {
+  // Regex básico para formato de email
+  const regexBasico = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  
+  if (!regexBasico.test(email)) {
+    return false;
+  }
+  
+  // Lista de provedores de email conhecidos e confiáveis
+  const provedoresConhecidos = [
+    'gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com', 'icloud.com',
+    'live.com', 'msn.com', 'aol.com', 'protonmail.com', 'zoho.com',
+    'mail.com', 'yandex.com', 'gmx.com', 'fastmail.com', 'tutanota.com',
+    // Provedores brasileiros
+    'uol.com.br', 'bol.com.br', 'terra.com.br', 'ig.com.br', 'globo.com',
+    'r7.com', 'oi.com.br', 'zipmail.com.br', 'designa.com.br'
+  ];
+  
+  const dominio = email.split('@')[1].toLowerCase();
+  
+  // Verificar se é um provedor conhecido
+  const isProvedorConhecido = provedoresConhecidos.includes(dominio);
+  
+  // Verificar se parece ser um domínio corporativo válido (tem pelo menos um ponto)
+  const isDominioValido = dominio.includes('.') && dominio.length > 4;
+  
+  return isProvedorConhecido || isDominioValido;
+};
+
 interface RegisterFormProps {
   onRegister: (registerData: RegisterData) => Promise<{ 
     success: boolean; 
@@ -45,6 +75,13 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
 
     if (formData.senha.length < 6) {
       setError('A senha deve ter pelo menos 6 caracteres');
+      setLoading(false);
+      return;
+    }
+
+    // Validação avançada de email
+    if (!validarEmailAvancado(formData.email)) {
+      setError('Por favor, use um email válido de um provedor conhecido (Gmail, Outlook, Yahoo, etc.)');
       setLoading(false);
       return;
     }
