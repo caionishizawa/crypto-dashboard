@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserPlus, Mail, Lock, User, Eye, EyeOff, Sparkles, Shield } from 'lucide-react';
 import type { RegisterData } from '../../types/usuario';
 
@@ -60,6 +60,22 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
   const [loading, setLoading] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
+  const [redirectCountdown, setRedirectCountdown] = useState<number>(0);
+
+  // Efeito para countdown e redirecionamento automático
+  useEffect(() => {
+    if (redirectCountdown > 0) {
+      const timer = setTimeout(() => {
+        setRedirectCountdown(redirectCountdown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (redirectCountdown === 0 && success) {
+      // Se countdown chegou a 0 e tem mensagem de sucesso, redirecionar
+      if (success.includes('Conta criada com sucesso')) {
+        onSwitchToLogin();
+      }
+    }
+  }, [redirectCountdown, success, onSwitchToLogin]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,25 +110,17 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
 
     const result = await onRegister(formData);
     if (result.success) {
-      if (result.requiresEmailConfirmation) {
-        setSuccess(result.message || 'Conta criada! Verifique seu email para confirmar.');
-        // Limpar formulário
-        setFormData({
-          nome: '',
-          email: '',
-          senha: '',
-          confirmarSenha: ''
-        });
-      } else {
-        setSuccess('Conta criada com sucesso!');
-        // Limpar formulário
-        setFormData({
-          nome: '',
-          email: '',
-          senha: '',
-          confirmarSenha: ''
-        });
-      }
+      // Sempre mostrar sucesso e redirecionar para login
+      setSuccess('Conta criada com sucesso! Redirecionando para login...');
+      setRedirectCountdown(3); // Inicia countdown de 3 segundos
+      
+      // Limpar formulário
+      setFormData({
+        nome: '',
+        email: '',
+        senha: '',
+        confirmarSenha: ''
+      });
     } else {
       setError(result.error || 'Erro ao criar conta');
     }
@@ -237,7 +245,18 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
           {success && (
             <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4 text-green-400 text-sm flex items-center">
               <div className="w-2 h-2 bg-green-400 rounded-full mr-3 animate-pulse"></div>
-              {success}
+              <div className="flex-1">
+                {redirectCountdown > 0 ? (
+                  <div>
+                    <div>✅ Conta criada com sucesso!</div>
+                    <div className="text-green-300 mt-1">
+                      Redirecionando para login em {redirectCountdown} segundo{redirectCountdown !== 1 ? 's' : ''}...
+                    </div>
+                  </div>
+                ) : (
+                  success
+                )}
+              </div>
             </div>
           )}
 
