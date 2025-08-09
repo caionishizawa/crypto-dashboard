@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { UserPlus, Mail, Lock, User, Eye, EyeOff, Sparkles, Shield } from 'lucide-react';
 import type { RegisterData } from '../../types/usuario';
 
-// Função para validar email com provedores conhecidos
+// Função para validar email APENAS com provedores conhecidos e confiáveis
 const validarEmailAvancado = (email: string): boolean => {
   // Regex básico para formato de email
   const regexBasico = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -11,25 +11,31 @@ const validarEmailAvancado = (email: string): boolean => {
     return false;
   }
   
-  // Lista de provedores de email conhecidos e confiáveis
+  // Lista RESTRITA de provedores de email conhecidos e confiáveis
   const provedoresConhecidos = [
+    // Principais provedores internacionais
     'gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com', 'icloud.com',
     'live.com', 'msn.com', 'aol.com', 'protonmail.com', 'zoho.com',
     'mail.com', 'yandex.com', 'gmx.com', 'fastmail.com', 'tutanota.com',
-    // Provedores brasileiros
+    'me.com', 'mac.com', 'yahoo.com.br', 'outlook.com.br',
+    
+    // Provedores brasileiros populares
     'uol.com.br', 'bol.com.br', 'terra.com.br', 'ig.com.br', 'globo.com',
-    'r7.com', 'oi.com.br', 'zipmail.com.br', 'designa.com.br'
+    'r7.com', 'oi.com.br', 'zipmail.com.br', 'designa.com.br', 'superig.com.br',
+    'pop.com.br', 'click21.com.br', 'ibest.com.br', 'itelefonica.com.br',
+    
+    // Alguns provedores educacionais específicos (removidos genéricos como .com.br)
+    'usp.br', 'unicamp.br', 'ufrj.br', 'ufmg.br',
+    
+    // Outros provedores conhecidos
+    'rediffmail.com', 'inbox.com', 'mail.ru', 'rambler.ru', 'ymail.com',
+    'rocketmail.com', 'sbcglobal.net', 'verizon.net', 'att.net', 'comcast.net'
   ];
   
   const dominio = email.split('@')[1].toLowerCase();
   
-  // Verificar se é um provedor conhecido
-  const isProvedorConhecido = provedoresConhecidos.includes(dominio);
-  
-  // Verificar se parece ser um domínio corporativo válido (tem pelo menos um ponto)
-  const isDominioValido = dominio.includes('.') && dominio.length > 4;
-  
-  return isProvedorConhecido || isDominioValido;
+  // APENAS aceitar provedores da lista conhecida
+  return provedoresConhecidos.includes(dominio);
 };
 
 interface RegisterFormProps {
