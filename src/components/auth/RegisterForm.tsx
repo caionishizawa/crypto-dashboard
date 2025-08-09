@@ -62,21 +62,15 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
   const [redirectCountdown, setRedirectCountdown] = useState<number>(0);
 
-  // Efeito para countdown e redirecionamento automático
+  // Efeito SIMPLIFICADO para countdown visual apenas
   useEffect(() => {
     if (redirectCountdown > 0) {
       const timer = setTimeout(() => {
         setRedirectCountdown(redirectCountdown - 1);
       }, 1000);
       return () => clearTimeout(timer);
-    } else if (redirectCountdown === 0 && success && success.includes('Conta criada com sucesso')) {
-      // Se countdown chegou a 0 e tem mensagem de sucesso, redirecionar
-      const redirectTimer = setTimeout(() => {
-        onSwitchToLogin();
-      }, 500); // Pequeno delay adicional
-      return () => clearTimeout(redirectTimer);
     }
-  }, [redirectCountdown, success, onSwitchToLogin]);
+  }, [redirectCountdown]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,27 +97,51 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
     }
 
     // Validação avançada de email
-    if (!validarEmailAvancado(formData.email)) {
+    console.log('🔍 Validando email:', formData.email);
+    const emailValido = validarEmailAvancado(formData.email);
+    console.log('📧 Email válido?', emailValido);
+    
+    if (!emailValido) {
+      console.log('❌ Email rejeitado pela validação');
       setError('Por favor, use um email válido de um provedor conhecido (Gmail, Outlook, Yahoo, etc.)');
       setLoading(false);
       return;
     }
+    
+    console.log('✅ Email aprovado, prosseguindo...');
 
-    const result = await onRegister(formData);
-    if (result.success) {
-      // Sempre mostrar sucesso e redirecionar para login
-      setSuccess('Conta criada com sucesso! Redirecionando para login...');
-      setRedirectCountdown(3); // Inicia countdown de 3 segundos
+    try {
+      console.log('🚀 Tentando registrar:', formData.email);
+      const result = await onRegister(formData);
+      console.log('📝 Resultado do registro:', result);
       
-      // Limpar formulário
-      setFormData({
-        nome: '',
-        email: '',
-        senha: '',
-        confirmarSenha: ''
-      });
-    } else {
-      setError(result.error || 'Erro ao criar conta');
+      if (result.success) {
+        console.log('✅ Registro bem-sucedido!');
+        // Sempre mostrar sucesso e redirecionar para login
+        setSuccess('✅ Conta criada com sucesso!');
+        setRedirectCountdown(3); // Inicia countdown de 3 segundos
+        
+        // Limpar formulário
+        setFormData({
+          nome: '',
+          email: '',
+          senha: '',
+          confirmarSenha: ''
+        });
+        
+        // Redirecionamento direto após 3 segundos
+        setTimeout(() => {
+          console.log('🔄 Redirecionando para login...');
+          onSwitchToLogin();
+        }, 3000);
+        
+      } else {
+        console.log('❌ Erro no registro:', result.error);
+        setError(result.error || 'Erro ao criar conta');
+      }
+    } catch (error) {
+      console.error('💥 Erro na função de registro:', error);
+      setError('Erro interno. Tente novamente.');
     }
     setLoading(false);
   };
