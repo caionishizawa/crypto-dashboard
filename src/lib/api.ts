@@ -156,18 +156,19 @@ class SupabaseApiClient {
         return { success: false, error: 'Email já cadastrado' }
       }
 
-      // Criar usuário usando Supabase Auth (SEM confirmação por email)
+      // Criar usuário usando Supabase Auth (FORÇAR sem confirmação por email)
       const { data: authData, error: authError } = await supabase!.auth.signUp({
         email,
         password: senha,
         options: {
           data: {
             nome,
-            tipo: 'admin'
+            tipo: 'admin',
+            email_confirmed_at: new Date().toISOString() // Forçar como já confirmado
           },
           // Desabilitar completamente o envio de email de confirmação
-          emailRedirectTo: undefined,
-          captchaToken: undefined
+          emailRedirectTo: null,
+          captchaToken: null
         }
       })
 
