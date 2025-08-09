@@ -69,11 +69,12 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
         setRedirectCountdown(redirectCountdown - 1);
       }, 1000);
       return () => clearTimeout(timer);
-    } else if (redirectCountdown === 0 && success) {
+    } else if (redirectCountdown === 0 && success && success.includes('Conta criada com sucesso')) {
       // Se countdown chegou a 0 e tem mensagem de sucesso, redirecionar
-      if (success.includes('Conta criada com sucesso')) {
+      const redirectTimer = setTimeout(() => {
         onSwitchToLogin();
-      }
+      }, 500); // Pequeno delay adicional
+      return () => clearTimeout(redirectTimer);
     }
   }, [redirectCountdown, success, onSwitchToLogin]);
 

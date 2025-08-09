@@ -250,13 +250,8 @@ function App() {
       return { success: false, error: resultado.error || 'Erro ao fazer cadastro' };
     }
     
-    // Sempre voltar para login após criar conta (sem confirmação de email)
-    setModoRegistro(false);
-    setNotification({
-      message: 'Conta criada com sucesso! Faça login para continuar.',
-      type: 'success',
-      isVisible: true
-    });
+    // Deixar o RegisterForm controlar o redirecionamento e mensagem
+    // Não fazer nada aqui, apenas retornar sucesso
     return { success: true };
   };
 
