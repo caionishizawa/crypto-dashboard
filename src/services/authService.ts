@@ -33,14 +33,18 @@ class AuthService {
   // Registro de novo usuário
   async register(registerData: RegisterData): Promise<{ success: boolean; usuario?: Usuario; error?: string; requiresEmailConfirmation?: boolean }> {
     try {
+      console.log('🔧 AuthService - Dados do registro:', registerData);
       const response = await apiClient.register(
         registerData.nome,
         registerData.email,
         registerData.senha,
         registerData.confirmarSenha
       );
+      
+      console.log('🔧 AuthService - Resposta da API:', response);
    
       if (response.success && response.user) {
+        console.log('🔧 AuthService - Usuário criado:', response.user);
         const userData = {
           id: response.user.id,
           nome: response.user.nome,
@@ -57,15 +61,26 @@ class AuthService {
       
       // Se requer confirmação de email
       if (response.success && response.requiresEmailConfirmation) {
+        console.log('🔧 AuthService - Requer confirmação de email');
         return { 
           success: true, 
           requiresEmailConfirmation: true
         };
       }
       
+      // Se success mas sem user nem requiresEmailConfirmation
+      if (response.success) {
+        console.log('🔧 AuthService - Sucesso sem user, assumindo confirmação necessária');
+        return { 
+          success: true, 
+          requiresEmailConfirmation: false
+        };
+      }
+      
+      console.log('🔧 AuthService - Erro:', response.error);
       return { success: false, error: response.error || 'Erro no registro' };
     } catch (error: any) {
-      console.error('Erro no registro:', error);
+      console.error('🔧 AuthService - Erro capturado:', error);
       return { success: false, error: error.message || 'Erro interno do servidor' };
     }
   }

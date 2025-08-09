@@ -132,18 +132,25 @@ class SupabaseApiClient {
 
   async register(nome: string, email: string, senha: string, confirmarSenha: string): Promise<ApiResponse> {
     try {
+      console.log('🔧 API - Iniciando registro:', { nome, email });
+      
       if (senha !== confirmarSenha) {
+        console.log('🔧 API - Senhas não coincidem');
         return { success: false, error: 'Senhas não coincidem' }
       }
 
       if (!isSupabaseConfigured) {
+        console.log('🔧 API - Supabase não configurado');
         return { 
           success: false, 
           error: 'Supabase não configurado. Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Netlify Dashboard.' 
         }
       }
+      
+      console.log('🔧 API - Supabase configurado, prosseguindo...');
 
       // Verificar se o email já existe
+      console.log('🔧 API - Verificando se email já existe...');
       const { data: existingUser, error: checkError } = await safeQuery(async () => {
         return await supabase!
           .from('usuarios')
@@ -151,12 +158,16 @@ class SupabaseApiClient {
           .eq('email', email)
           .maybeSingle()
       })
+      
+      console.log('🔧 API - Resultado verificação email:', { existingUser, checkError });
 
       if (existingUser) {
+        console.log('🔧 API - Email já cadastrado');
         return { success: false, error: 'Email já cadastrado' }
       }
 
       // Criar usuário usando Supabase Auth (FORÇAR sem confirmação por email)
+      console.log('🔧 API - Criando usuário no Supabase Auth...');
       const { data: authData, error: authError } = await supabase!.auth.signUp({
         email,
         password: senha,
@@ -171,15 +182,20 @@ class SupabaseApiClient {
           captchaToken: null
         }
       })
+      
+      console.log('🔧 API - Resultado signUp:', { authData, authError });
 
       if (authError) {
-        console.error('Erro ao criar usuário no Auth:', authError)
-        return { success: false, error: 'Erro ao criar usuário' }
+        console.error('🔧 API - Erro ao criar usuário no Auth:', authError)
+        return { success: false, error: `Erro ao criar usuário: ${authError.message}` }
       }
 
       if (!authData.user) {
-        return { success: false, error: 'Erro ao criar usuário' }
+        console.log('🔧 API - Nenhum usuário retornado do Auth');
+        return { success: false, error: 'Erro ao criar usuário - nenhum dado retornado' }
       }
+      
+      console.log('🔧 API - Usuário criado no Auth:', authData.user.id);
 
       // Criar registro na tabela usuarios
       const { data: userData, error: insertError } = await safeQuery(async () => {
