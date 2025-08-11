@@ -24,8 +24,8 @@ ALTER TABLE solicitacoes_usuarios ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Admins podem ver todas as solicitações" ON solicitacoes_usuarios
   FOR ALL USING (
     EXISTS (
-      SELECT 1 FROM usuarios 
-      WHERE usuarios.id = auth.uid() 
+      SELECT 1 FROM usuarios
+      WHERE usuarios.id = auth.uid()::text
       AND usuarios.tipo = 'admin'
     )
   );
@@ -34,8 +34,8 @@ CREATE POLICY "Admins podem ver todas as solicitações" ON solicitacoes_usuario
 CREATE POLICY "Usuários podem ver suas próprias solicitações" ON solicitacoes_usuarios
   FOR SELECT USING (
     email = (
-      SELECT email FROM usuarios 
-      WHERE usuarios.id = auth.uid()
+      SELECT email FROM usuarios
+      WHERE usuarios.id = auth.uid()::text
     )
   );
 
