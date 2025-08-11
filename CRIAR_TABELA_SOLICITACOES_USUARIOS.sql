@@ -1,6 +1,6 @@
 -- Criar tabela para solicitações de usuários aguardando aprovação
 CREATE TABLE IF NOT EXISTS solicitacoes_usuarios (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  id TEXT DEFAULT gen_random_uuid()::text PRIMARY KEY,
   nome VARCHAR(255) NOT NULL,
   email VARCHAR(255) UNIQUE NOT NULL,
   senha_hash VARCHAR(255) NOT NULL,
