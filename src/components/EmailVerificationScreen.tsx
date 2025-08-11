@@ -29,7 +29,7 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({
         console.error('Erro ao reenviar email:', error);
       } else {
         setResendSuccess(true);
-        console.log('Email reenviado com sucesso!');
+  
       }
     } catch (error) {
       console.error('Erro ao reenviar email:', error);

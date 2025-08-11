@@ -19,7 +19,7 @@ export const ClientPage: React.FC<ClientPageProps> = ({
 }) => {
   // Debug quando o cliente muda
   useEffect(() => {
-    console.log('Debug - Cliente atualizado:', client);
+  
   }, [client]);
 
   if (!client) return null;
@@ -39,30 +39,7 @@ export const ClientPage: React.FC<ClientPageProps> = ({
     ? (((client.valorCarteiraDeFi || 0) - baseInvestimento) / baseInvestimento) * 100
     : 0;
 
-  // Debug logs
-  console.log('Debug - Cálculo de Retorno:', {
-    valorTotalInvestidoBTC,
-    investimentoInicial: client.investimentoInicial,
-    baseInvestimento,
-    valorCarteiraDeFi: client.valorCarteiraDeFi,
-    retornoDeFi
-  });
 
-  // Debug completo do cliente
-  console.log('Debug - Dados completos do cliente:', {
-    id: client.id,
-    nome: client.nome,
-    tipo: client.tipo,
-    investimentoInicial: client.investimentoInicial,
-    btcTotal: client.btcTotal,
-    valorAtualBTC: client.valorAtualBTC,
-    valorCarteiraDeFi: client.valorCarteiraDeFi,
-    totalDepositado: client.totalDepositado,
-    valorAtualUSD: client.valorAtualUSD,
-    rendimentoTotal: client.rendimentoTotal,
-    apyMedio: client.apyMedio,
-    transacoes: client.transacoes
-  });
 
   // Cálculos para Cliente Conservador
   const retornoUSDDeFi = (client.totalDepositado || 0) > 0

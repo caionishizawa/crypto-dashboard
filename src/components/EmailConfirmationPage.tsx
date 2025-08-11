@@ -18,26 +18,26 @@ const EmailConfirmationPage: React.FC = () => {
                                    window.location.hash.includes('access_token');
         
         if (isEmailConfirmation) {
-          console.log('🔍 Detectada confirmação de email, processando...');
+
           
           // Aguardar um pouco para o Supabase processar a confirmação
           await new Promise(resolve => setTimeout(resolve, 3000));
           
           // Simular sucesso da confirmação (já que o Supabase processou o link)
-          console.log('🔍 Email confirmado com sucesso!');
+
           setIsConfirmed(true);
           setIsLoading(false);
           
           // Fazer logout após confirmar que foi bem-sucedido
           try {
             await authService.logout();
-            console.log('🔍 Logout realizado com sucesso');
+
           } catch (logoutError) {
-            console.log('🔍 Erro no logout (normal):', logoutError);
+
           }
         } else {
           // Se não há parâmetros de confirmação, simular confirmação (para desenvolvimento)
-          console.log('🔍 Sem parâmetros de confirmação, simulando...');
+
           setTimeout(() => {
             setIsConfirmed(true);
             setIsLoading(false);

@@ -191,8 +191,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                     <div className="flex space-x-2">
                       <button 
                         onClick={() => {
-                          console.log('🔍 === BOTÃO VISUALIZAR CLICADO ===');
-                          console.log('🔍 Cliente clicado:', client);
+                          
                           onViewClient(client);
                         }}
                         className="flex-1 bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"

@@ -53,7 +53,7 @@ function App() {
       const savedPage = sessionStorage.getItem('currentPage');
       if (savedPage) {
         const pageData = JSON.parse(savedPage);
-        console.log('🔍 Inicializando currentPage com:', pageData.currentPage);
+
         return pageData.currentPage;
       }
     } catch (error) {
@@ -69,7 +69,7 @@ function App() {
       const savedPage = sessionStorage.getItem('currentPage');
       if (savedPage) {
         const pageData = JSON.parse(savedPage);
-        console.log('🔍 Inicializando savedClienteId com:', pageData.clienteId);
+
         return pageData.clienteId;
       }
     } catch (error) {
@@ -85,7 +85,7 @@ function App() {
       const savedPage = sessionStorage.getItem('currentPage');
       if (savedPage) {
         const pageData = JSON.parse(savedPage);
-        console.log('🔍 Inicializando activeAdminTab com:', pageData.activeTab);
+
         return pageData.activeTab || 'clientes';
       }
     } catch (error) {
@@ -153,10 +153,8 @@ function App() {
         activeTab: activeAdminTab
       };
       
-      // Log detalhado para debug
-      const oldData = sessionStorage.getItem('currentPage');
-      console.log('🔍 Salvando página:', pageData);
-      console.log('🔍 Dados anteriores:', oldData ? JSON.parse(oldData) : 'null');
+      // Salvar página atual no sessionStorage
+      sessionStorage.setItem('currentPage', JSON.stringify(pageData));
       
       sessionStorage.setItem('currentPage', JSON.stringify(pageData));
     }
@@ -168,14 +166,13 @@ function App() {
       // Se temos um cliente salvo e estamos na página de cliente
       if (currentPage === 'client' && savedClienteId) {
         const cliente = clientes[savedClienteId];
-        console.log('🔍 Tentando restaurar cliente:', savedClienteId);
-        console.log('🔍 Cliente encontrado:', cliente);
+
         
         if (cliente) {
           setClienteVisualizando(cliente);
-          console.log('🔍 Cliente restaurado com sucesso!');
+
         } else {
-          console.log('🔍 Cliente não encontrado, voltando para admin');
+
           setCurrentPage('admin');
           setSavedClienteId(null);
         }
@@ -191,7 +188,7 @@ function App() {
         try {
           const pageData = JSON.parse(savedPage);
           if (pageData.activeTab && pageData.currentPage === 'admin') {
-            console.log('🔍 Restaurando aba ativa:', pageData.activeTab);
+
             setActiveAdminTab(pageData.activeTab);
           }
         } catch (error) {
@@ -308,18 +305,15 @@ function App() {
   };
 
   const handleViewClient = (client: Cliente) => {
-    console.log('🔍 === FUNÇÃO handleViewClient CHAMADA ===');
-    console.log('🔍 Cliente recebido:', client);
-    console.log('🔍 Navegando para cliente:', client.id, client.nome);
-    console.log('🔍 Estado atual antes da navegação:', { currentPage, clienteVisualizando: clienteVisualizando?.id });
+
     setClienteVisualizando(client);
     setCurrentPage('client');
     setSavedClienteId(client.id);
-    console.log('🔍 Estado definido para:', { currentPage: 'client', clienteId: client.id });
+
   };
 
   const handleBackToAdmin = () => {
-    console.log('🔍 Voltando para admin');
+
     setClienteVisualizando(null);
     setCurrentPage('admin');
     setSavedClienteId(null);
@@ -332,7 +326,7 @@ function App() {
 
   const handleSaveClient = async (updatedClient: Cliente) => {
     try {
-      console.log('Salvando cliente:', updatedClient);
+
       
       // Salvar no banco de dados
       const savedClient = await clienteService.updateCliente(updatedClient.id, updatedClient);
@@ -601,15 +595,7 @@ function App() {
     );
   }
 
-  // Debug da renderização
-  console.log('🔍 Renderizando página:', { 
-    currentPage, 
-    clienteVisualizando: clienteVisualizando?.id,
-    isAuthenticated,
-    loading,
-    loadingClientes,
-    clientesCount: Object.keys(clientes).length
-  });
+
 
   // Renderizar página baseada no estado atual
   if (currentPage === 'client' && clienteVisualizando) {

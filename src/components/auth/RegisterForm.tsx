@@ -105,7 +105,6 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
     }
 
     const result = await onRegister(formData);
-    console.log('🎯 FRONTEND - Resultado recebido:', result);
     
     if (result.success) {
       setSuccess('✅ Conta criada com sucesso!');
@@ -125,7 +124,6 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
       }, 4000);
       
     } else {
-      console.log('🎯 FRONTEND - Definindo erro:', result.error);
       setError(result.error || 'Erro ao criar conta');
     }
     setLoading(false);
@@ -264,9 +262,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
             </div>
           )}
           
-          {/* Log de debug para ver se está renderizando */}
-          {success && console.log('🎯 FRONTEND - RENDERIZANDO mensagem de sucesso:', success)}
-          {redirectCountdown > 0 && console.log('🎯 FRONTEND - RENDERIZANDO countdown:', redirectCountdown)}
+
 
           <button
             type="submit"
