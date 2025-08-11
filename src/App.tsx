@@ -250,8 +250,13 @@ function App() {
       return { success: false, error: resultado.error || 'Erro ao fazer cadastro' };
     }
     
-    // Deixar o RegisterForm controlar o redirecionamento e mensagem
-    // Não fazer nada aqui, apenas retornar sucesso
+    // Mostrar notificação global de sucesso
+    setNotification({
+      message: '🎉 Conta criada com sucesso! Redirecionando para login em 30 segundos...',
+      type: 'success',
+      isVisible: true
+    });
+    
     return { success: true };
   };
 

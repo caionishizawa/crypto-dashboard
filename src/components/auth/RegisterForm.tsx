@@ -61,20 +61,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
   const [redirectCountdown, setRedirectCountdown] = useState<number>(0);
-  const [notification, setNotification] = useState<{
-    message: string;
-    type: 'success' | 'error' | 'info' | 'warning';
-    isVisible: boolean;
-  }>({
-    message: '',
-    type: 'success',
-    isVisible: false
-  });
 
-  // Log para ver quando o estado muda
-  useEffect(() => {
-    console.log('🎯 FRONTEND - Estado notification mudou:', notification);
-  }, [notification]);
 
   // Efeito SIMPLIFICADO para countdown visual apenas
   useEffect(() => {
@@ -121,21 +108,9 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
     console.log('🎯 FRONTEND - Resultado recebido:', result);
     
     if (result.success) {
-      console.log('🎯 FRONTEND - Definindo mensagem de sucesso...');
-      // Sempre mostrar sucesso e redirecionar para login
+      console.log('🎯 FRONTEND - Sucesso! Redirecionando em 30 segundos...');
       setSuccess('✅ Conta criada com sucesso!');
-      setRedirectCountdown(30); // Inicia countdown de 30 segundos
-      
-      // NOTIFICAÇÃO bonita em vez do alert
-      console.log('🎯 FRONTEND - Definindo notificação...');
-      setNotification({
-        message: `🎉 Conta criada com sucesso! Redirecionando para login em ${redirectCountdown} segundos...`,
-        type: 'success',
-        isVisible: true
-      });
-      console.log('🎯 FRONTEND - Notificação definida! isVisible: true');
-      console.log('🎯 FRONTEND - Mensagem definida! Success:', '✅ Conta criada com sucesso!');
-      console.log('🎯 FRONTEND - Countdown definido:', 30);
+      setRedirectCountdown(30);
       
       // Limpar formulário
       setFormData({
@@ -341,25 +316,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
         <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent rounded-full opacity-50"></div>
       </div>
       
-      {/* NOTIFICAÇÃO DIRETA para testar */}
-      {notification.isVisible && (
-        <>
-          {console.log('🎯 FRONTEND - RENDERIZANDO notificação direta:', notification)}
-          <div className="fixed top-4 right-4 z-50 bg-green-500/20 border-2 border-green-400 rounded-xl p-6 text-green-300 text-lg shadow-lg animate-pulse max-w-sm">
-            <div className="flex items-center">
-              <div className="w-4 h-4 bg-green-400 rounded-full mr-4 animate-bounce"></div>
-              <div className="flex-1">
-                <div className="text-xl font-bold">🎉 SUCESSO!</div>
-                <div className="text-green-200 mt-1">
-                  {notification.message}
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-      
-      {/* Componente de Notificação REMOVIDO - usando só a direta */}
+
     </div>
   );
 }; 
