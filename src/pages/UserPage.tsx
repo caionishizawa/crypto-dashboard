@@ -21,7 +21,8 @@ export const UserPage: React.FC<UserPageProps> = ({
   const [loading, setLoading] = useState(false);
 
   // Buscar o cliente correspondente ao usuário logado
-  const userClient = Object.values(clients).find((client: Cliente) => 
+  const clientsArray: Cliente[] = Object.values(clients);
+  const userClient = clientsArray.find((client: Cliente) => 
     client.nome === currentUser.nome
   );
 
