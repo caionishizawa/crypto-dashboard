@@ -110,9 +110,12 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
       console.log('🎯 FRONTEND - Definindo mensagem de sucesso...');
       // Sempre mostrar sucesso e redirecionar para login
       setSuccess('✅ Conta criada com sucesso!');
-      setRedirectCountdown(8); // Inicia countdown de 8 segundos
+      setRedirectCountdown(15); // Inicia countdown de 15 segundos
+      
+      // ALERT para forçar aparecer
+      alert('🎉 CONTA CRIADA COM SUCESSO! 🎉\n\nRedirecionando para login em 15 segundos...');
       console.log('🎯 FRONTEND - Mensagem definida! Success:', '✅ Conta criada com sucesso!');
-      console.log('🎯 FRONTEND - Countdown definido:', 8);
+      console.log('🎯 FRONTEND - Countdown definido:', 15);
       
       // Limpar formulário
       setFormData({
@@ -122,11 +125,11 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
         confirmarSenha: ''
       });
       
-      // Redirecionamento direto após 8 segundos (ainda mais tempo para ver)
+      // Redirecionamento direto após 15 segundos (muito mais tempo para ver)
       setTimeout(() => {
         console.log('🎯 FRONTEND - Executando redirecionamento...');
         onSwitchToLogin();
-      }, 8000);
+      }, 15000);
       
     } else {
       console.log('🎯 FRONTEND - Definindo erro:', result.error);
