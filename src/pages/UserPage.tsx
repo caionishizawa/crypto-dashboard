@@ -19,6 +19,10 @@ export const UserPage: React.FC<UserPageProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'portfolio' | 'settings'>('overview');
   const [loading, setLoading] = useState(false);
+  
+  // Estados para as configurações da conta
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [weeklyReports, setWeeklyReports] = useState(true);
 
   // Buscar o cliente correspondente ao usuário logado
   const clientsArray: Cliente[] = Object.values(clients);
@@ -330,15 +334,29 @@ export const UserPage: React.FC<UserPageProps> = ({
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-gray-300">Notificações por Email</span>
-                    <div className="w-12 h-6 bg-gray-700 rounded-full relative">
-                      <div className="w-6 h-6 bg-green-500 rounded-full absolute left-0 top-0 transition-transform"></div>
-                    </div>
+                    <button 
+                      onClick={() => setEmailNotifications(!emailNotifications)}
+                      className={`w-12 h-6 rounded-full relative transition-colors ${
+                        emailNotifications ? 'bg-green-500' : 'bg-gray-700'
+                      }`}
+                    >
+                      <div className={`w-6 h-6 bg-white rounded-full absolute top-0 transition-transform ${
+                        emailNotifications ? 'left-6' : 'left-0'
+                      }`}></div>
+                    </button>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-gray-300">Relatórios Semanais</span>
-                    <div className="w-12 h-6 bg-gray-700 rounded-full relative">
-                      <div className="w-6 h-6 bg-green-500 rounded-full absolute left-0 top-0 transition-transform"></div>
-                    </div>
+                    <button 
+                      onClick={() => setWeeklyReports(!weeklyReports)}
+                      className={`w-12 h-6 rounded-full relative transition-colors ${
+                        weeklyReports ? 'bg-green-500' : 'bg-gray-700'
+                      }`}
+                    >
+                      <div className={`w-6 h-6 bg-white rounded-full absolute top-0 transition-transform ${
+                        weeklyReports ? 'left-6' : 'left-0'
+                      }`}></div>
+                    </button>
                   </div>
 
                 </div>
