@@ -250,12 +250,33 @@ function App() {
       return { success: false, error: resultado.error || 'Erro ao fazer cadastro' };
     }
     
-    // Mostrar notificação global de sucesso
+    // Mostrar notificação global de sucesso com contagem regressiva
+    let countdown = 4;
     setNotification({
-      message: '🎉 Conta criada com sucesso! Redirecionando para login em 30 segundos...',
+      message: `🎉 Conta criada com sucesso! Redirecionando para login em ${countdown} segundos...`,
       type: 'success',
       isVisible: true
     });
+    
+    // Contagem regressiva
+    const interval = setInterval(() => {
+      countdown--;
+      if (countdown > 0) {
+        setNotification({
+          message: `🎉 Conta criada com sucesso! Redirecionando para login em ${countdown} segundos...`,
+          type: 'success',
+          isVisible: true
+        });
+      } else {
+        // Esconder notificação e redirecionar
+        setNotification({
+          message: '',
+          type: 'success',
+          isVisible: false
+        });
+        clearInterval(interval);
+      }
+    }, 1000);
     
     return { success: true };
   };
