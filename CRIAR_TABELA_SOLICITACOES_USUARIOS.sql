@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS solicitacoes_usuarios (
   status VARCHAR(50) DEFAULT 'pendente' CHECK (status IN ('pendente', 'aprovado', 'rejeitado')),
   data_solicitacao TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   data_aprovacao TIMESTAMP WITH TIME ZONE,
-  aprovado_por UUID REFERENCES usuarios(id),
+  aprovado_por TEXT REFERENCES usuarios(id),
   motivo_rejeicao TEXT,
   observacoes TEXT
 );
