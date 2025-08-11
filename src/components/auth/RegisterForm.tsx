@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Notification from '../Notification';
 import { UserPlus, Mail, Lock, User, Eye, EyeOff, Sparkles, Shield } from 'lucide-react';
 import type { RegisterData } from '../../types/usuario';
 
@@ -61,6 +62,15 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
   const [redirectCountdown, setRedirectCountdown] = useState<number>(0);
+  const [notification, setNotification] = useState<{
+    message: string;
+    type: 'success' | 'error' | 'info' | 'warning';
+    isVisible: boolean;
+  }>({
+    message: '',
+    type: 'success',
+    isVisible: false
+  });
 
   // Efeito SIMPLIFICADO para countdown visual apenas
   useEffect(() => {
@@ -112,8 +122,12 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
       setSuccess('✅ Conta criada com sucesso!');
       setRedirectCountdown(15); // Inicia countdown de 15 segundos
       
-      // ALERT para forçar aparecer
-      alert('🎉 CONTA CRIADA COM SUCESSO! 🎉\n\nRedirecionando para login em 15 segundos...');
+      // NOTIFICAÇÃO bonita em vez do alert
+      setNotification({
+        message: `🎉 Conta criada com sucesso! Redirecionando para login em ${redirectCountdown} segundos...`,
+        type: 'success',
+        isVisible: true
+      });
       console.log('🎯 FRONTEND - Mensagem definida! Success:', '✅ Conta criada com sucesso!');
       console.log('🎯 FRONTEND - Countdown definido:', 15);
       
@@ -320,6 +334,16 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
         {/* Elemento decorativo inferior */}
         <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent rounded-full opacity-50"></div>
       </div>
+      
+      {/* Componente de Notificação */}
+      <Notification
+        message={notification.message}
+        type={notification.type}
+        isVisible={notification.isVisible}
+        onClose={() => setNotification(prev => ({ ...prev, isVisible: false }))}
+        autoClose={false}
+        duration={15000}
+      />
     </div>
   );
 }; 
