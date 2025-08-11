@@ -10,7 +10,14 @@ const isSupabaseConfigured = supabaseUrl && supabaseAnonKey &&
   supabaseUrl !== 'https://your-project-ref.supabase.co' && 
   supabaseAnonKey !== 'your-anon-key'
 
+// Criar instâncias únicas dos clientes
 export const supabase = isSupabaseConfigured ? createClient(supabaseUrl, supabaseAnonKey) : null
+export const supabaseAnon = isSupabaseConfigured ? createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  }
+}) : null
 export { isSupabaseConfigured }
 
 // Função helper para queries seguras
@@ -899,11 +906,13 @@ class SupabaseApiClient {
         return { success: false, error: 'Supabase não configurado' }
       }
 
-      // Criar um cliente Supabase anônimo para operações não autenticadas
-      const anonClient = createClient(supabaseUrl!, supabaseAnonKey!)
+      // Usar o cliente anônimo já configurado
+      if (!supabaseAnon) {
+        return { success: false, error: 'Cliente anônimo não configurado' }
+      }
 
       // Verificar se o email já existe
-      const { data: existingUser, error: checkError } = await anonClient
+      const { data: existingUser, error: checkError } = await supabaseAnon
         .from('usuarios')
         .select('id, email')
         .eq('email', email)
@@ -919,7 +928,7 @@ class SupabaseApiClient {
       }
 
       // Verificar se já existe uma solicitação pendente
-      const { data: existingSolicitacao, error: solicitacaoCheckError } = await anonClient
+      const { data: existingSolicitacao, error: solicitacaoCheckError } = await supabaseAnon
         .from('solicitacoes_usuarios')
         .select('id, email')
         .eq('email', email)
@@ -936,7 +945,7 @@ class SupabaseApiClient {
 
       // Criar solicitação usando cliente anônimo
       const senhaHash = await hashPassword(senha)
-      const { data, error } = await anonClient
+      const { data, error } = await supabaseAnon
         .from('solicitacoes_usuarios')
         .insert([
           {
