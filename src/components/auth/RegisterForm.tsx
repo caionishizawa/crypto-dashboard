@@ -108,7 +108,6 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
     console.log('🎯 FRONTEND - Resultado recebido:', result);
     
     if (result.success) {
-      console.log('🎯 FRONTEND - Sucesso! Redirecionando em 4 segundos...');
       setSuccess('✅ Conta criada com sucesso!');
       setRedirectCountdown(4);
       
@@ -122,7 +121,6 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
       
       // Redirecionamento direto após 4 segundos
       setTimeout(() => {
-        console.log('🎯 FRONTEND - Executando redirecionamento...');
         onSwitchToLogin();
       }, 4000);
       
