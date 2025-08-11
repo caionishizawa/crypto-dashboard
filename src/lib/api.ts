@@ -777,6 +777,187 @@ class SupabaseApiClient {
       return { success: false, error: error.message }
     }
   }
+
+  // === MÉTODOS PARA SOLICITAÇÕES DE USUÁRIOS ===
+
+  async getSolicitacoes(): Promise<ApiResponse> {
+    try {
+      if (!isSupabaseConfigured) {
+        return { success: false, error: 'Supabase não configurado' }
+      }
+
+      const { data, error } = await safeQuery(async () => {
+        return await supabase!
+          .from('solicitacoes_usuarios')
+          .select('*')
+          .order('data_solicitacao', { ascending: false })
+      })
+
+      if (error) {
+        console.error('Erro ao buscar solicitações:', error)
+        return { success: false, error: 'Erro ao buscar solicitações' }
+      }
+
+      return { success: true, data: data || [] }
+    } catch (error: any) {
+      console.error('Erro ao buscar solicitações:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  async aprovarSolicitacao(solicitacaoId: string, aprovado: boolean, motivo_rejeicao?: string, observacoes?: string): Promise<ApiResponse> {
+    try {
+      if (!isSupabaseConfigured) {
+        return { success: false, error: 'Supabase não configurado' }
+      }
+
+      // Buscar a solicitação
+      const { data: solicitacao, error: fetchError } = await safeQuery(async () => {
+        return await supabase!
+          .from('solicitacoes_usuarios')
+          .select('*')
+          .eq('id', solicitacaoId)
+          .single()
+      })
+
+      if (fetchError || !solicitacao) {
+        return { success: false, error: 'Solicitação não encontrada' }
+      }
+
+      if (aprovado) {
+        // Aprovar a solicitação
+        const { error: updateError } = await safeQuery(async () => {
+          return await supabase!
+            .from('solicitacoes_usuarios')
+            .update({
+              status: 'aprovado',
+              data_aprovacao: new Date().toISOString(),
+              aprovado_por: (await supabase!.auth.getUser()).data.user?.id
+            })
+            .eq('id', solicitacaoId)
+        })
+
+        if (updateError) {
+          console.error('Erro ao aprovar solicitação:', updateError)
+          return { success: false, error: 'Erro ao aprovar solicitação' }
+        }
+
+        // Criar o usuário na tabela usuarios
+        const { error: createUserError } = await safeQuery(async () => {
+          return await supabase!
+            .from('usuarios')
+            .insert([
+              {
+                id: solicitacao.id,
+                nome: solicitacao.nome,
+                email: solicitacao.email,
+                tipo: 'user',
+                dataRegistro: new Date().toISOString(),
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+              }
+            ])
+        })
+
+        if (createUserError) {
+          console.error('Erro ao criar usuário:', createUserError)
+          return { success: false, error: 'Erro ao criar usuário' }
+        }
+
+        return { success: true, message: 'Solicitação aprovada com sucesso' }
+      } else {
+        // Rejeitar a solicitação
+        const { error: updateError } = await safeQuery(async () => {
+          return await supabase!
+            .from('solicitacoes_usuarios')
+            .update({
+              status: 'rejeitado',
+              data_aprovacao: new Date().toISOString(),
+              aprovado_por: (await supabase!.auth.getUser()).data.user?.id,
+              motivo_rejeicao,
+              observacoes
+            })
+            .eq('id', solicitacaoId)
+        })
+
+        if (updateError) {
+          console.error('Erro ao rejeitar solicitação:', updateError)
+          return { success: false, error: 'Erro ao rejeitar solicitação' }
+        }
+
+        return { success: true, message: 'Solicitação rejeitada' }
+      }
+    } catch (error: any) {
+      console.error('Erro ao processar solicitação:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  async solicitarCadastro(nome: string, email: string, senha: string): Promise<ApiResponse> {
+    try {
+      if (!isSupabaseConfigured) {
+        return { success: false, error: 'Supabase não configurado' }
+      }
+
+      // Verificar se o email já existe
+      const { data: existingUser, error: checkError } = await safeQuery(async () => {
+        return await supabase!
+          .from('usuarios')
+          .select('id, email')
+          .eq('email', email)
+          .maybeSingle()
+      })
+
+      if (existingUser) {
+        return { success: false, error: 'Email já cadastrado' }
+      }
+
+      // Verificar se já existe uma solicitação pendente
+      const { data: existingSolicitacao, error: solicitacaoCheckError } = await safeQuery(async () => {
+        return await supabase!
+          .from('solicitacoes_usuarios')
+          .select('id, email')
+          .eq('email', email)
+          .maybeSingle()
+      })
+
+      if (existingSolicitacao) {
+        return { success: false, error: 'Já existe uma solicitação pendente para este email' }
+      }
+
+      // Criar solicitação
+      const senhaHash = await hashPassword(senha)
+      const { data, error } = await safeQuery(async () => {
+        return await supabase!
+          .from('solicitacoes_usuarios')
+          .insert([
+            {
+              nome,
+              email,
+              senha_hash: senhaHash,
+              status: 'pendente',
+              observacoes: 'Aguardando aprovação do administrador'
+            }
+          ])
+          .select('id, nome, email, status, data_solicitacao')
+          .single()
+      })
+
+      if (error) {
+        console.error('Erro ao criar solicitação:', error)
+        return { success: false, error: 'Erro ao criar solicitação' }
+      }
+
+      return { 
+        success: true, 
+        message: 'Solicitação enviada com sucesso! Aguarde a aprovação do administrador.',
+        data
+      }
+    } catch (error: any) {
+      console.error('Erro ao solicitar cadastro:', error)
+      return { success: false, error: error.message }
+    }
+  }
 }
 
 // Exportar instância única

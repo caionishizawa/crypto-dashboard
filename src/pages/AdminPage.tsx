@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, User, LogOut, Plus, Eye, Edit, Wallet, Bitcoin, Shield, TrendingUp } from 'lucide-react';
+import { Users, User, LogOut, Plus, Eye, Edit, Wallet, Bitcoin, Shield, TrendingUp, UserPlus } from 'lucide-react';
 import type { Cliente, ClientesData, Usuario, Carteira } from '../types';
 import { formatarMoeda, formatarPercentual, getCorRetorno } from '../utils';
 import { NovoClienteForm } from '../components/auth/NovoClienteForm';
@@ -14,6 +14,7 @@ interface AdminPageProps {
   onCreateClient: (clienteData: Omit<Cliente, 'id' | 'transacoes' | 'carteiras' | 'snapshots'>) => void;
   activeTab?: 'clientes' | 'carteiras' | 'snapshots';
   onTabChange?: (tab: 'clientes' | 'carteiras' | 'snapshots') => void;
+  onGoToSolicitacoes?: () => void;
 }
 
 export const AdminPage: React.FC<AdminPageProps> = ({
@@ -25,7 +26,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   onCreateSnapshot,
   onCreateClient,
   activeTab: externalActiveTab,
-  onTabChange
+  onTabChange,
+  onGoToSolicitacoes
 }) => {
   const [internalActiveTab, setInternalActiveTab] = useState<'clientes' | 'carteiras' | 'snapshots'>(externalActiveTab || 'clientes');
   
@@ -106,6 +108,13 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
             {/* Informações do Usuário e Logout */}
             <div className="flex items-center space-x-4">
+              <button
+                onClick={onGoToSolicitacoes}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>Solicitações</span>
+              </button>
               <div className="flex items-center space-x-2 bg-gray-800/50 px-3 py-2 rounded-lg">
                 <User className="w-4 h-4 text-green-400" />
                 <span className="text-sm text-gray-300">{currentUser.nome}</span>

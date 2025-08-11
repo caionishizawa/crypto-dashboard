@@ -3,4 +3,5 @@ export * from './transacao';
 export * from './carteira';
 export * from './cliente';
 export * from './usuario';
-export * from './performance'; 
+export * from './performance';
+export * from './solicitacao'; 
