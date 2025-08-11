@@ -30,20 +30,16 @@ FROM pg_policies
 WHERE tablename = 'solicitacoes_usuarios' 
 AND cmd = 'INSERT';
 
--- 4. Testar inserção como usuário anônimo (simular contexto da aplicação)
--- Primeiro, vamos fazer logout para garantir contexto anônimo
-SELECT auth.sign_out();
-
--- 5. Tentar inserção anônima
+-- 4. Testar inserção anônima diretamente
 INSERT INTO solicitacoes_usuarios (nome, email, senha_hash, status) 
 VALUES ('Teste Anônimo', 'teste.anonimo@email.com', '$2a$12$test.hash', 'pendente')
 ON CONFLICT (email) DO NOTHING;
 
--- 6. Verificar se foi inserido
+-- 5. Verificar se foi inserido
 SELECT * FROM solicitacoes_usuarios WHERE email = 'teste.anonimo@email.com';
 
--- 7. Limpar teste
+-- 6. Limpar teste
 DELETE FROM solicitacoes_usuarios WHERE email = 'teste.anonimo@email.com';
 
--- 8. Verificar contexto atual
+-- 7. Verificar contexto atual
 SELECT auth.uid() as current_user_id;
