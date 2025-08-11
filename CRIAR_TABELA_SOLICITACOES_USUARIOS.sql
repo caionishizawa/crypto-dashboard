@@ -20,6 +20,11 @@ CREATE INDEX IF NOT EXISTS idx_solicitacoes_data ON solicitacoes_usuarios(data_s
 -- Adicionar RLS (Row Level Security)
 ALTER TABLE solicitacoes_usuarios ENABLE ROW LEVEL SECURITY;
 
+-- Remover políticas existentes (se houver)
+DROP POLICY IF EXISTS "Admins podem ver todas as solicitações" ON solicitacoes_usuarios;
+DROP POLICY IF EXISTS "Usuários podem ver suas próprias solicitações" ON solicitacoes_usuarios;
+DROP POLICY IF EXISTS "Permitir inserção de solicitações" ON solicitacoes_usuarios;
+
 -- Política para admins verem todas as solicitações
 CREATE POLICY "Admins podem ver todas as solicitações" ON solicitacoes_usuarios
   FOR ALL USING (
