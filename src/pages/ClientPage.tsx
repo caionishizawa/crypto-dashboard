@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { Bitcoin, Shield, DollarSign, TrendingUp, Settings, Plus } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Bitcoin, Shield, DollarSign, TrendingUp, Settings, Plus, Eye, EyeOff } from 'lucide-react';
 import type { Cliente, PerformanceData } from '../types';
 import { formatarMoeda, formatarPercentual, getCorRetorno } from '../utils';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -17,6 +17,9 @@ export const ClientPage: React.FC<ClientPageProps> = ({
   onAddTransaction,
   onEditClient
 }) => {
+  // Estado para controlar visibilidade do gráfico
+  const [showPerformance, setShowPerformance] = useState(true);
+  
   // Debug quando o cliente muda
   useEffect(() => {
   
@@ -114,6 +117,22 @@ export const ClientPage: React.FC<ClientPageProps> = ({
               </div>
             </div>
             <div className="flex items-center space-x-3">
+              <button 
+                onClick={() => setShowPerformance(!showPerformance)}
+                className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+              >
+                {showPerformance ? (
+                  <>
+                    <EyeOff className="w-4 h-4" />
+                    <span>Esconder Performance</span>
+                  </>
+                ) : (
+                  <>
+                    <Eye className="w-4 h-4" />
+                    <span>Mostrar Performance</span>
+                  </>
+                )}
+              </button>
               {onEditClient && (
                 <button 
                   onClick={onEditClient}
@@ -307,60 +326,62 @@ export const ClientPage: React.FC<ClientPageProps> = ({
         </div>
 
         {/* Gráfico de Performance */}
-        <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 mb-8">
-          <h3 className="text-xl font-semibold mb-6">Performance ao Longo do Tempo</h3>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={performanceData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="month" stroke="#9CA3AF" />
-                <YAxis stroke="#9CA3AF" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#1F2937', 
-                    border: '1px solid #374151', 
-                    borderRadius: '8px' 
-                  }} 
-                />
-                {isTypeBitcoin ? (
-                  <>
-                    <Line 
-                      type="monotone" 
-                      dataKey="btcPuro" 
-                      stroke="#F59E0B" 
-                      strokeWidth={3}
-                      name="BTC Parado"
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="btcDeFi" 
-                      stroke="#10B981" 
-                      strokeWidth={3}
-                      name="BTC + DeFi"
-                    />
-                  </>
-                ) : (
-                  <>
-                    <Line 
-                      type="monotone" 
-                      dataKey="usdParado" 
-                      stroke="#6B7280" 
-                      strokeWidth={3}
-                      name="USD Parado"
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="usdDeFi" 
-                      stroke="#3B82F6" 
-                      strokeWidth={3}
-                      name="USD + DeFi"
-                    />
-                  </>
-                )}
-              </LineChart>
-            </ResponsiveContainer>
+        {showPerformance && (
+          <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 mb-8">
+            <h3 className="text-xl font-semibold mb-6">Performance ao Longo do Tempo</h3>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={performanceData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis dataKey="month" stroke="#9CA3AF" />
+                  <YAxis stroke="#9CA3AF" />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#1F2937', 
+                      border: '1px solid #374151', 
+                      borderRadius: '8px' 
+                    }} 
+                  />
+                  {isTypeBitcoin ? (
+                    <>
+                      <Line 
+                        type="monotone" 
+                        dataKey="btcPuro" 
+                        stroke="#F59E0B" 
+                        strokeWidth={3}
+                        name="BTC Parado"
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="btcDeFi" 
+                        stroke="#10B981" 
+                        strokeWidth={3}
+                        name="BTC + DeFi"
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <Line 
+                        type="monotone" 
+                        dataKey="usdParado" 
+                        stroke="#6B7280" 
+                        strokeWidth={3}
+                        name="USD Parado"
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="usdDeFi" 
+                        stroke="#3B82F6" 
+                        strokeWidth={3}
+                        name="USD + DeFi"
+                      />
+                    </>
+                  )}
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Estatísticas Gerais */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
