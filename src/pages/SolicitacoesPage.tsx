@@ -21,6 +21,7 @@ export const SolicitacoesPage: React.FC<SolicitacoesPageProps> = ({
   const [motivoRejeicao, setMotivoRejeicao] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [processing, setProcessing] = useState(false);
+  const [modalAction, setModalAction] = useState<'aprovar' | 'rejeitar' | null>(null);
 
   // Carregar solicitações
   useEffect(() => {
@@ -43,11 +44,14 @@ export const SolicitacoesPage: React.FC<SolicitacoesPageProps> = ({
 
   const handleAprovar = async (solicitacao: SolicitacaoUsuario) => {
     setSelectedSolicitacao(solicitacao);
+    setModalAction('aprovar');
+    setObservacoes('');
     setShowModal(true);
   };
 
   const handleRejeitar = async (solicitacao: SolicitacaoUsuario) => {
     setSelectedSolicitacao(solicitacao);
+    setModalAction('rejeitar');
     setMotivoRejeicao('');
     setObservacoes('');
     setShowModal(true);
@@ -70,6 +74,7 @@ export const SolicitacoesPage: React.FC<SolicitacoesPageProps> = ({
         await carregarSolicitacoes();
         setShowModal(false);
         setSelectedSolicitacao(null);
+        setModalAction(null);
         setMotivoRejeicao('');
         setObservacoes('');
       } else {
@@ -301,11 +306,11 @@ export const SolicitacoesPage: React.FC<SolicitacoesPageProps> = ({
       </div>
 
       {/* Modal de Confirmação */}
-      {showModal && selectedSolicitacao && (
+      {showModal && selectedSolicitacao && modalAction && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 max-w-md w-full mx-4">
             <h3 className="text-xl font-bold mb-4">
-              {selectedSolicitacao.status === 'pendente' ? 'Aprovar Solicitação' : 'Rejeitar Solicitação'}
+              {modalAction === 'aprovar' ? 'Aprovar Solicitação' : 'Rejeitar Solicitação'}
             </h3>
             
             <div className="mb-4">
@@ -322,7 +327,7 @@ export const SolicitacoesPage: React.FC<SolicitacoesPageProps> = ({
               )}
             </div>
 
-            {selectedSolicitacao.status === 'pendente' && (
+            {modalAction === 'aprovar' && (
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-2">
@@ -361,7 +366,7 @@ export const SolicitacoesPage: React.FC<SolicitacoesPageProps> = ({
               </div>
             )}
 
-            {selectedSolicitacao.status === 'pendente' && (
+            {modalAction === 'rejeitar' && (
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-2">
