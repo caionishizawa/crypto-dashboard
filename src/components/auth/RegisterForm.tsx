@@ -337,6 +337,21 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
         <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent rounded-full opacity-50"></div>
       </div>
       
+      {/* NOTIFICAÇÃO DIRETA para testar */}
+      {notification.isVisible && (
+        <div className="fixed top-4 right-4 z-50 bg-green-500/20 border-2 border-green-400 rounded-xl p-6 text-green-300 text-lg shadow-lg animate-pulse max-w-sm">
+          <div className="flex items-center">
+            <div className="w-4 h-4 bg-green-400 rounded-full mr-4 animate-bounce"></div>
+            <div className="flex-1">
+              <div className="text-xl font-bold">🎉 SUCESSO!</div>
+              <div className="text-green-200 mt-1">
+                {notification.message}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Componente de Notificação */}
       {notification.isVisible && console.log('🎯 FRONTEND - RENDERIZANDO Notification:', notification)}
       <Notification
