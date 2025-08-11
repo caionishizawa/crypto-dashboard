@@ -35,6 +35,7 @@ const Notification: React.FC<NotificationProps> = ({
     }
   }, [isVisible, autoClose, duration, onClose]);
 
+  console.log('🔔 NOTIFICATION - Componente chamado:', { isVisible, message, type });
   if (!isVisible) return null;
 
   const getTypeStyles = () => {
