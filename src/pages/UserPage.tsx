@@ -22,11 +22,11 @@ export const UserPage: React.FC<UserPageProps> = ({
 
   // Calcular estatísticas gerais
   const totalClients = Object.keys(clients).length;
-  const totalValue = Object.values(clients).reduce((acc, client: Cliente) => {
+  const totalValue = Object.values(clients).reduce((acc: number, client: Cliente) => {
     return acc + (client.valorCarteiraDeFi || 0);
   }, 0);
   
-  const totalInvestment = Object.values(clients).reduce((acc, client: Cliente) => {
+  const totalInvestment = Object.values(clients).reduce((acc: number, client: Cliente) => {
     return acc + (client.investimentoInicial || 0);
   }, 0);
 
@@ -360,7 +360,7 @@ export const UserPage: React.FC<UserPageProps> = ({
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-blue-400 mb-2">
-                    {totalClients > 0 ? Math.round(Object.values(clients).reduce((acc, c: Cliente) => acc + (c.apyMedio || 0), 0) / totalClients) : 0}%
+                    {totalClients > 0 ? Math.round(Object.values(clients).reduce((acc: number, c: Cliente) => acc + (c.apyMedio || 0), 0) / totalClients) : 0}%
                   </div>
                   <div className="text-gray-400">APY Médio</div>
                 </div>
