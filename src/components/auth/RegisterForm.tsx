@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Notification from '../Notification';
 import { UserPlus, Mail, Lock, User, Eye, EyeOff, Sparkles, Shield } from 'lucide-react';
 import type { RegisterData } from '../../types/usuario';
 
@@ -357,16 +356,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
         </div>
       )}
       
-      {/* Componente de Notificação */}
-      {notification.isVisible && console.log('🎯 FRONTEND - RENDERIZANDO Notification:', notification)}
-      <Notification
-        message={notification.message}
-        type={notification.type}
-        isVisible={notification.isVisible}
-        onClose={() => setNotification(prev => ({ ...prev, isVisible: false }))}
-        autoClose={false}
-        duration={30000}
-      />
+      {/* Componente de Notificação REMOVIDO - usando só a direta */}
     </div>
   );
 }; 
