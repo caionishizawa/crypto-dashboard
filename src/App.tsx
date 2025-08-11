@@ -7,6 +7,7 @@ import { LoginForm } from './components/auth/LoginForm';
 import { RegisterForm } from './components/auth/RegisterForm';
 import { AdminPage } from './pages/AdminPage';
 import { ClientPage } from './pages/ClientPage';
+import { UserPage } from './pages/UserPage';
 import { isSupabaseConfigured } from './lib/api';
 import { useAuth } from './hooks/useAuth';
 import { apiClient } from './lib/api';
@@ -655,58 +656,109 @@ function App() {
     );
   }
 
-  // Dashboard principal (AdminPage)
-  return (
-    <div className="min-h-screen relative overflow-hidden text-white" style={backgroundStyle}>
-      {/* Elementos decorativos para páginas logadas - tema crypto */}
-      <div className="absolute top-0 left-0 w-full h-full">
-        {/* Gradientes radiais crypto */}
-        <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-yellow-400/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-green-400/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-blue-400/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse delay-2000"></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-purple-400/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse delay-3000"></div>
+  // Renderizar página baseada no tipo de usuário
+  if (usuario?.tipo === 'admin') {
+    // Dashboard principal (AdminPage) - Apenas para admins
+    return (
+      <div className="min-h-screen relative overflow-hidden text-white" style={backgroundStyle}>
+        {/* Elementos decorativos para páginas logadas - tema crypto */}
+        <div className="absolute top-0 left-0 w-full h-full">
+          {/* Gradientes radiais crypto */}
+          <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-yellow-400/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-green-400/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-blue-400/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse delay-2000"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-purple-400/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse delay-3000"></div>
+          
+          {/* Linhas decorativas crypto */}
+          <div className="absolute top-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-yellow-400/30 to-transparent"></div>
+          <div className="absolute top-3/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-green-400/30 to-transparent"></div>
+          <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-blue-400/30 to-transparent"></div>
+          <div className="absolute top-0 left-3/4 w-px h-full bg-gradient-to-b from-transparent via-purple-400/30 to-transparent"></div>
+          
+          {/* Partículas crypto */}
+          <div className="absolute top-20 left-20 w-3 h-3 bg-yellow-400/60 rounded-full animate-bounce shadow-lg shadow-yellow-400/30"></div>
+          <div className="absolute top-40 right-32 w-2 h-2 bg-green-400/70 rounded-full animate-bounce delay-1000 shadow-lg shadow-green-400/40"></div>
+          <div className="absolute bottom-32 left-40 w-2.5 h-2.5 bg-blue-400/65 rounded-full animate-bounce delay-2000 shadow-lg shadow-blue-400/35"></div>
+          <div className="absolute bottom-20 right-20 w-2 h-2 bg-purple-400/75 rounded-full animate-bounce delay-3000 shadow-lg shadow-purple-400/45"></div>
+          <div className="absolute top-1/2 left-10 w-2 h-2 bg-yellow-400/55 rounded-full animate-bounce delay-1500 shadow-lg shadow-yellow-400/25"></div>
+          <div className="absolute top-1/3 right-10 w-2.5 h-2.5 bg-green-400/60 rounded-full animate-bounce delay-2500 shadow-lg shadow-green-400/30"></div>
+        </div>
         
-        {/* Linhas decorativas crypto */}
-        <div className="absolute top-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-yellow-400/30 to-transparent"></div>
-        <div className="absolute top-3/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-green-400/30 to-transparent"></div>
-        <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-blue-400/30 to-transparent"></div>
-        <div className="absolute top-0 left-3/4 w-px h-full bg-gradient-to-b from-transparent via-purple-400/30 to-transparent"></div>
+        {/* Overlay sutil */}
+        <div className="absolute inset-0 bg-black/10"></div>
         
-        {/* Partículas crypto */}
-        <div className="absolute top-20 left-20 w-3 h-3 bg-yellow-400/60 rounded-full animate-bounce shadow-lg shadow-yellow-400/30"></div>
-        <div className="absolute top-40 right-32 w-2 h-2 bg-green-400/70 rounded-full animate-bounce delay-1000 shadow-lg shadow-green-400/40"></div>
-        <div className="absolute bottom-32 left-40 w-2.5 h-2.5 bg-blue-400/65 rounded-full animate-bounce delay-2000 shadow-lg shadow-blue-400/35"></div>
-        <div className="absolute bottom-20 right-20 w-2 h-2 bg-purple-400/75 rounded-full animate-bounce delay-3000 shadow-lg shadow-purple-400/45"></div>
-        <div className="absolute top-1/2 left-10 w-2 h-2 bg-yellow-400/55 rounded-full animate-bounce delay-1500 shadow-lg shadow-yellow-400/25"></div>
-        <div className="absolute top-1/3 right-10 w-2.5 h-2.5 bg-green-400/60 rounded-full animate-bounce delay-2500 shadow-lg shadow-green-400/30"></div>
+        {/* Conteúdo principal */}
+        <div className="relative z-10">
+          <ModeIndicator />
+          <Notification
+            message={notification.message}
+            type={notification.type}
+            isVisible={notification.isVisible}
+            onClose={() => setNotification(prev => ({ ...prev, isVisible: false }))}
+          />
+          <AdminPage
+            currentUser={usuario!}
+            clients={clientes}
+            onLogout={handleLogout}
+            onViewClient={handleViewClient}
+            onAddWallet={() => {}} // Implementar quando necessário
+            onCreateSnapshot={() => {}} // Implementar quando necessário
+            onCreateClient={handleCreateClient}
+            activeTab={activeAdminTab}
+            onTabChange={setActiveAdminTab}
+          />
+        </div>
       </div>
-      
-      {/* Overlay sutil */}
-      <div className="absolute inset-0 bg-black/10"></div>
-      
-      {/* Conteúdo principal */}
-      <div className="relative z-10">
-        <ModeIndicator />
-        <Notification
-          message={notification.message}
-          type={notification.type}
-          isVisible={notification.isVisible}
-          onClose={() => setNotification(prev => ({ ...prev, isVisible: false }))}
-        />
-        <AdminPage
-          currentUser={usuario!}
-          clients={clientes}
-          onLogout={handleLogout}
-          onViewClient={handleViewClient}
-          onAddWallet={() => {}} // Implementar quando necessário
-          onCreateSnapshot={() => {}} // Implementar quando necessário
-          onCreateClient={handleCreateClient}
-          activeTab={activeAdminTab}
-          onTabChange={setActiveAdminTab}
-        />
+    );
+  } else {
+    // Dashboard do usuário comum (UserPage) - Para usuários tipo 'cliente'
+    return (
+      <div className="min-h-screen relative overflow-hidden text-white" style={backgroundStyle}>
+        {/* Elementos decorativos para páginas logadas - tema crypto */}
+        <div className="absolute top-0 left-0 w-full h-full">
+          {/* Gradientes radiais crypto */}
+          <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-yellow-400/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-green-400/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-blue-400/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse delay-2000"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-purple-400/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse delay-3000"></div>
+          
+          {/* Linhas decorativas crypto */}
+          <div className="absolute top-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-yellow-400/30 to-transparent"></div>
+          <div className="absolute top-3/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-green-400/30 to-transparent"></div>
+          <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-blue-400/30 to-transparent"></div>
+          <div className="absolute top-0 left-3/4 w-px h-full bg-gradient-to-b from-transparent via-purple-400/30 to-transparent"></div>
+          
+          {/* Partículas crypto */}
+          <div className="absolute top-20 left-20 w-3 h-3 bg-yellow-400/60 rounded-full animate-bounce shadow-lg shadow-yellow-400/30"></div>
+          <div className="absolute top-40 right-32 w-2 h-2 bg-green-400/70 rounded-full animate-bounce delay-1000 shadow-lg shadow-green-400/40"></div>
+          <div className="absolute bottom-32 left-40 w-2.5 h-2.5 bg-blue-400/65 rounded-full animate-bounce delay-2000 shadow-lg shadow-blue-400/35"></div>
+          <div className="absolute bottom-20 right-20 w-2 h-2 bg-purple-400/75 rounded-full animate-bounce delay-3000 shadow-lg shadow-purple-400/45"></div>
+          <div className="absolute top-1/2 left-10 w-2 h-2 bg-yellow-400/55 rounded-full animate-bounce delay-1500 shadow-lg shadow-yellow-400/25"></div>
+          <div className="absolute top-1/3 right-10 w-2.5 h-2.5 bg-green-400/60 rounded-full animate-bounce delay-2500 shadow-lg shadow-green-400/30"></div>
+        </div>
+        
+        {/* Overlay sutil */}
+        <div className="absolute inset-0 bg-black/10"></div>
+        
+        {/* Conteúdo principal */}
+        <div className="relative z-10">
+          <ModeIndicator />
+          <Notification
+            message={notification.message}
+            type={notification.type}
+            isVisible={notification.isVisible}
+            onClose={() => setNotification(prev => ({ ...prev, isVisible: false }))}
+          />
+          <UserPage
+            currentUser={usuario!}
+            clients={clientes}
+            onLogout={handleLogout}
+            onViewClient={handleViewClient}
+          />
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 }
 
 export default App; 
