@@ -22,19 +22,19 @@ export const UserPage: React.FC<UserPageProps> = ({
 
   // Calcular estatísticas gerais
   const totalClients = Object.keys(clients).length;
-  const totalValue = Object.values(clients).reduce((acc, client) => {
+  const totalValue = Object.values(clients).reduce((acc, client: Cliente) => {
     return acc + (client.valorCarteiraDeFi || 0);
   }, 0);
   
-  const totalInvestment = Object.values(clients).reduce((acc, client) => {
+  const totalInvestment = Object.values(clients).reduce((acc, client: Cliente) => {
     return acc + (client.investimentoInicial || 0);
   }, 0);
 
   const totalReturn = totalInvestment > 0 ? ((totalValue - totalInvestment) / totalInvestment) * 100 : 0;
 
   // Separar clientes por tipo
-  const bitcoinClients = Object.values(clients).filter(client => client.tipo === 'bitcoin');
-  const conservativeClients = Object.values(clients).filter(client => client.tipo === 'conservador');
+  const bitcoinClients = Object.values(clients).filter((client: Cliente) => client.tipo === 'bitcoin');
+  const conservativeClients = Object.values(clients).filter((client: Cliente) => client.tipo === 'conservador');
 
   return (
     <div className="min-h-screen text-white">
@@ -215,7 +215,7 @@ export const UserPage: React.FC<UserPageProps> = ({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Object.values(clients).map((client) => {
+              {Object.values(clients).map((client: Cliente) => {
                 const isTypeBitcoin = client.tipo === 'bitcoin';
                 const returnValue = (client.investimentoInicial || 0) > 0 
                   ? (((client.valorCarteiraDeFi || 0) - (client.investimentoInicial || 0)) / (client.investimentoInicial || 0)) * 100
@@ -282,7 +282,7 @@ export const UserPage: React.FC<UserPageProps> = ({
                 <h3 className="text-lg font-semibold mb-4">Melhores Performances</h3>
                 <div className="space-y-3">
                   {Object.values(clients)
-                    .sort((a, b) => {
+                    .sort((a: Cliente, b: Cliente) => {
                       const returnA = (a.investimentoInicial || 0) > 0 
                         ? (((a.valorCarteiraDeFi || 0) - (a.investimentoInicial || 0)) / (a.investimentoInicial || 0)) * 100
                         : 0;
@@ -292,7 +292,7 @@ export const UserPage: React.FC<UserPageProps> = ({
                       return returnB - returnA;
                     })
                     .slice(0, 3)
-                    .map((client, index) => {
+                    .map((client: Cliente, index) => {
                       const returnValue = (client.investimentoInicial || 0) > 0 
                         ? (((client.valorCarteiraDeFi || 0) - (client.investimentoInicial || 0)) / (client.investimentoInicial || 0)) * 100
                         : 0;
@@ -360,7 +360,7 @@ export const UserPage: React.FC<UserPageProps> = ({
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-blue-400 mb-2">
-                    {totalClients > 0 ? Math.round(Object.values(clients).reduce((acc, c) => acc + (c.apyMedio || 0), 0) / totalClients) : 0}%
+                    {totalClients > 0 ? Math.round(Object.values(clients).reduce((acc, c: Cliente) => acc + (c.apyMedio || 0), 0) / totalClients) : 0}%
                   </div>
                   <div className="text-gray-400">APY Médio</div>
                 </div>
