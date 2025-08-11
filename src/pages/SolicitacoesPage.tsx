@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { UserPlus, Check, X, Clock, Eye, MessageSquare } from 'lucide-react';
+import { UserPlus, Check, X, Clock, Eye, MessageSquare, Trash2 } from 'lucide-react';
 import type { SolicitacaoUsuario, Usuario } from '../types';
 import { apiClient } from '../lib/api';
 
@@ -88,6 +88,29 @@ export const SolicitacoesPage: React.FC<SolicitacoesPageProps> = ({
     }
   };
 
+  const apagarHistorico = async () => {
+    if (!confirm('Tem certeza que deseja apagar todo o histórico de solicitações processadas? Esta ação não pode ser desfeita.')) {
+      return;
+    }
+
+    setProcessing(true);
+    try {
+      const response = await apiClient.apagarHistoricoSolicitacoes();
+      
+      if (response.success) {
+        alert('Histórico apagado com sucesso!');
+        await carregarSolicitacoes();
+      } else {
+        alert('Erro ao apagar histórico: ' + response.error);
+      }
+    } catch (error) {
+      console.error('Erro ao apagar histórico:', error);
+      alert('Erro ao apagar histórico');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pendente':
@@ -162,7 +185,7 @@ export const SolicitacoesPage: React.FC<SolicitacoesPageProps> = ({
         ) : (
           <div className="space-y-8">
             {/* Estatísticas */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold">Total de Solicitações</h3>
@@ -188,6 +211,22 @@ export const SolicitacoesPage: React.FC<SolicitacoesPageProps> = ({
                 </div>
                 <div className="text-3xl font-bold text-green-400">{solicitacoesProcessadas.length}</div>
                 <p className="text-gray-400 text-sm mt-2">Aprovadas/Rejeitadas</p>
+              </div>
+
+              <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Ações</h3>
+                  <Trash2 className="w-5 h-5 text-red-400" />
+                </div>
+                <button
+                  onClick={apagarHistorico}
+                  disabled={processing || solicitacoesProcessadas.length === 0}
+                  className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Apagar Histórico</span>
+                </button>
+                <p className="text-gray-400 text-sm mt-2">Limpar solicitações processadas</p>
               </div>
             </div>
 

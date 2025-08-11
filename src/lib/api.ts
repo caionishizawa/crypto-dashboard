@@ -961,6 +961,45 @@ class SupabaseApiClient {
       return { success: false, error: error.message }
     }
   }
+
+  async apagarHistoricoSolicitacoes(): Promise<ApiResponse> {
+    try {
+      if (!isSupabaseConfigured) {
+        return { success: false, error: 'Supabase não configurado' }
+      }
+
+      // Verificar se o usuário está autenticado
+      const { data: { user }, error: authError } = await supabase!.auth.getUser()
+      
+      if (authError || !user) {
+        return { 
+          success: false, 
+          error: 'Usuário não autenticado. Faça login para apagar o histórico.' 
+        }
+      }
+
+      // Apagar apenas solicitações processadas (aprovadas ou rejeitadas)
+      const { error } = await safeQuery(async () => {
+        return await supabase!
+          .from('solicitacoes_usuarios')
+          .delete()
+          .in('status', ['aprovado', 'rejeitado'])
+      })
+
+      if (error) {
+        console.error('Erro ao apagar histórico:', error)
+        return { success: false, error: 'Erro ao apagar histórico' }
+      }
+
+      return { 
+        success: true, 
+        message: 'Histórico de solicitações processadas apagado com sucesso!' 
+      }
+    } catch (error: any) {
+      console.error('Erro ao apagar histórico:', error)
+      return { success: false, error: error.message }
+    }
+  }
 }
 
 // Exportar instância única
