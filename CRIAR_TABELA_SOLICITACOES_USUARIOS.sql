@@ -39,6 +39,10 @@ CREATE POLICY "Usuários podem ver suas próprias solicitações" ON solicitacoe
     )
   );
 
+-- Política para permitir inserção de novas solicitações (usuários não autenticados)
+CREATE POLICY "Permitir inserção de solicitações" ON solicitacoes_usuarios
+  FOR INSERT WITH CHECK (true);
+
 -- Inserir algumas solicitações de exemplo (opcional)
 INSERT INTO solicitacoes_usuarios (nome, email, senha_hash, status, observacoes) VALUES
 ('João Silva', 'joao.silva@email.com', '$2a$12$example.hash', 'pendente', 'Interessado em investimentos DeFi'),
