@@ -340,12 +340,7 @@ export const UserPage: React.FC<UserPageProps> = ({
                       <div className="w-6 h-6 bg-green-500 rounded-full absolute left-0 top-0 transition-transform"></div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-300">Modo Escuro</span>
-                    <div className="w-12 h-6 bg-gray-700 rounded-full relative">
-                      <div className="w-6 h-6 bg-green-500 rounded-full absolute left-0 top-0 transition-transform"></div>
-                    </div>
-                  </div>
+
                 </div>
               </div>
             </div>
@@ -362,15 +357,7 @@ export const UserPage: React.FC<UserPageProps> = ({
                     Alterar
                   </button>
                 </div>
-                <div className="flex items-center justify-between p-4 bg-gray-800 rounded-lg">
-                  <div>
-                    <div className="font-semibold">Autenticação de Dois Fatores</div>
-                    <div className="text-sm text-gray-400">Adicione uma camada extra de segurança</div>
-                  </div>
-                  <button className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-colors">
-                    Ativar
-                  </button>
-                </div>
+
               </div>
             </div>
           </div>
