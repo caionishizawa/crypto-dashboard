@@ -172,7 +172,7 @@ class SupabaseApiClient {
         options: {
           data: {
             nome,
-            tipo: 'admin',
+            tipo: 'user',
             email_confirmed_at: new Date().toISOString() // Forçar como já confirmado
           },
           // Desabilitar completamente o envio de email de confirmação
@@ -204,7 +204,7 @@ class SupabaseApiClient {
               id: authData.user.id,
               nome,
               email,
-              tipo: 'admin',
+              tipo: 'user',
               dataRegistro: new Date().toISOString(),
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString()
