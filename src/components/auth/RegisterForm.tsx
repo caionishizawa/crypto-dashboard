@@ -120,16 +120,18 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
       console.log('🎯 FRONTEND - Definindo mensagem de sucesso...');
       // Sempre mostrar sucesso e redirecionar para login
       setSuccess('✅ Conta criada com sucesso!');
-      setRedirectCountdown(15); // Inicia countdown de 15 segundos
+      setRedirectCountdown(30); // Inicia countdown de 30 segundos
       
       // NOTIFICAÇÃO bonita em vez do alert
+      console.log('🎯 FRONTEND - Definindo notificação...');
       setNotification({
         message: `🎉 Conta criada com sucesso! Redirecionando para login em ${redirectCountdown} segundos...`,
         type: 'success',
         isVisible: true
       });
+      console.log('🎯 FRONTEND - Notificação definida! isVisible: true');
       console.log('🎯 FRONTEND - Mensagem definida! Success:', '✅ Conta criada com sucesso!');
-      console.log('🎯 FRONTEND - Countdown definido:', 15);
+      console.log('🎯 FRONTEND - Countdown definido:', 30);
       
       // Limpar formulário
       setFormData({
@@ -139,11 +141,11 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
         confirmarSenha: ''
       });
       
-      // Redirecionamento direto após 15 segundos (muito mais tempo para ver)
+      // Redirecionamento direto após 30 segundos (muito mais tempo para ver)
       setTimeout(() => {
         console.log('🎯 FRONTEND - Executando redirecionamento...');
         onSwitchToLogin();
-      }, 15000);
+      }, 30000);
       
     } else {
       console.log('🎯 FRONTEND - Definindo erro:', result.error);
@@ -336,13 +338,14 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
       </div>
       
       {/* Componente de Notificação */}
+      {notification.isVisible && console.log('🎯 FRONTEND - RENDERIZANDO Notification:', notification)}
       <Notification
         message={notification.message}
         type={notification.type}
         isVisible={notification.isVisible}
         onClose={() => setNotification(prev => ({ ...prev, isVisible: false }))}
         autoClose={false}
-        duration={15000}
+        duration={30000}
       />
     </div>
   );
