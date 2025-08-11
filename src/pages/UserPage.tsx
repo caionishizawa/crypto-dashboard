@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bitcoin, Shield, DollarSign, TrendingUp, LogOut, User, BarChart3 } from 'lucide-react';
+import { Bitcoin, Shield, DollarSign, TrendingUp, LogOut, User, BarChart3, Wallet, Settings } from 'lucide-react';
 import type { Cliente, ClientesData } from '../types/cliente';
 import type { Usuario } from '../types/usuario';
 import { formatarMoeda, formatarPercentual, getCorRetorno } from '../utils';
@@ -17,26 +17,32 @@ export const UserPage: React.FC<UserPageProps> = ({
   onLogout,
   onViewClient
 }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'clients' | 'analytics'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'portfolio' | 'settings'>('overview');
   const [loading, setLoading] = useState(false);
 
-  // Converter para array e calcular estatísticas gerais
-  const clientsArray: Cliente[] = Object.values(clients);
-  const totalClients = clientsArray.length;
-  
-  const totalValue = clientsArray.reduce((acc: number, client: Cliente) => {
-    return acc + (client.valorCarteiraDeFi || 0);
-  }, 0);
-  
-  const totalInvestment = clientsArray.reduce((acc: number, client: Cliente) => {
-    return acc + (client.investimentoInicial || 0);
-  }, 0);
+  // Buscar o cliente correspondente ao usuário logado
+  const userClient = Object.values(clients).find((client: Cliente) => 
+    client.nome === currentUser.nome
+  );
 
-  const totalReturn = totalInvestment > 0 ? ((totalValue - totalInvestment) / totalInvestment) * 100 : 0;
+  // Se não encontrar cliente específico, usar dados simulados do usuário
+  const userPortfolio = userClient || {
+    id: currentUser.id,
+    nome: currentUser.nome,
+    tipo: 'bitcoin' as const,
+    dataInicio: currentUser.dataRegistro,
+    valorCarteiraDeFi: 25000,
+    investimentoInicial: 20000,
+    apyMedio: 15.5,
+    transacoes: [],
+    tempoMercado: '1 ano',
+    scoreRisco: 'Baixo'
+  };
 
-  // Separar clientes por tipo
-  const bitcoinClients = clientsArray.filter((client: Cliente) => client.tipo === 'bitcoin');
-  const conservativeClients = clientsArray.filter((client: Cliente) => client.tipo === 'conservador');
+  const portfolioValue = userPortfolio.valorCarteiraDeFi || 0;
+  const initialInvestment = userPortfolio.investimentoInicial || 0;
+  const totalReturn = initialInvestment > 0 ? ((portfolioValue - initialInvestment) / initialInvestment) * 100 : 0;
+  const isTypeBitcoin = userPortfolio.tipo === 'bitcoin';
 
   return (
     <div className="min-h-screen text-white">
@@ -49,7 +55,7 @@ export const UserPage: React.FC<UserPageProps> = ({
                 <User className="w-6 h-6" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold">Dashboard do Usuário</h1>
+                <h1 className="text-2xl font-bold">Meu Dashboard</h1>
                 <p className="text-gray-400">Bem-vindo, {currentUser.nome}</p>
               </div>
             </div>
@@ -84,29 +90,29 @@ export const UserPage: React.FC<UserPageProps> = ({
               </div>
             </button>
             <button
-              onClick={() => setActiveTab('clients')}
+              onClick={() => setActiveTab('portfolio')}
               className={`py-4 px-2 border-b-2 font-medium transition-colors ${
-                activeTab === 'clients'
+                activeTab === 'portfolio'
                   ? 'border-blue-500 text-blue-400'
                   : 'border-transparent text-gray-400 hover:text-white'
               }`}
             >
               <div className="flex items-center space-x-2">
-                <Shield className="w-4 h-4" />
-                <span>Clientes ({totalClients})</span>
+                <Wallet className="w-4 h-4" />
+                <span>Meu Portfólio</span>
               </div>
             </button>
             <button
-              onClick={() => setActiveTab('analytics')}
+              onClick={() => setActiveTab('settings')}
               className={`py-4 px-2 border-b-2 font-medium transition-colors ${
-                activeTab === 'analytics'
+                activeTab === 'settings'
                   ? 'border-blue-500 text-blue-400'
                   : 'border-transparent text-gray-400 hover:text-white'
               }`}
             >
               <div className="flex items-center space-x-2">
-                <TrendingUp className="w-4 h-4" />
-                <span>Análises</span>
+                <Settings className="w-4 h-4" />
+                <span>Configurações</span>
               </div>
             </button>
           </div>
@@ -121,28 +127,19 @@ export const UserPage: React.FC<UserPageProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Total de Clientes</h3>
-                  <Shield className="w-5 h-5 text-blue-400" />
-                </div>
-                <div className="text-3xl font-bold">{totalClients}</div>
-                <p className="text-gray-400 text-sm mt-2">Clientes ativos</p>
-              </div>
-
-              <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Valor Total</h3>
+                  <h3 className="text-lg font-semibold">Valor do Portfólio</h3>
                   <DollarSign className="w-5 h-5 text-green-400" />
                 </div>
-                <div className="text-3xl font-bold">{formatarMoeda(totalValue)}</div>
+                <div className="text-3xl font-bold">{formatarMoeda(portfolioValue)}</div>
                 <p className="text-gray-400 text-sm mt-2">Valor atual da carteira</p>
               </div>
 
               <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Investimento Total</h3>
+                  <h3 className="text-lg font-semibold">Investimento Inicial</h3>
                   <TrendingUp className="w-5 h-5 text-yellow-400" />
                 </div>
-                <div className="text-3xl font-bold">{formatarMoeda(totalInvestment)}</div>
+                <div className="text-3xl font-bold">{formatarMoeda(initialInvestment)}</div>
                 <p className="text-gray-400 text-sm mt-2">Capital investido</p>
               </div>
 
@@ -156,49 +153,63 @@ export const UserPage: React.FC<UserPageProps> = ({
                 </div>
                 <p className="text-gray-400 text-sm mt-2">Performance geral</p>
               </div>
+
+              <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">APY Médio</h3>
+                  <Shield className="w-5 h-5 text-blue-400" />
+                </div>
+                <div className="text-3xl font-bold text-green-400">{userPortfolio.apyMedio}%</div>
+                <p className="text-gray-400 text-sm mt-2">Rendimento anual</p>
+              </div>
             </div>
 
-            {/* Distribuição por Tipo */}
+            {/* Estratégia de Investimento */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-                <h3 className="text-lg font-semibold mb-4">Distribuição por Estratégia</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-4 h-4 bg-orange-500 rounded"></div>
-                      <span>Bitcoin + DeFi</span>
-                    </div>
-                    <span className="font-semibold">{bitcoinClients.length}</span>
+                <h3 className="text-lg font-semibold mb-4">Minha Estratégia</h3>
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                    isTypeBitcoin ? 'bg-orange-500' : 'bg-blue-500'
+                  }`}>
+                    {isTypeBitcoin ? <Bitcoin className="w-6 h-6" /> : <Shield className="w-6 h-6" />}
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-4 h-4 bg-blue-500 rounded"></div>
-                      <span>Conservador USD</span>
+                  <div>
+                    <div className="font-semibold text-lg">
+                      {isTypeBitcoin ? 'Bitcoin + DeFi' : 'Conservador USD'}
                     </div>
-                    <span className="font-semibold">{conservativeClients.length}</span>
+                    <div className="text-gray-400 text-sm">
+                      Estratégia de investimento
+                    </div>
                   </div>
                 </div>
+                <p className="text-gray-300">
+                  {isTypeBitcoin 
+                    ? 'Sua carteira está focada em Bitcoin e protocolos DeFi, buscando altos retornos através de yield farming e staking.'
+                    : 'Sua carteira está focada em stablecoins e estratégias conservadoras, priorizando segurança e rendimentos estáveis.'
+                  }
+                </p>
               </div>
 
               <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-                <h3 className="text-lg font-semibold mb-4">Performance por Estratégia</h3>
+                <h3 className="text-lg font-semibold mb-4">Performance Recente</h3>
                 <div className="space-y-4">
                   <div>
                     <div className="flex justify-between text-sm mb-1">
-                      <span>Bitcoin + DeFi</span>
-                      <span className="text-green-400">+{bitcoinClients.length > 0 ? '85.2%' : '0%'}</span>
+                      <span>Últimos 30 dias</span>
+                      <span className="text-green-400">+{Math.round(totalReturn * 0.3)}%</span>
                     </div>
                     <div className="w-full bg-gray-700 rounded-full h-2">
-                      <div className="bg-orange-500 h-2 rounded-full" style={{ width: '85%' }}></div>
+                      <div className="bg-green-500 h-2 rounded-full" style={{ width: `${Math.min(totalReturn * 0.3, 100)}%` }}></div>
                     </div>
                   </div>
                   <div>
                     <div className="flex justify-between text-sm mb-1">
-                      <span>Conservador USD</span>
-                      <span className="text-blue-400">+{conservativeClients.length > 0 ? '12.8%' : '0%'}</span>
+                      <span>Últimos 7 dias</span>
+                      <span className="text-blue-400">+{Math.round(totalReturn * 0.1)}%</span>
                     </div>
                     <div className="w-full bg-gray-700 rounded-full h-2">
-                      <div className="bg-blue-500 h-2 rounded-full" style={{ width: '13%' }}></div>
+                      <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${Math.min(totalReturn * 0.1, 100)}%` }}></div>
                     </div>
                   </div>
                 </div>
@@ -207,144 +218,131 @@ export const UserPage: React.FC<UserPageProps> = ({
           </div>
         )}
 
-        {activeTab === 'clients' && (
+        {activeTab === 'portfolio' && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold">Lista de Clientes</h2>
-              <div className="text-gray-400">
-                {totalClients} cliente{totalClients !== 1 ? 's' : ''}
-              </div>
+              <h2 className="text-2xl font-bold">Meu Portfólio</h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {clientsArray.map((client: Cliente) => {
-                const isTypeBitcoin = client.tipo === 'bitcoin';
-                const returnValue = (client.investimentoInicial || 0) > 0 
-                  ? (((client.valorCarteiraDeFi || 0) - (client.investimentoInicial || 0)) / (client.investimentoInicial || 0)) * 100
-                  : 0;
-
-                return (
-                  <div 
-                    key={client.id}
-                    className="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-gray-600 transition-colors cursor-pointer"
-                    onClick={() => onViewClient(client)}
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          isTypeBitcoin ? 'bg-orange-500' : 'bg-blue-500'
-                        }`}>
-                          {isTypeBitcoin ? <Bitcoin className="w-5 h-5" /> : <Shield className="w-5 h-5" />}
-                        </div>
-                        <div>
-                          <h3 className="font-semibold">{client.nome}</h3>
-                          <p className="text-sm text-gray-400">
-                            {isTypeBitcoin ? 'Bitcoin + DeFi' : 'Conservador USD'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Valor Atual</span>
-                        <span className="font-semibold">{formatarMoeda(client.valorCarteiraDeFi || 0)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Investimento</span>
-                        <span className="font-semibold">{formatarMoeda(client.investimentoInicial || 0)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Retorno</span>
-                        <span className={`font-semibold ${getCorRetorno(returnValue)}`}>
-                          {formatarPercentual(returnValue)}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 pt-4 border-t border-gray-800">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-400">APY Médio</span>
-                        <span className="text-green-400">{client.apyMedio}%</span>
-                      </div>
-                    </div>
+            <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                    isTypeBitcoin ? 'bg-orange-500' : 'bg-blue-500'
+                  }`}>
+                    {isTypeBitcoin ? <Bitcoin className="w-6 h-6" /> : <Shield className="w-6 h-6" />}
                   </div>
-                );
-              })}
+                  <div>
+                    <h3 className="text-xl font-semibold">{currentUser.nome}</h3>
+                    <p className="text-gray-400">
+                      {isTypeBitcoin ? 'Bitcoin + DeFi' : 'Conservador USD'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Valor Atual</span>
+                    <span className="font-semibold">{formatarMoeda(portfolioValue)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Investimento</span>
+                    <span className="font-semibold">{formatarMoeda(initialInvestment)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Retorno</span>
+                    <span className={`font-semibold ${getCorRetorno(totalReturn)}`}>
+                      {formatarPercentual(totalReturn)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">APY Médio</span>
+                    <span className="text-green-400">{userPortfolio.apyMedio}%</span>
+                  </div>
+                                     <div className="flex justify-between">
+                     <span className="text-gray-400">Data de Registro</span>
+                     <span className="font-semibold">{new Date(userPortfolio.dataInicio).toLocaleDateString('pt-BR')}</span>
+                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Estratégia</span>
+                    <span className="font-semibold">{isTypeBitcoin ? 'Bitcoin + DeFi' : 'Conservador USD'}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Lucro/Prejuízo</span>
+                    <span className={`font-semibold ${getCorRetorno(totalReturn)}`}>
+                      {formatarMoeda(portfolioValue - initialInvestment)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Email</span>
+                    <span className="font-semibold">{currentUser.email}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Status</span>
+                    <span className="text-green-400 font-semibold">Ativo</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
 
-        {activeTab === 'analytics' && (
+        {activeTab === 'settings' && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold">Análises e Insights</h2>
+            <h2 className="text-2xl font-bold">Configurações</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-                <h3 className="text-lg font-semibold mb-4">Melhores Performances</h3>
-                <div className="space-y-3">
-                  {clientsArray
-                    .sort((a: Cliente, b: Cliente) => {
-                      const returnA = (a.investimentoInicial || 0) > 0 
-                        ? (((a.valorCarteiraDeFi || 0) - (a.investimentoInicial || 0)) / (a.investimentoInicial || 0)) * 100
-                        : 0;
-                      const returnB = (b.investimentoInicial || 0) > 0 
-                        ? (((b.valorCarteiraDeFi || 0) - (b.investimentoInicial || 0)) / (b.investimentoInicial || 0)) * 100
-                        : 0;
-                      return returnB - returnA;
-                    })
-                    .slice(0, 3)
-                    .map((client: Cliente, index: number) => {
-                      const returnValue = (client.investimentoInicial || 0) > 0 
-                        ? (((client.valorCarteiraDeFi || 0) - (client.investimentoInicial || 0)) / (client.investimentoInicial || 0)) * 100
-                        : 0;
-                      
-                      return (
-                        <div key={client.id} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center text-sm font-bold">
-                              {index + 1}
-                            </div>
-                            <div>
-                              <div className="font-semibold">{client.nome}</div>
-                              <div className="text-sm text-gray-400">{client.tipo}</div>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="font-semibold text-green-400">{formatarPercentual(returnValue)}</div>
-                            <div className="text-sm text-gray-400">{formatarMoeda(client.valorCarteiraDeFi || 0)}</div>
-                          </div>
-                        </div>
-                      );
-                    })}
+                <h3 className="text-lg font-semibold mb-4">Informações Pessoais</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Nome</label>
+                    <div className="bg-gray-800 px-3 py-2 rounded-lg text-white">
+                      {currentUser.nome}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Email</label>
+                    <div className="bg-gray-800 px-3 py-2 rounded-lg text-white">
+                      {currentUser.email}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Data de Registro</label>
+                    <div className="bg-gray-800 px-3 py-2 rounded-lg text-white">
+                      {new Date(currentUser.dataRegistro).toLocaleDateString('pt-BR')}
+                    </div>
+                  </div>
                 </div>
               </div>
 
               <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-                <h3 className="text-lg font-semibold mb-4">Resumo de Estratégias</h3>
+                <h3 className="text-lg font-semibold mb-4">Configurações da Conta</h3>
                 <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <span>Bitcoin + DeFi</span>
-                      <span className="text-orange-400">{bitcoinClients.length} clientes</span>
-                    </div>
-                    <div className="w-full bg-gray-700 rounded-full h-2">
-                      <div 
-                        className="bg-orange-500 h-2 rounded-full" 
-                        style={{ width: `${totalClients > 0 ? (bitcoinClients.length / totalClients) * 100 : 0}%` }}
-                      ></div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-300">Notificações por Email</span>
+                    <div className="w-12 h-6 bg-gray-700 rounded-full relative">
+                      <div className="w-6 h-6 bg-green-500 rounded-full absolute left-0 top-0 transition-transform"></div>
                     </div>
                   </div>
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <span>Conservador USD</span>
-                      <span className="text-blue-400">{conservativeClients.length} clientes</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-300">Relatórios Semanais</span>
+                    <div className="w-12 h-6 bg-gray-700 rounded-full relative">
+                      <div className="w-6 h-6 bg-green-500 rounded-full absolute left-0 top-0 transition-transform"></div>
                     </div>
-                    <div className="w-full bg-gray-700 rounded-full h-2">
-                      <div 
-                        className="bg-blue-500 h-2 rounded-full" 
-                        style={{ width: `${totalClients > 0 ? (conservativeClients.length / totalClients) * 100 : 0}%` }}
-                      ></div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-300">Modo Escuro</span>
+                    <div className="w-12 h-6 bg-gray-700 rounded-full relative">
+                      <div className="w-6 h-6 bg-green-500 rounded-full absolute left-0 top-0 transition-transform"></div>
                     </div>
                   </div>
                 </div>
@@ -352,25 +350,25 @@ export const UserPage: React.FC<UserPageProps> = ({
             </div>
 
             <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-              <h3 className="text-lg font-semibold mb-4">Insights Gerais</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-green-400 mb-2">
-                    {totalClients > 0 ? Math.round(totalReturn) : 0}%
+              <h3 className="text-lg font-semibold mb-4">Segurança</h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-gray-800 rounded-lg">
+                  <div>
+                    <div className="font-semibold">Alterar Senha</div>
+                    <div className="text-sm text-gray-400">Atualize sua senha regularmente</div>
                   </div>
-                  <div className="text-gray-400">Retorno Médio</div>
+                  <button className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors">
+                    Alterar
+                  </button>
                 </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-400 mb-2">
-                    {totalClients > 0 ? Math.round(clientsArray.reduce((acc: number, c: Cliente) => acc + (c.apyMedio || 0), 0) / totalClients) : 0}%
+                <div className="flex items-center justify-between p-4 bg-gray-800 rounded-lg">
+                  <div>
+                    <div className="font-semibold">Autenticação de Dois Fatores</div>
+                    <div className="text-sm text-gray-400">Adicione uma camada extra de segurança</div>
                   </div>
-                  <div className="text-gray-400">APY Médio</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-purple-400 mb-2">
-                    {formatarMoeda(totalValue - totalInvestment)}
-                  </div>
-                  <div className="text-gray-400">Lucro Total</div>
+                  <button className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-colors">
+                    Ativar
+                  </button>
                 </div>
               </div>
             </div>
