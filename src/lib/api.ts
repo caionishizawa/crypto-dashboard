@@ -899,49 +899,56 @@ class SupabaseApiClient {
         return { success: false, error: 'Supabase não configurado' }
       }
 
+      // Criar um cliente Supabase anônimo para operações não autenticadas
+      const anonClient = createClient(supabaseUrl!, supabaseAnonKey!)
+
       // Verificar se o email já existe
-      const { data: existingUser, error: checkError } = await safeQuery(async () => {
-        return await supabase!
-          .from('usuarios')
-          .select('id, email')
-          .eq('email', email)
-          .maybeSingle()
-      })
+      const { data: existingUser, error: checkError } = await anonClient
+        .from('usuarios')
+        .select('id, email')
+        .eq('email', email)
+        .maybeSingle()
+
+      if (checkError) {
+        console.error('Erro ao verificar usuário existente:', checkError)
+        return { success: false, error: 'Erro ao verificar usuário existente' }
+      }
 
       if (existingUser) {
         return { success: false, error: 'Email já cadastrado' }
       }
 
       // Verificar se já existe uma solicitação pendente
-      const { data: existingSolicitacao, error: solicitacaoCheckError } = await safeQuery(async () => {
-        return await supabase!
-          .from('solicitacoes_usuarios')
-          .select('id, email')
-          .eq('email', email)
-          .maybeSingle()
-      })
+      const { data: existingSolicitacao, error: solicitacaoCheckError } = await anonClient
+        .from('solicitacoes_usuarios')
+        .select('id, email')
+        .eq('email', email)
+        .maybeSingle()
+
+      if (solicitacaoCheckError) {
+        console.error('Erro ao verificar solicitação existente:', solicitacaoCheckError)
+        return { success: false, error: 'Erro ao verificar solicitação existente' }
+      }
 
       if (existingSolicitacao) {
         return { success: false, error: 'Já existe uma solicitação pendente para este email' }
       }
 
-      // Criar solicitação
+      // Criar solicitação usando cliente anônimo
       const senhaHash = await hashPassword(senha)
-      const { data, error } = await safeQuery(async () => {
-        return await supabase!
-          .from('solicitacoes_usuarios')
-          .insert([
-            {
-              nome,
-              email,
-              senha_hash: senhaHash,
-              status: 'pendente',
-              observacoes: 'Aguardando aprovação do administrador'
-            }
-          ])
-          .select('id, nome, email, status, data_solicitacao')
-          .single()
-      })
+      const { data, error } = await anonClient
+        .from('solicitacoes_usuarios')
+        .insert([
+          {
+            nome,
+            email,
+            senha_hash: senhaHash,
+            status: 'pendente',
+            observacoes: 'Aguardando aprovação do administrador'
+          }
+        ])
+        .select('id, nome, email, status, data_solicitacao')
+        .single()
 
       if (error) {
         console.error('Erro ao criar solicitação:', error)
