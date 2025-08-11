@@ -72,6 +72,11 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
     isVisible: false
   });
 
+  // Log para ver quando o estado muda
+  useEffect(() => {
+    console.log('🎯 FRONTEND - Estado notification mudou:', notification);
+  }, [notification]);
+
   // Efeito SIMPLIFICADO para countdown visual apenas
   useEffect(() => {
     if (redirectCountdown > 0) {
