@@ -12,12 +12,21 @@ const isSupabaseConfigured = supabaseUrl && supabaseAnonKey &&
 
 // Criar instâncias únicas dos clientes
 export const supabase = isSupabaseConfigured ? createClient(supabaseUrl, supabaseAnonKey) : null
+
+// Cliente anônimo com configuração específica para evitar conflitos
 export const supabaseAnon = isSupabaseConfigured ? createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: false,
-    persistSession: false
+    persistSession: false,
+    storageKey: 'supabase-anon-storage'
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'supabase-js-anon'
+    }
   }
 }) : null
+
 export { isSupabaseConfigured }
 
 // Função helper para queries seguras
