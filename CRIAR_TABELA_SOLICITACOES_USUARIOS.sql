@@ -48,11 +48,12 @@ CREATE POLICY "Usuários podem ver suas próprias solicitações" ON solicitacoe
 CREATE POLICY "Permitir inserção de solicitações" ON solicitacoes_usuarios
   FOR INSERT WITH CHECK (true);
 
--- Inserir algumas solicitações de exemplo (opcional)
+-- Inserir algumas solicitações de exemplo (opcional) - apenas se não existirem
 INSERT INTO solicitacoes_usuarios (nome, email, senha_hash, status, observacoes) VALUES
 ('João Silva', 'joao.silva@email.com', '$2a$12$example.hash', 'pendente', 'Interessado em investimentos DeFi'),
 ('Maria Santos', 'maria.santos@email.com', '$2a$12$example.hash', 'pendente', 'Cliente conservador'),
-('Pedro Costa', 'pedro.costa@email.com', '$2a$12$example.hash', 'pendente', 'Experiência em crypto');
+('Pedro Costa', 'pedro.costa@email.com', '$2a$12$example.hash', 'pendente', 'Experiência em crypto')
+ON CONFLICT (email) DO NOTHING;
 
 -- Verificar se a tabela foi criada
 SELECT * FROM solicitacoes_usuarios;
