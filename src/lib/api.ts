@@ -1,31 +1,9 @@
-import { createClient } from '@supabase/supabase-js'
 import bcrypt from 'bcryptjs'
+import { getSupabaseClient, getSupabaseAnonClient, isSupabaseConfigured } from './supabaseClient'
 
-// Configuração do Supabase
-const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL
-const supabaseAnonKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY
-
-// Verificar se o Supabase está configurado
-const isSupabaseConfigured = supabaseUrl && supabaseAnonKey && 
-  supabaseUrl !== 'https://your-project-ref.supabase.co' && 
-  supabaseAnonKey !== 'your-anon-key'
-
-// Criar instâncias únicas dos clientes
-export const supabase = isSupabaseConfigured ? createClient(supabaseUrl, supabaseAnonKey) : null
-
-// Cliente anônimo com configuração específica para evitar conflitos
-export const supabaseAnon = isSupabaseConfigured ? createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-    storageKey: 'supabase-anon-storage'
-  },
-  global: {
-    headers: {
-      'X-Client-Info': 'supabase-js-anon'
-    }
-  }
-}) : null
+// Usar os singletons
+export const supabase = getSupabaseClient()
+export const supabaseAnon = getSupabaseAnonClient()
 
 export { isSupabaseConfigured }
 
