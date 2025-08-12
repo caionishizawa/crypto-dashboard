@@ -11,6 +11,7 @@ interface AdminPageProps {
   loadingUsuarios: boolean;
   onLogout: () => void;
   onViewClient: (client: Cliente) => void;
+  onViewUser: (usuario: UsuarioAprovado) => void;
   onAddWallet: (clientId: string, walletData: Omit<Carteira, 'id'>) => void;
   onCreateSnapshot: (clientId: string) => void;
   onCreateClient: (clienteData: Omit<Cliente, 'id' | 'transacoes' | 'carteiras' | 'snapshots'>) => void;
@@ -26,6 +27,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   loadingUsuarios,
   onLogout,
   onViewClient,
+  onViewUser,
   onAddWallet,
   onCreateSnapshot,
   onCreateClient,
@@ -204,6 +206,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
                       <div className="flex space-x-2">
                         <button 
+                          onClick={() => onViewUser(usuario)}
                           className="flex-1 bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
                         >
                           <Eye className="w-4 h-4" />

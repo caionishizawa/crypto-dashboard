@@ -2,4 +2,5 @@
 export * from './AdminPage';
 export * from './ClientPage';
 export * from './UserPage';
-export * from './SolicitacoesPage'; 
+export * from './SolicitacoesPage';
+export * from './UserDetailPage'; 
