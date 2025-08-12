@@ -1015,6 +1015,37 @@ class SupabaseApiClient {
     }
   }
 
+  async getUsuariosAprovados(): Promise<ApiResponse> {
+    try {
+      if (!isSupabaseConfigured) {
+        return { success: false, error: 'Supabase não configurado' }
+      }
+
+      // Buscar todos os usuários aprovados (tipo 'user')
+      const { data, error } = await safeQuery(async () => {
+        return await supabase!
+          .from('usuarios')
+          .select('id, nome, email, tipo, dataRegistro, createdAt')
+          .eq('tipo', 'user')
+          .order('dataRegistro', { ascending: false })
+      })
+
+      if (error) {
+        console.error('Erro ao buscar usuários aprovados:', error)
+        return { success: false, error: 'Erro ao buscar usuários aprovados' }
+      }
+
+      return { 
+        success: true, 
+        data: data || [],
+        message: 'Usuários aprovados carregados com sucesso!'
+      }
+    } catch (error: any) {
+      console.error('Erro ao buscar usuários aprovados:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
   async apagarHistoricoSolicitacoes(): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {

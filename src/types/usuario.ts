@@ -21,4 +21,13 @@ export interface RegisterData {
   email: string;
   senha: string;
   confirmarSenha: string;
+}
+
+export interface UsuarioAprovado {
+  id: string;
+  nome: string;
+  email: string;
+  tipo: 'user';
+  dataRegistro: string;
+  createdAt: string;
 } 

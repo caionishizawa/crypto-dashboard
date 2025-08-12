@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Shield, Wifi, WifiOff } from 'lucide-react';
 import type { Cliente, ClientesData } from './types/cliente';
-import type { Usuario, LoginData, RegisterData } from './types/usuario';
+import type { Usuario, LoginData, RegisterData, UsuarioAprovado } from './types/usuario';
 import { authService } from './services/authService';
 import { LoginForm } from './components/auth/LoginForm';
 import { RegisterForm } from './components/auth/RegisterForm';
@@ -42,6 +42,8 @@ function App() {
   const [clienteVisualizando, setClienteVisualizando] = useState<Cliente | null>(null);
   const [clientes, setClientes] = useState<ClientesData>({});
   const [loadingClientes, setLoadingClientes] = useState(false);
+  const [usuariosAprovados, setUsuariosAprovados] = useState<UsuarioAprovado[]>([]);
+  const [loadingUsuarios, setLoadingUsuarios] = useState(false);
   
   // Estados para transição de cores
   const [corAtual, setCorAtual] = useState([69, 26, 3]);
@@ -222,6 +224,27 @@ function App() {
     };
 
     carregarClientes();
+  }, [isAuthenticated, token]);
+
+  // Carregar usuários aprovados quando o usuário estiver autenticado
+  useEffect(() => {
+    const carregarUsuariosAprovados = async () => {
+      if (isAuthenticated && token) {
+        setLoadingUsuarios(true);
+        try {
+          const response = await apiClient.getUsuariosAprovados();
+          if (response.success && response.data) {
+            setUsuariosAprovados(response.data);
+          }
+        } catch (error) {
+          console.error('Erro ao carregar usuários aprovados:', error);
+        } finally {
+          setLoadingUsuarios(false);
+        }
+      }
+    };
+
+    carregarUsuariosAprovados();
   }, [isAuthenticated, token]);
 
   const handleLogin = async (dados: LoginData & { manterConectado?: boolean }) => {
@@ -755,6 +778,8 @@ function App() {
       <AdminPage
         currentUser={usuario!}
         clients={clientes}
+        usuariosAprovados={usuariosAprovados}
+        loadingUsuarios={loadingUsuarios}
         onLogout={handleLogout}
         onViewClient={handleViewClient}
         onAddWallet={() => {}} // Implementar quando necessário
@@ -762,8 +787,8 @@ function App() {
         onCreateClient={handleCreateClient}
         activeTab={activeAdminTab}
         onTabChange={setActiveAdminTab}
-            onGoToSolicitacoes={handleGoToSolicitacoes}
-          />
+        onGoToSolicitacoes={handleGoToSolicitacoes}
+      />
         </div>
       </div>
     );

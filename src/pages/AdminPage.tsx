@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Users, User, LogOut, Plus, Eye, Edit, Wallet, Bitcoin, Shield, TrendingUp, UserPlus } from 'lucide-react';
-import type { Cliente, ClientesData, Usuario, Carteira } from '../types';
+import type { Cliente, ClientesData, Usuario, UsuarioAprovado, Carteira } from '../types';
 import { formatarMoeda, formatarPercentual, getCorRetorno } from '../utils';
 import { NovoClienteForm } from '../components/auth/NovoClienteForm';
 
 interface AdminPageProps {
   currentUser: Usuario;
   clients: ClientesData;
+  usuariosAprovados: UsuarioAprovado[];
+  loadingUsuarios: boolean;
   onLogout: () => void;
   onViewClient: (client: Cliente) => void;
   onAddWallet: (clientId: string, walletData: Omit<Carteira, 'id'>) => void;
@@ -20,6 +22,8 @@ interface AdminPageProps {
 export const AdminPage: React.FC<AdminPageProps> = ({
   currentUser,
   clients,
+  usuariosAprovados,
+  loadingUsuarios,
   onLogout,
   onViewClient,
   onAddWallet,
@@ -134,88 +138,86 @@ export const AdminPage: React.FC<AdminPageProps> = ({
         {activeTab === 'clientes' && (
           <div>
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold">Gestão de Clientes</h2>
-              <button 
-                onClick={() => setShowNovoCliente(true)}
-                className="bg-green-500 hover:bg-green-600 text-black font-semibold px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
-              >
-                <Plus className="w-5 h-5" />
-                <span>Novo Cliente</span>
-              </button>
+              <h2 className="text-2xl font-semibold">Usuários Aprovados</h2>
+              <div className="flex items-center space-x-4">
+                <div className="text-sm text-gray-400">
+                  Total: {usuariosAprovados.length} usuários
+                </div>
+                <button 
+                  onClick={() => setShowNovoCliente(true)}
+                  className="bg-green-500 hover:bg-green-600 text-black font-semibold px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+                >
+                  <Plus className="w-5 h-5" />
+                  <span>Novo Cliente</span>
+                </button>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Object.values(clients).map((client: any) => {
-                const isTypeBitcoin = client.tipo === 'bitcoin';
-                const valorAtual = isTypeBitcoin 
-                  ? client.valorCarteiraDeFi || 0
-                  : client.valorAtualUSD || 0;
-                const valorInicial = isTypeBitcoin 
-                  ? client.investimentoInicial * (client.transacoes?.length || 0)
-                  : client.totalDepositado || 0;
-                const lucro = valorAtual - valorInicial;
-                const retorno = valorInicial > 0 ? ((valorAtual - valorInicial) / valorInicial) * 100 : 0;
-
-                return (
-                  <div key={client.id} className="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-green-800 transition-all">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                          isTypeBitcoin ? 'bg-orange-500' : 'bg-blue-500'
-                        }`}>
-                          {isTypeBitcoin ? <Bitcoin className="w-6 h-6" /> : <Shield className="w-6 h-6" />}
+            {loadingUsuarios ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+                <span className="ml-3 text-gray-400">Carregando usuários...</span>
+              </div>
+            ) : usuariosAprovados.length === 0 ? (
+              <div className="text-center py-12">
+                <User className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-400 mb-2">Nenhum usuário aprovado</h3>
+                <p className="text-gray-500">Aprove solicitações na aba "Solicitações" para ver usuários aqui.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {usuariosAprovados.map((usuario) => {
+                  const dataRegistro = new Date(usuario.dataRegistro).toLocaleDateString('pt-BR');
+                  
+                  return (
+                    <div key={usuario.id} className="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-green-800 transition-all">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
+                            <User className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold">{usuario.nome}</h3>
+                            <p className="text-sm text-gray-400">{usuario.email}</p>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="text-lg font-semibold">{client.nome}</h3>
-                          <p className="text-sm text-gray-400">
-                            {isTypeBitcoin ? 'Perfil Bitcoin + DeFi' : 'Perfil Conservador USD'}
-                          </p>
+                      </div>
+
+                      <div className="space-y-3 mb-4">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-400 text-sm">Tipo</span>
+                          <span className="font-semibold text-green-400">Usuário</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-400 text-sm">Data de Registro</span>
+                          <span className="font-semibold">{dataRegistro}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-400 text-sm">Status</span>
+                          <span className="font-semibold text-green-400">Aprovado</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-400 text-sm">ID</span>
+                          <span className="font-semibold text-purple-400 text-xs">{usuario.id.substring(0, 8)}...</span>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="space-y-3 mb-4">
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-400 text-sm">Valor Atual</span>
-                        <span className="font-semibold">{formatarMoeda(valorAtual)}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-400 text-sm">Lucro Total</span>
-                        <span className={`font-semibold ${lucro >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                          {formatarMoeda(Math.abs(lucro))}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-400 text-sm">Retorno</span>
-                        <span className={`font-semibold ${getCorRetorno(retorno)}`}>
-                          {formatarPercentual(retorno)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-400 text-sm">Carteiras</span>
-                        <span className="font-semibold text-purple-400">{client.carteiras?.length || 0}</span>
+                      <div className="flex space-x-2">
+                        <button 
+                          className="flex-1 bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                        >
+                          <Eye className="w-4 h-4" />
+                          <span>Visualizar</span>
+                        </button>
+                        <button className="bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded-lg transition-colors">
+                          <Edit className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
-
-                    <div className="flex space-x-2">
-                      <button 
-                        onClick={() => {
-                          
-                          onViewClient(client);
-                        }}
-                        className="flex-1 bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
-                      >
-                        <Eye className="w-4 h-4" />
-                        <span>Visualizar</span>
-                      </button>
-                      <button className="bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded-lg transition-colors">
-                        <Edit className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
