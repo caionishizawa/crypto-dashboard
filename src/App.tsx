@@ -342,6 +342,13 @@ function App() {
   const handleViewUser = (usuario: UsuarioAprovado) => {
     setUsuarioVisualizando(usuario);
     setCurrentPage('user-detail');
+    
+    // Buscar dados do cliente se existir
+    const clienteData = clientes[usuario.id];
+    if (clienteData) {
+      // Se já temos os dados do cliente, não precisamos fazer nada
+      // Os dados serão passados automaticamente
+    }
   };
 
   const handleBackFromUserDetail = () => {
@@ -739,6 +746,7 @@ function App() {
             />
             <UserDetailPage
               usuario={usuarioVisualizando}
+              cliente={clientes[usuarioVisualizando.id]}
               onBack={handleBackFromUserDetail}
             />
           </div>

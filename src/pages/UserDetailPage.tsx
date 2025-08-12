@@ -1,9 +1,12 @@
 import React from 'react';
-import { ArrowLeft, User, Mail, Calendar, Shield, Edit, Trash2 } from 'lucide-react';
+import { ArrowLeft, User, Mail, Calendar, Shield, Edit, Trash2, Bitcoin, TrendingUp, Wallet, DollarSign } from 'lucide-react';
 import type { UsuarioAprovado } from '../types/usuario';
+import type { Cliente } from '../types/cliente';
+import { formatarMoeda, formatarPercentual, getCorRetorno } from '../utils';
 
 interface UserDetailPageProps {
   usuario: UsuarioAprovado;
+  cliente?: Cliente;
   onBack: () => void;
   onEdit?: (usuario: UsuarioAprovado) => void;
   onDelete?: (usuarioId: string) => void;
@@ -11,6 +14,7 @@ interface UserDetailPageProps {
 
 export const UserDetailPage: React.FC<UserDetailPageProps> = ({
   usuario,
+  cliente,
   onBack,
   onEdit,
   onDelete
@@ -152,16 +156,170 @@ export const UserDetailPage: React.FC<UserDetailPageProps> = ({
             </div>
             
             <div className="p-4 bg-gray-800/50 rounded-lg text-center">
-              <p className="text-2xl font-bold text-blue-400">0</p>
+              <p className="text-2xl font-bold text-blue-400">{cliente?.carteiras?.length || 0}</p>
               <p className="text-sm text-gray-400">Carteiras Vinculadas</p>
             </div>
             
             <div className="p-4 bg-gray-800/50 rounded-lg text-center">
-              <p className="text-2xl font-bold text-purple-400">0</p>
+              <p className="text-2xl font-bold text-purple-400">{cliente?.transacoes?.length || 0}</p>
               <p className="text-sm text-gray-400">Transações</p>
             </div>
           </div>
         </div>
+
+        {/* Seção de Informações Financeiras - Se tiver dados de cliente */}
+        {cliente && (
+          <div className="mt-8 bg-gray-900 rounded-xl p-6 border border-gray-800">
+            <h3 className="text-xl font-semibold mb-4 flex items-center space-x-2">
+              <TrendingUp className="w-5 h-5 text-green-400" />
+              <span>Informações Financeiras</span>
+            </h3>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Card de Performance */}
+              <div className="bg-gray-800/50 rounded-lg p-4">
+                <h4 className="text-lg font-semibold mb-3 flex items-center space-x-2">
+                  {cliente.tipo === 'bitcoin' ? (
+                    <Bitcoin className="w-5 h-5 text-orange-400" />
+                  ) : (
+                    <DollarSign className="w-5 h-5 text-blue-400" />
+                  )}
+                  <span>Performance</span>
+                </h4>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400 text-sm">Tipo de Perfil</span>
+                    <span className="font-semibold">
+                      {cliente.tipo === 'bitcoin' ? 'Bitcoin + DeFi' : 'Conservador USD'}
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400 text-sm">Valor Atual</span>
+                    <span className="font-semibold">
+                      {formatarMoeda(cliente.tipo === 'bitcoin' ? (cliente.valorCarteiraDeFi || 0) : (cliente.valorAtualUSD || 0))}
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400 text-sm">Investimento Inicial</span>
+                    <span className="font-semibold">
+                      {formatarMoeda(cliente.investimentoInicial)}
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400 text-sm">Lucro Total</span>
+                    <span className={`font-semibold ${cliente.tipo === 'bitcoin' ? 
+                      ((cliente.valorCarteiraDeFi || 0) - cliente.investimentoInicial >= 0 ? 'text-green-400' : 'text-red-400') :
+                      ((cliente.valorAtualUSD || 0) - (cliente.totalDepositado || 0) >= 0 ? 'text-green-400' : 'text-red-400')
+                    }`}>
+                      {formatarMoeda(Math.abs(cliente.tipo === 'bitcoin' ? 
+                        (cliente.valorCarteiraDeFi || 0) - cliente.investimentoInicial :
+                        (cliente.valorAtualUSD || 0) - (cliente.totalDepositado || 0)
+                      ))}
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400 text-sm">Retorno</span>
+                    <span className={`font-semibold ${getCorRetorno(cliente.tipo === 'bitcoin' ? 
+                      ((cliente.valorCarteiraDeFi || 0) - cliente.investimentoInicial) / cliente.investimentoInicial * 100 :
+                      ((cliente.valorAtualUSD || 0) - (cliente.totalDepositado || 0)) / (cliente.totalDepositado || 1) * 100
+                    )}`}>
+                      {formatarPercentual(cliente.tipo === 'bitcoin' ? 
+                        ((cliente.valorCarteiraDeFi || 0) - cliente.investimentoInicial) / cliente.investimentoInicial * 100 :
+                        ((cliente.valorAtualUSD || 0) - (cliente.totalDepositado || 0)) / (cliente.totalDepositado || 1) * 100
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card de Detalhes */}
+              <div className="bg-gray-800/50 rounded-lg p-4">
+                <h4 className="text-lg font-semibold mb-3 flex items-center space-x-2">
+                  <Wallet className="w-5 h-5 text-purple-400" />
+                  <span>Detalhes</span>
+                </h4>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400 text-sm">Data de Início</span>
+                    <span className="font-semibold">
+                      {new Date(cliente.dataInicio).toLocaleDateString('pt-BR')}
+                    </span>
+                  </div>
+                  
+                  {cliente.tipo === 'bitcoin' && (
+                    <>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400 text-sm">BTC Total</span>
+                        <span className="font-semibold text-orange-400">
+                          {(cliente.btcTotal || 0).toFixed(8)} BTC
+                        </span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400 text-sm">Preço Médio</span>
+                        <span className="font-semibold">
+                          {formatarMoeda(cliente.precoMedio || 0)}
+                        </span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400 text-sm">Valor Atual BTC</span>
+                        <span className="font-semibold text-orange-400">
+                          {formatarMoeda(cliente.valorAtualBTC || 0)}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                  
+                  {cliente.tipo === 'conservador' && (
+                    <>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400 text-sm">Total Depositado</span>
+                        <span className="font-semibold">
+                          {formatarMoeda(cliente.totalDepositado || 0)}
+                        </span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400 text-sm">Rendimento Total</span>
+                        <span className="font-semibold text-green-400">
+                          {formatarMoeda(cliente.rendimentoTotal || 0)}
+                        </span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400 text-sm">APY Médio</span>
+                        <span className="font-semibold text-blue-400">
+                          {formatarPercentual(cliente.apyMedio || 0)}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400 text-sm">Tempo no Mercado</span>
+                    <span className="font-semibold">
+                      {cliente.tempoMercado || 'N/A'}
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400 text-sm">Score de Risco</span>
+                    <span className="font-semibold text-yellow-400">
+                      {cliente.scoreRisco || 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Seção de Ações */}
         <div className="mt-8 bg-gray-900 rounded-xl p-6 border border-gray-800">
