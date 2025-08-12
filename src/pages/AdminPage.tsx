@@ -70,15 +70,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
       onAddWallet(selectedClientForWallet, walletData);
       
-      // Mostrar mensagem de sucesso
-      alert(`Carteira vinculada com sucesso ao usuário ${usuarioSelecionado?.nome}!`);
-      
       setNewWalletAddress('');
       setShowAddWallet(false);
       setSelectedClientForWallet('');
     } catch (error) {
       console.error('Erro ao adicionar carteira:', error);
-      alert('Erro ao vincular carteira. Tente novamente.');
     } finally {
       setLoading(false);
     }

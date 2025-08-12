@@ -368,6 +368,52 @@ function App() {
     setCurrentPage('solicitacoes');
   };
 
+  const handleAddWallet = async (usuarioId: string, walletData: any) => {
+    try {
+      const response = await apiClient.vincularCarteiraUsuario(usuarioId, {
+        endereco: walletData.endereco,
+        tipo: walletData.tipo,
+        valorAtual: walletData.valorAtual,
+        tokens: walletData.tokens
+      });
+
+      if (response.success) {
+        setNotification({
+          message: response.message || 'Carteira vinculada com sucesso!',
+          type: 'success',
+          isVisible: true
+        });
+
+        // Recarregar dados dos clientes para atualizar a interface
+        const clientesArray = await clienteService.getClientes();
+        const clientesObj: ClientesData = {};
+        clientesArray.forEach((cliente: Cliente) => {
+          clientesObj[cliente.id] = cliente;
+        });
+        setClientes(clientesObj);
+
+        // Recarregar usuários aprovados
+        const usuariosResponse = await apiClient.getUsuariosAprovados();
+        if (usuariosResponse.success && usuariosResponse.data) {
+          setUsuariosAprovados(usuariosResponse.data);
+        }
+      } else {
+        setNotification({
+          message: response.error || 'Erro ao vincular carteira',
+          type: 'error',
+          isVisible: true
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao vincular carteira:', error);
+      setNotification({
+        message: 'Erro interno ao vincular carteira',
+        type: 'error',
+        isVisible: true
+      });
+    }
+  };
+
   const handleEditClient = () => {
     setShowEditModal(true);
   };
@@ -849,7 +895,7 @@ function App() {
         onLogout={handleLogout}
         onViewClient={handleViewClient}
         onViewUser={handleViewUser}
-        onAddWallet={() => {}} // Implementar quando necessário
+        onAddWallet={handleAddWallet}
         onCreateSnapshot={() => {}} // Implementar quando necessário
         onCreateClient={handleCreateClient}
         activeTab={activeAdminTab}

@@ -1085,6 +1085,96 @@ class SupabaseApiClient {
     }
   }
 
+  async vincularCarteiraUsuario(usuarioId: string, carteiraData: {
+    endereco: string;
+    tipo: 'solana' | 'ethereum';
+    valorAtual?: number;
+    tokens?: any[];
+  }): Promise<ApiResponse> {
+    try {
+      if (!isSupabaseConfigured) {
+        return { success: false, error: 'Supabase não configurado' }
+      }
+
+      // Verificar se o usuário existe
+      const { data: usuario, error: userError } = await safeQuery(async () => {
+        return await supabase!
+          .from('usuarios')
+          .select('id, nome, email')
+          .eq('id', usuarioId)
+          .single()
+      })
+
+      if (userError || !usuario) {
+        return { success: false, error: 'Usuário não encontrado' }
+      }
+
+      // Criar ou atualizar dados do cliente na tabela clientes
+      const dadosCliente = {
+        id: usuarioId,
+        nome: usuario.nome,
+        tipo: 'bitcoin', // Tipo padrão para usuários com carteiras
+        dataInicio: new Date().toISOString(),
+        investimentoInicial: carteiraData.valorAtual || 0,
+        valorCarteiraDeFi: carteiraData.valorAtual || 0,
+        apyMedio: 0,
+        tempoMercado: 'Recém iniciado',
+        scoreRisco: 'Baixo',
+        updatedAt: new Date().toISOString()
+      };
+
+      // Inserir ou atualizar cliente (usando upsert)
+      const { data: clienteData, error: clienteError } = await safeQuery(async () => {
+        return await supabase!
+          .from('clientes')
+          .upsert([dadosCliente], { onConflict: 'id' })
+          .select()
+          .single()
+      })
+
+      if (clienteError) {
+        console.error('Erro ao criar/atualizar cliente:', clienteError)
+        return { success: false, error: 'Erro ao vincular carteira ao usuário' }
+      }
+
+      // Criar carteira na tabela carteiras
+      const dadosCarteira = {
+        clienteId: usuarioId,
+        endereco: carteiraData.endereco,
+        tipo: carteiraData.tipo,
+        valorAtual: carteiraData.valorAtual || 0,
+        tokens: carteiraData.tokens || [],
+        ultimaAtualizacao: new Date().toISOString()
+      };
+
+      const { data: carteiraData, error: carteiraError } = await safeQuery(async () => {
+        return await supabase!
+          .from('carteiras')
+          .insert([dadosCarteira])
+          .select()
+          .single()
+      })
+
+      if (carteiraError) {
+        console.error('Erro ao criar carteira:', carteiraError)
+        return { success: false, error: 'Erro ao criar carteira' }
+      }
+
+      return { 
+        success: true, 
+        message: `Carteira vinculada com sucesso ao usuário ${usuario.nome}!`,
+        data: {
+          usuario,
+          carteira: carteiraData,
+          cliente: clienteData
+        }
+      }
+    } catch (error: any) {
+      console.error('Erro ao vincular carteira:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
   async criarUsuarioAdmin(nome: string, email: string, senha: string): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {
