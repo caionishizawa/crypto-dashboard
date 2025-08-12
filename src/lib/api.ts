@@ -836,7 +836,39 @@ class SupabaseApiClient {
           return { success: false, error: 'Erro ao aprovar solicitação' }
         }
 
-        // Criar o usuário na tabela usuarios
+        // Tentar criar usuário via Edge Function (se disponível)
+        try {
+          const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL
+          const response = await fetch(`${supabaseUrl}/functions/v1/criar-usuario`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${supabase!.supabaseKey}`
+            },
+            body: JSON.stringify({
+              email: solicitacao.email,
+              password: '123456', // Senha padrão temporária
+              nome: solicitacao.nome,
+              tipo: 'user'
+            })
+          })
+
+          const result = await response.json()
+          
+          if (result.success) {
+            return { 
+              success: true, 
+              message: 'Solicitação aprovada com sucesso! O usuário pode fazer login com a senha: 123456',
+              user: result.user
+            }
+          } else {
+            console.warn('Edge Function não disponível, criando apenas na tabela:', result.error)
+          }
+        } catch (error) {
+          console.warn('Edge Function não disponível, criando apenas na tabela:', error)
+        }
+
+        // Fallback: Criar apenas na tabela usuarios (usuário precisará ser criado manualmente no Auth)
         const { error: createUserError } = await safeQuery(async () => {
           return await supabase!
             .from('usuarios')
@@ -860,11 +892,12 @@ class SupabaseApiClient {
 
         return { 
           success: true, 
-          message: 'Solicitação aprovada com sucesso! O usuário deve usar a senha original da solicitação para fazer login.',
+          message: 'Solicitação aprovada! Crie o usuário manualmente no Supabase Dashboard (Authentication > Users) com a senha: 123456',
           user: {
             id: solicitacao.id,
             email: solicitacao.email,
-            nome: solicitacao.nome
+            nome: solicitacao.nome,
+            senhaTemporaria: '123456'
           }
         }
       } else {
