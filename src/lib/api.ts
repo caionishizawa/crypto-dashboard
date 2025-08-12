@@ -858,7 +858,15 @@ class SupabaseApiClient {
           return { success: false, error: 'Erro ao criar usuário' }
         }
 
-        return { success: true, message: 'Solicitação aprovada com sucesso' }
+        return { 
+          success: true, 
+          message: 'Solicitação aprovada com sucesso! O usuário deve usar a senha original da solicitação para fazer login.',
+          user: {
+            id: solicitacao.id,
+            email: solicitacao.email,
+            nome: solicitacao.nome
+          }
+        }
       } else {
         // Rejeitar a solicitação
         const { error: updateError } = await safeQuery(async () => {

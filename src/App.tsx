@@ -261,14 +261,14 @@ function App() {
       
       // Esconder notificação após 5 segundos
       setTimeout(() => {
-        setNotification({
+    setNotification({
           message: '',
-          type: 'success',
+      type: 'success',
           isVisible: false
-        });
+    });
       }, 5000);
       
-      return { success: true };
+    return { success: true };
     } catch (error) {
       console.error('Erro ao enviar solicitação:', error);
       return { success: false, error: 'Erro interno do servidor' };
@@ -566,31 +566,31 @@ function App() {
         {/* Conteúdo principal */}
         <div className="relative z-10 w-full max-w-md">
           <ModeIndicator />
-          
-          {/* Notificação */}
-          <Notification
-            message={notification.message}
-            type={notification.type}
-            isVisible={notification.isVisible}
-            onClose={() => setNotification(prev => ({ ...prev, isVisible: false }))}
+        
+        {/* Notificação */}
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          isVisible={notification.isVisible}
+          onClose={() => setNotification(prev => ({ ...prev, isVisible: false }))}
+        />
+        
+        {/* Tela de verificação de email */}
+        {showEmailVerification ? (
+          <EmailVerificationScreen
+            email={verificationEmail}
+            onVerificationComplete={handleVerificationComplete}
+            onBackToLogin={handleBackToLogin}
           />
-          
-          {/* Tela de verificação de email */}
-          {showEmailVerification ? (
-            <EmailVerificationScreen
-              email={verificationEmail}
-              onVerificationComplete={handleVerificationComplete}
-              onBackToLogin={handleBackToLogin}
-            />
-          ) : (
+        ) : (
             <div className="w-full">
-              {modoRegistro ? (
-                <RegisterForm onRegister={handleRegister} onSwitchToLogin={() => setModoRegistro(false)} />
-              ) : (
-                <LoginForm onLogin={handleLogin} onSwitchToRegister={() => setModoRegistro(true)} />
-              )}
-            </div>
-          )}
+            {modoRegistro ? (
+              <RegisterForm onRegister={handleRegister} onSwitchToLogin={() => setModoRegistro(false)} />
+            ) : (
+              <LoginForm onLogin={handleLogin} onSwitchToRegister={() => setModoRegistro(true)} />
+            )}
+          </div>
+        )}
         </div>
       </div>
     );
@@ -630,27 +630,27 @@ function App() {
         
         {/* Conteúdo principal */}
         <div className="relative z-10">
-          <ModeIndicator />
-          <Notification
-            message={notification.message}
-            type={notification.type}
-            isVisible={notification.isVisible}
-            onClose={() => setNotification(prev => ({ ...prev, isVisible: false }))}
-          />
-          <ClientPage 
-            client={clienteVisualizando} 
-            onGoBack={handleBackToAdmin}
-            onAddTransaction={handleAddTransaction}
-            onEditClient={handleEditClient}
-          />
-          <EditClientModal
-            client={clienteVisualizando}
-            isOpen={showEditModal}
-            onClose={() => setShowEditModal(false)}
-            onSave={handleSaveClient}
-            onDelete={handleDeleteClient}
-            isAdmin={usuario?.tipo === 'admin'}
-          />
+        <ModeIndicator />
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          isVisible={notification.isVisible}
+          onClose={() => setNotification(prev => ({ ...prev, isVisible: false }))}
+        />
+        <ClientPage 
+          client={clienteVisualizando} 
+          onGoBack={handleBackToAdmin}
+          onAddTransaction={handleAddTransaction}
+          onEditClient={handleEditClient}
+        />
+        <EditClientModal
+          client={clienteVisualizando}
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          onSave={handleSaveClient}
+          onDelete={handleDeleteClient}
+          isAdmin={usuario?.tipo === 'admin'}
+        />
         </div>
       </div>
     );
@@ -708,7 +708,7 @@ function App() {
     }
 
     // Dashboard principal (AdminPage) - Apenas para admins
-    return (
+  return (
       <div className="min-h-screen relative overflow-hidden text-white" style={backgroundStyle}>
         {/* Elementos decorativos para páginas logadas - tema crypto */}
         <div className="absolute top-0 left-0 w-full h-full">
@@ -738,23 +738,23 @@ function App() {
         
         {/* Conteúdo principal */}
         <div className="relative z-10">
-          <ModeIndicator />
-          <Notification
-            message={notification.message}
-            type={notification.type}
-            isVisible={notification.isVisible}
-            onClose={() => setNotification(prev => ({ ...prev, isVisible: false }))}
-          />
-          <AdminPage
-            currentUser={usuario!}
-            clients={clientes}
-            onLogout={handleLogout}
-            onViewClient={handleViewClient}
-            onAddWallet={() => {}} // Implementar quando necessário
-            onCreateSnapshot={() => {}} // Implementar quando necessário
-            onCreateClient={handleCreateClient}
-            activeTab={activeAdminTab}
-            onTabChange={setActiveAdminTab}
+      <ModeIndicator />
+      <Notification
+        message={notification.message}
+        type={notification.type}
+        isVisible={notification.isVisible}
+        onClose={() => setNotification(prev => ({ ...prev, isVisible: false }))}
+      />
+      <AdminPage
+        currentUser={usuario!}
+        clients={clientes}
+        onLogout={handleLogout}
+        onViewClient={handleViewClient}
+        onAddWallet={() => {}} // Implementar quando necessário
+        onCreateSnapshot={() => {}} // Implementar quando necessário
+        onCreateClient={handleCreateClient}
+        activeTab={activeAdminTab}
+        onTabChange={setActiveAdminTab}
             onGoToSolicitacoes={handleGoToSolicitacoes}
           />
         </div>
@@ -806,8 +806,8 @@ function App() {
             onViewClient={handleViewClient}
           />
         </div>
-      </div>
-    );
+    </div>
+  );
   }
 }
 
