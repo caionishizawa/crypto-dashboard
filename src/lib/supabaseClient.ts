@@ -9,41 +9,33 @@ const isSupabaseConfigured = supabaseUrl && supabaseAnonKey &&
   supabaseUrl !== 'https://your-project-ref.supabase.co' && 
   supabaseAnonKey !== 'your-anon-key'
 
-// Singleton para o cliente principal
+// Singleton para o cliente principal (única instância)
 let supabaseInstance: any = null
-
-// Singleton para o cliente anônimo
-let supabaseAnonInstance: any = null
 
 export const getSupabaseClient = () => {
   if (!isSupabaseConfigured) return null
   
   if (!supabaseInstance) {
-    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey)
-  }
-  
-  return supabaseInstance
-}
-
-export const getSupabaseAnonClient = () => {
-  if (!isSupabaseConfigured) return null
-  
-  if (!supabaseAnonInstance) {
-    supabaseAnonInstance = createClient(supabaseUrl, supabaseAnonKey, {
+    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-        storageKey: 'supabase-anon-singleton'
+        autoRefreshToken: true,
+        persistSession: true,
+        storageKey: 'supabase-singleton'
       },
       global: {
         headers: {
-          'X-Client-Info': 'supabase-js-anon-singleton'
+          'X-Client-Info': 'supabase-js-singleton'
         }
       }
     })
   }
   
-  return supabaseAnonInstance
+  return supabaseInstance
+}
+
+// Usar a mesma instância para o cliente anônimo
+export const getSupabaseAnonClient = () => {
+  return getSupabaseClient()
 }
 
 export { isSupabaseConfigured }
