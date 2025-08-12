@@ -1085,7 +1085,7 @@ class SupabaseApiClient {
     }
   }
 
-  async vincularCarteiraUsuario(usuarioId: string, carteiraData: {
+  async vincularCarteiraUsuario(usuarioId: string, dadosCarteiraInput: {
     endereco: string;
     tipo: 'solana' | 'ethereum';
     valorAtual?: number;
@@ -1115,8 +1115,8 @@ class SupabaseApiClient {
         nome: usuario.nome,
         tipo: 'bitcoin', // Tipo padrão para usuários com carteiras
         dataInicio: new Date().toISOString(),
-        investimentoInicial: carteiraData.valorAtual || 0,
-        valorCarteiraDeFi: carteiraData.valorAtual || 0,
+        investimentoInicial: dadosCarteiraInput.valorAtual || 0,
+        valorCarteiraDeFi: dadosCarteiraInput.valorAtual || 0,
         apyMedio: 0,
         tempoMercado: 'Recém iniciado',
         scoreRisco: 'Baixo',
@@ -1140,10 +1140,10 @@ class SupabaseApiClient {
       // Criar carteira na tabela carteiras
       const dadosCarteira = {
         clienteId: usuarioId,
-        endereco: carteiraData.endereco,
-        tipo: carteiraData.tipo,
-        valorAtual: carteiraData.valorAtual || 0,
-        tokens: carteiraData.tokens || [],
+        endereco: dadosCarteiraInput.endereco,
+        tipo: dadosCarteiraInput.tipo,
+        valorAtual: dadosCarteiraInput.valorAtual || 0,
+        tokens: dadosCarteiraInput.tokens || [],
         ultimaAtualizacao: new Date().toISOString()
       };
 
