@@ -28,13 +28,13 @@ serve(async (req) => {
     )
 
     // Parse the request body
-    const { email, password, nome, tipo = 'user' } = await req.json()
+    const { email, password, nome, tipo = 'user', senha_hash } = await req.json()
 
-    if (!email || !password || !nome) {
+    if (!email || !nome) {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: 'Email, senha e nome são obrigatórios' 
+          error: 'Email e nome são obrigatórios' 
         }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -43,14 +43,19 @@ serve(async (req) => {
       )
     }
 
-    // Create user in Supabase Auth
+    // Se recebeu senha_hash, usar uma senha temporária e depois atualizar
+    const senhaTemporaria = 'temp_' + Math.random().toString(36).substring(2, 15)
+    const senhaFinal = password || senhaTemporaria
+
+    // Create user in Supabase Auth with temporary password
     const { data: authData, error: authError } = await supabaseClient.auth.admin.createUser({
       email,
-      password,
+      password: senhaFinal,
       email_confirm: true,
       user_metadata: {
         nome,
-        tipo
+        tipo,
+        senha_original_hash: senha_hash || null
       }
     })
 

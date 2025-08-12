@@ -79,27 +79,66 @@ class SupabaseApiClient {
         }
       }
 
-      // Fazer login usando Supabase Auth
+      // Primeiro, tentar login normal no Supabase Auth
       const { data, error } = await supabase!.auth.signInWithPassword({
         email,
         password: senha
       })
 
-      if (error) {
-        console.error('Erro ao fazer login:', error)
+      if (data && data.user) {
+        // Login normal funcionou, buscar dados do usuário
+        const { data: userData, error: userError } = await safeQuery(async () => {
+          return await supabase!
+            .from('usuarios')
+            .select('id, nome, email, tipo, dataRegistro')
+            .eq('id', data.user.id)
+            .single()
+        })
+
+        if (userError || !userData) {
+          console.error('Erro ao buscar dados do usuário:', userError)
+          return { success: false, error: 'Erro ao carregar dados do usuário' }
+        }
+
+        return { 
+          success: true, 
+          user: {
+            id: userData.id,
+            nome: userData.nome,
+            email: userData.email,
+            tipo: userData.tipo,
+            dataRegistro: userData.dataRegistro
+          }
+        }
+      }
+
+      // Se login normal falhou, tentar login com senha original da solicitação
+      const { data: solicitacao, error: solicitacaoError } = await safeQuery(async () => {
+        return await supabase!
+          .from('solicitacoes_usuarios')
+          .select('*')
+          .eq('email', email)
+          .eq('status', 'aprovado')
+          .single()
+      })
+
+      if (solicitacaoError || !solicitacao) {
         return { success: false, error: 'Email ou senha incorretos' }
       }
 
-      if (!data.user) {
-        return { success: false, error: 'Usuário não encontrado' }
+      // Verificar se a senha fornecida corresponde ao hash da solicitação
+      const senhaValida = await verifyPassword(senha, solicitacao.senha_hash)
+      
+      if (!senhaValida) {
+        return { success: false, error: 'Email ou senha incorretos' }
       }
 
-      // Buscar dados adicionais do usuário na tabela usuarios
+      // Senha válida, buscar dados do usuário na tabela usuarios
       const { data: userData, error: userError } = await safeQuery(async () => {
         return await supabase!
           .from('usuarios')
           .select('id, nome, email, tipo, dataRegistro')
-          .eq('id', data.user.id)
+          .eq('email', email)
           .single()
       })
 
@@ -108,6 +147,8 @@ class SupabaseApiClient {
         return { success: false, error: 'Erro ao carregar dados do usuário' }
       }
 
+      // Criar sessão manual (simular login)
+      // Como não podemos criar sessão no Auth, vamos retornar os dados do usuário
       return { 
         success: true, 
         user: {
@@ -116,7 +157,8 @@ class SupabaseApiClient {
           email: userData.email,
           tipo: userData.tipo,
           dataRegistro: userData.dataRegistro
-        }
+        },
+        message: 'Login realizado com sucesso usando senha original da solicitação'
       }
     } catch (error: any) {
       console.error('Erro no login:', error)
@@ -836,37 +878,8 @@ class SupabaseApiClient {
           return { success: false, error: 'Erro ao aprovar solicitação' }
         }
 
-        // Tentar criar usuário via Edge Function (se disponível)
-        try {
-          const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL
-          const response = await fetch(`${supabaseUrl}/functions/v1/criar-usuario`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${supabase!.supabaseKey}`
-            },
-            body: JSON.stringify({
-              email: solicitacao.email,
-              password: '123456', // Senha padrão temporária
-              nome: solicitacao.nome,
-              tipo: 'user'
-            })
-          })
-
-          const result = await response.json()
-          
-          if (result.success) {
-            return { 
-              success: true, 
-              message: 'Solicitação aprovada com sucesso! O usuário pode fazer login com a senha: 123456',
-              user: result.user
-            }
-          } else {
-            console.warn('Edge Function não disponível, criando apenas na tabela:', result.error)
-          }
-        } catch (error) {
-          console.warn('Edge Function não disponível, criando apenas na tabela:', error)
-        }
+        // NÃO criar usuário no Auth - ele usará a senha original da solicitação
+        // O usuário será criado apenas na tabela usuarios
 
         // Fallback: Criar apenas na tabela usuarios (usuário precisará ser criado manualmente no Auth)
         const { error: createUserError } = await safeQuery(async () => {
@@ -892,12 +905,11 @@ class SupabaseApiClient {
 
         return { 
           success: true, 
-          message: 'Solicitação aprovada! Crie o usuário manualmente no Supabase Dashboard (Authentication > Users) com a senha: 123456',
+          message: 'Solicitação aprovada com sucesso! O usuário pode fazer login com a senha original da solicitação.',
           user: {
             id: solicitacao.id,
             email: solicitacao.email,
-            nome: solicitacao.nome,
-            senhaTemporaria: '123456'
+            nome: solicitacao.nome
           }
         }
       } else {
