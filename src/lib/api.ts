@@ -1000,6 +1000,85 @@ class SupabaseApiClient {
       return { success: false, error: error.message }
     }
   }
+
+  async criarUsuarioAdmin(nome: string, email: string, senha: string): Promise<ApiResponse> {
+    try {
+      if (!isSupabaseConfigured) {
+        return { success: false, error: 'Supabase não configurado' }
+      }
+
+      // Verificar se o email já existe
+      const { data: existingUser, error: checkError } = await safeQuery(async () => {
+        return await supabase!
+          .from('usuarios')
+          .select('id, email')
+          .eq('email', email)
+          .maybeSingle()
+      })
+
+      if (existingUser) {
+        return { success: false, error: 'Email já cadastrado' }
+      }
+
+      // Criar usuário usando Supabase Auth
+      const { data: authData, error: authError } = await supabase!.auth.signUp({
+        email,
+        password: senha,
+        options: {
+          data: {
+            nome,
+            tipo: 'admin',
+            email_confirmed_at: new Date().toISOString()
+          }
+        }
+      })
+
+      if (authError) {
+        console.error('Erro ao criar usuário admin no Auth:', authError)
+        return { success: false, error: `Erro ao criar usuário: ${authError.message}` }
+      }
+
+      if (!authData.user) {
+        return { success: false, error: 'Erro ao criar usuário - nenhum dado retornado' }
+      }
+
+      // Criar registro na tabela usuarios
+      const { data: userData, error: insertError } = await safeQuery(async () => {
+        return await supabase!
+          .from('usuarios')
+          .insert([
+            {
+              id: authData.user.id,
+              nome,
+              email,
+              tipo: 'admin',
+              dataRegistro: new Date().toISOString(),
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            }
+          ])
+          .select('id, nome, email, tipo, dataRegistro')
+          .single()
+      })
+
+      if (insertError) {
+        console.error('Erro ao criar usuário admin na tabela:', insertError)
+        return { success: false, error: 'Erro ao criar usuário admin' }
+      }
+
+      // Fazer logout após criar conta
+      await supabase!.auth.signOut();
+      
+      return { 
+        success: true, 
+        message: 'Usuário admin criado com sucesso! Faça login para acessar.',
+        user: userData
+      }
+    } catch (error: any) {
+      console.error('Erro ao criar usuário admin:', error)
+      return { success: false, error: error.message }
+    }
+  }
 }
 
 // Exportar instância única
