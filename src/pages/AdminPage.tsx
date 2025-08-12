@@ -52,6 +52,9 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     
     setLoading(true);
     try {
+      // Encontrar o usuário selecionado para mostrar na mensagem
+      const usuarioSelecionado = usuariosAprovados.find(u => u.id === selectedClientForWallet);
+      
       // Simular busca de dados da carteira
       await new Promise(resolve => setTimeout(resolve, 1000));
       
@@ -66,11 +69,16 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       };
 
       onAddWallet(selectedClientForWallet, walletData);
+      
+      // Mostrar mensagem de sucesso
+      alert(`Carteira vinculada com sucesso ao usuário ${usuarioSelecionado?.nome}!`);
+      
       setNewWalletAddress('');
       setShowAddWallet(false);
       setSelectedClientForWallet('');
     } catch (error) {
       console.error('Erro ao adicionar carteira:', error);
+      alert('Erro ao vincular carteira. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -525,21 +533,28 @@ export const AdminPage: React.FC<AdminPageProps> = ({
         {showAddWallet && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-gray-900 rounded-xl p-6 w-full max-w-md border border-gray-800">
-              <h3 className="text-xl font-semibold mb-4">Vincular Nova Carteira</h3>
+              <h3 className="text-xl font-semibold mb-4">Vincular Carteira a Usuário</h3>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Cliente</label>
+                  <label className="block text-sm font-medium mb-2">Usuário</label>
                   <select 
                     value={selectedClientForWallet}
                     onChange={(e) => setSelectedClientForWallet(e.target.value)}
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2"
                   >
-                    <option value="">Selecione um cliente</option>
-                    {Object.values(clients).map((client: any) => (
-                      <option key={client.id} value={client.id}>{client.nome}</option>
+                    <option value="">Selecione um usuário</option>
+                    {usuariosAprovados.map((usuario) => (
+                      <option key={usuario.id} value={usuario.id}>
+                        {usuario.nome} ({usuario.email})
+                      </option>
                     ))}
                   </select>
+                  {usuariosAprovados.length === 0 && (
+                    <p className="text-sm text-gray-400 mt-1">
+                      Nenhum usuário aprovado encontrado. Aprove solicitações na aba "Solicitações".
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -588,7 +603,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   disabled={loading || !newWalletAddress || !selectedClientForWallet}
                   className="flex-1 bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
                 >
-                  {loading ? 'Adicionando...' : 'Adicionar'}
+                  {loading ? 'Vinculando...' : 'Vincular Carteira'}
                 </button>
               </div>
             </div>
