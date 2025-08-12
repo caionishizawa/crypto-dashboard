@@ -281,6 +281,13 @@ function App() {
     setCurrentPage('admin');
     // Limpar dados de roteamento
     sessionStorage.removeItem('currentPage');
+    
+    // Limpar dados do "Lembrar de mim" se não estiver marcado
+    const shouldRemember = localStorage.getItem('rememberMe') === 'true';
+    if (!shouldRemember) {
+      localStorage.removeItem('rememberedEmail');
+      localStorage.removeItem('rememberMe');
+    }
   };
 
   // Funções para a tela de verificação de email

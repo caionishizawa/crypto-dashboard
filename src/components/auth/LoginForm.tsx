@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LogIn, Mail, Lock, Eye, EyeOff, Shield, Sparkles } from 'lucide-react';
 import type { LoginData } from '../../types/usuario';
 
@@ -14,6 +14,34 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onSwitchToRegiste
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [manterConectado, setManterConectado] = useState<boolean>(false);
 
+  // Carregar email salvo quando o componente montar
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('rememberedEmail');
+    const shouldRemember = localStorage.getItem('rememberMe') === 'true';
+    
+    if (savedEmail && shouldRemember) {
+      setFormData(prev => ({ ...prev, email: savedEmail }));
+      setManterConectado(true);
+    }
+  }, []);
+
+  // Função para salvar email no localStorage
+  const saveEmailToStorage = (email: string) => {
+    if (manterConectado) {
+      localStorage.setItem('rememberedEmail', email);
+      localStorage.setItem('rememberMe', 'true');
+    } else {
+      localStorage.removeItem('rememberedEmail');
+      localStorage.removeItem('rememberMe');
+    }
+  };
+
+  // Função para limpar dados salvos
+  const clearSavedData = () => {
+    localStorage.removeItem('rememberedEmail');
+    localStorage.removeItem('rememberMe');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -26,7 +54,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onSwitchToRegiste
     }
 
     const result = await onLogin({ ...formData, manterConectado });
-    if (!result.success) {
+    if (result.success) {
+      // Salvar email se "Lembrar de mim" estiver ativado
+      saveEmailToStorage(formData.email);
+    } else {
       setError(result.error || 'Erro ao fazer login');
     }
     setLoading(false);
@@ -97,18 +128,26 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onSwitchToRegiste
             </div>
           </div>
 
-          {/* Checkbox Manter Conectado */}
+          {/* Checkbox Lembrar de Mim */}
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <input
                 type="checkbox"
                 id="manterConectado"
                 checked={manterConectado}
-                onChange={(e) => setManterConectado(e.target.checked)}
+                onChange={(e) => {
+                  const isChecked = e.target.checked;
+                  setManterConectado(isChecked);
+                  
+                  // Se desmarcou, limpar dados salvos
+                  if (!isChecked) {
+                    clearSavedData();
+                  }
+                }}
                 className="w-4 h-4 text-green-600 bg-gray-800 border-gray-600 rounded focus:ring-green-500 focus:ring-2 cursor-pointer"
               />
               <label htmlFor="manterConectado" className="ml-3 text-sm text-gray-300 cursor-pointer hover:text-white transition-colors">
-                Manter conectado
+                Lembrar de mim
               </label>
             </div>
             <button

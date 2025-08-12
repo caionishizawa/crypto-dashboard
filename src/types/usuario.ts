@@ -13,6 +13,7 @@ export interface UsuarioCompleto extends Usuario {
 export interface LoginData {
   email: string;
   senha: string;
+  manterConectado?: boolean;
 }
 
 export interface RegisterData {
