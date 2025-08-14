@@ -74,6 +74,16 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
     }
   }, [redirectCountdown]);
 
+  // Debug useEffect para monitorar mudanças de estado
+  useEffect(() => {
+    console.log('🎯 FRONTEND - Estado atualizado:', {
+      success,
+      redirectCountdown,
+      showNotification,
+      loading
+    });
+  }, [success, redirectCountdown, showNotification, loading]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -116,6 +126,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
       setRedirectCountdown(5); // Reduzido para 5 segundos
       console.log('🎯 FRONTEND - Mensagem definida! Success:', '🎉 Conta criada com sucesso! Redirecionando para login...');
       console.log('🎯 FRONTEND - Countdown definido:', 5);
+      console.log('🎯 FRONTEND - showNotification definido como:', true);
       
       // Limpar formulário
       setFormData({
@@ -263,24 +274,32 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
             </div>
           )}
 
-          {success && redirectCountdown > 0 && (
+          {success && (
             <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-2 border-green-400/50 rounded-xl p-6 text-green-300 text-center shadow-lg animate-pulse">
               <div className="flex items-center justify-center mb-3">
                 <div className="w-6 h-6 bg-green-400 rounded-full mr-3 animate-bounce"></div>
                 <div className="text-2xl font-bold">🎉 CONTA CRIADA COM SUCESSO! 🎉</div>
               </div>
-              <div className="text-green-200 text-lg font-semibold">
-                ⏰ Redirecionando para login em {redirectCountdown} segundo{redirectCountdown !== 1 ? 's' : ''}...
-              </div>
-              <div className="mt-3 text-green-300 text-sm">
-                Você será redirecionado automaticamente para fazer login
-              </div>
+              {redirectCountdown > 0 ? (
+                <>
+                  <div className="text-green-200 text-lg font-semibold">
+                    ⏰ Redirecionando para login em {redirectCountdown} segundo{redirectCountdown !== 1 ? 's' : ''}...
+                  </div>
+                  <div className="mt-3 text-green-300 text-sm">
+                    Você será redirecionado automaticamente para fazer login
+                  </div>
+                </>
+              ) : (
+                <div className="text-green-200 text-lg font-semibold">
+                  ✅ Sua conta foi criada com sucesso!
+                </div>
+              )}
             </div>
           )}
           
           {/* Log de debug para ver se está renderizando */}
-          {success && console.log('🎯 FRONTEND - RENDERIZANDO mensagem de sucesso:', success)}
-          {redirectCountdown > 0 && console.log('🎯 FRONTEND - RENDERIZANDO countdown:', redirectCountdown)}
+          {/* {success && console.log('🎯 FRONTEND - RENDERIZANDO mensagem de sucesso:', success)}
+          {redirectCountdown > 0 && console.log('🎯 FRONTEND - RENDERIZANDO countdown:', redirectCountdown)} */}
 
           <button
             type="submit"
