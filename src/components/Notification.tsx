@@ -16,7 +16,7 @@ const Notification: React.FC<NotificationProps> = ({
   isVisible,
   onClose,
   autoClose = true,
-  duration = 4000
+  duration = 6000
 }) => {
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -25,17 +25,13 @@ const Notification: React.FC<NotificationProps> = ({
     let timer: NodeJS.Timeout;
     
     if (isVisible && message && autoClose) {
-      console.log('🔔 Configurando auto-close para notificação:', message);
-      
       timer = setTimeout(() => {
-        console.log('🔔 Auto-close executando para:', message);
         handleClose();
       }, duration);
     }
 
     return () => {
       if (timer) {
-        console.log('🔔 Limpando timer de auto-close');
         clearTimeout(timer);
       }
     };
@@ -43,17 +39,15 @@ const Notification: React.FC<NotificationProps> = ({
 
   // Handle close with animation
   const handleClose = () => {
-    console.log('🔔 Fechando notificação:', message);
     setIsAnimating(false);
     setTimeout(() => {
       onClose();
-    }, 300);
+    }, 500);
   };
 
   // Show notification when visible
   useEffect(() => {
     if (isVisible) {
-      console.log('🔔 Mostrando notificação:', message);
       setIsAnimating(true);
     }
   }, [isVisible, message]);
@@ -91,7 +85,7 @@ const Notification: React.FC<NotificationProps> = ({
   };
 
   return (
-    <div className={`fixed top-4 right-4 z-50 transition-all duration-300 ${
+    <div className={`fixed top-4 right-4 z-50 transition-all duration-500 ease-in-out ${
       isAnimating ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
     }`}>
       <div className={`max-w-sm w-full bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-2xl border p-4 ${getTypeStyles()}`}>
