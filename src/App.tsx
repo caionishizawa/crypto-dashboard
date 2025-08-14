@@ -146,7 +146,9 @@ function App() {
   const corCalculada = calcularCor(corAtualRGB, proximaCorRGB, progresso);
   
   const backgroundStyle = {
-    background: `linear-gradient(135deg, rgb(${corCalculada.join(',')}) 0%, rgb(${Math.round(corCalculada[0] * 0.7)}, ${Math.round(corCalculada[1] * 0.7)}, ${Math.round(corCalculada[2] * 0.7)}) 100%)`
+    background: `linear-gradient(135deg, rgb(${corCalculada.join(',')}) 0%, rgb(${Math.round(corCalculada[0] * 0.7)}, ${Math.round(corCalculada[1] * 0.7)}, ${Math.round(corCalculada[2] * 0.7)}) 100%)`,
+    minHeight: '100vh',
+    position: 'relative'
   };
 
   // Sistema de roteamento - salvar e restaurar página atual

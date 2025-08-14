@@ -86,58 +86,104 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen text-white">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
+    <div className="min-h-screen text-white relative">
+      {/* Sidebar */}
+      <div className="fixed left-0 top-0 h-full w-64 sidebar-glass z-20">
+        <div className="p-6">
+          <div className="flex items-center space-x-3 mb-8">
+            <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+            <span className="text-sm text-green-400 font-medium">Modo Online</span>
+          </div>
+          
+          {/* Ícones decorativos */}
+          <div className="flex space-x-3 mb-8">
+            <div className="w-8 h-8 bg-gray-700 rounded-lg flex items-center justify-center">
+              <span className="text-xs">🎮</span>
+            </div>
+            <div className="w-8 h-8 bg-gray-700 rounded-lg flex items-center justify-center">
+              <span className="text-xs">📱</span>
+            </div>
+            <div className="w-8 h-8 bg-gray-700 rounded-lg flex items-center justify-center">
+              <span className="text-xs">💻</span>
+            </div>
+            <div className="w-8 h-8 bg-gray-700 rounded-lg flex items-center justify-center">
+              <span className="text-xs">🎯</span>
+            </div>
+          </div>
+          
+          <h1 className="text-xl font-bold mb-6">Painel Administrativo</h1>
+          
+          {/* Navegação */}
+          <nav className="space-y-2">
+            <button 
+              onClick={() => setActiveTab('clientes')}
+              className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 flex items-center space-x-3 ${
+                activeTab === 'clientes' 
+                  ? 'bg-gradient-to-r from-green-500 to-green-600 text-black shadow-lg' 
+                  : 'text-gray-300 hover:bg-gray-800/50 hover:text-white'
+              }`}
+            >
+              <Users className="w-5 h-5" />
+              <span>Clientes</span>
+            </button>
+            <button 
+              onClick={() => setActiveTab('carteiras')}
+              className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 flex items-center space-x-3 ${
+                activeTab === 'carteiras' 
+                  ? 'bg-gradient-to-r from-green-500 to-green-600 text-black shadow-lg' 
+                  : 'text-gray-300 hover:bg-gray-800/50 hover:text-white'
+              }`}
+            >
+              <Wallet className="w-5 h-5" />
+              <span>Carteiras</span>
+            </button>
+            <button 
+              onClick={() => setActiveTab('snapshots')}
+              className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 flex items-center space-x-3 ${
+                activeTab === 'snapshots' 
+                  ? 'bg-gradient-to-r from-green-500 to-green-600 text-black shadow-lg' 
+                  : 'text-gray-300 hover:bg-gray-800/50 hover:text-white'
+              }`}
+            >
+              <TrendingUp className="w-5 h-5" />
+              <span>Snapshots</span>
+            </button>
+          </nav>
+          
+          {/* Usuário logado */}
+          <div className="absolute bottom-6 left-6 right-6">
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">
+                <User className="w-4 h-4 text-gray-300" />
+              </div>
+              <span className="text-sm text-gray-300">{currentUser.nome}</span>
+            </div>
+            <button
+              onClick={onLogout}
+              className="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Sair</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Conteúdo principal */}
+      <div className="ml-64 p-8">
+        {/* Header com botão de solicitações */}
+        <div className="flex justify-between items-center mb-8">
           <div className="flex items-center space-x-3">
             <Users className="w-8 h-8 text-green-400" />
             <h1 className="text-3xl font-bold">Painel Administrativo</h1>
           </div>
-          <div className="flex items-center space-x-6">
-            {/* Abas de Navegação */}
-            <div className="flex space-x-4">
-              <button 
-                onClick={() => setActiveTab('clientes')}
-                className={`px-4 py-2 rounded-lg transition-colors ${activeTab === 'clientes' ? 'bg-green-500 text-black' : 'bg-gray-800 text-white hover:bg-gray-700'}`}
-              >
-                Clientes
-              </button>
-              <button 
-                onClick={() => setActiveTab('carteiras')}
-                className={`px-4 py-2 rounded-lg transition-colors ${activeTab === 'carteiras' ? 'bg-green-500 text-black' : 'bg-gray-800 text-white hover:bg-gray-700'}`}
-              >
-                Carteiras
-              </button>
-              <button 
-                onClick={() => setActiveTab('snapshots')}
-                className={`px-4 py-2 rounded-lg transition-colors ${activeTab === 'snapshots' ? 'bg-green-500 text-black' : 'bg-gray-800 text-white hover:bg-gray-700'}`}
-              >
-                Snapshots
-              </button>
-            </div>
-
-            {/* Informações do Usuário e Logout */}
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={onGoToSolicitacoes}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
-              >
-                <UserPlus className="w-4 h-4" />
-                <span>Solicitações</span>
-              </button>
-              <div className="flex items-center space-x-2 bg-gray-800/50 px-3 py-2 rounded-lg">
-                <User className="w-4 h-4 text-green-400" />
-                <span className="text-sm text-gray-300">{currentUser.nome}</span>
-              </div>
-              <button
-                onClick={onLogout}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Sair</span>
-              </button>
-            </div>
-          </div>
+          <button
+            onClick={onGoToSolicitacoes}
+            className="btn-primary flex items-center space-x-2"
+          >
+            <UserPlus className="w-4 h-4" />
+            <span>Solicitações</span>
+          </button>
         </div>
 
         {/* Aba Clientes */}
@@ -151,7 +197,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 </div>
                 <button 
                   onClick={() => setShowNovoCliente(true)}
-                  className="bg-green-500 hover:bg-green-600 text-black font-semibold px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+                  className="btn-primary flex items-center space-x-2"
                 >
                   <Plus className="w-5 h-5" />
                   <span>Novo Cliente</span>
@@ -171,33 +217,72 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 <p className="text-gray-500">Aprove solicitações na aba "Solicitações" para ver usuários aqui.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {usuariosAprovados.map((usuario) => {
-                  const dataRegistro = new Date(usuario.dataRegistro).toLocaleDateString('pt-BR');
-                  
-                  return (
-                    <div key={usuario.id} className="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-green-800 transition-all">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
-                            <User className="w-6 h-6 text-white" />
-                          </div>
-                          <div>
-                            <h3 className="text-lg font-semibold">{usuario.nome}</h3>
-                            <p className="text-sm text-gray-400">{usuario.email}</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-3 mb-4">
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-400 text-sm">Tipo</span>
-                          <span className="font-semibold text-green-400">Usuário</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-400 text-sm">Data de Registro</span>
-                          <span className="font-semibold">{dataRegistro}</span>
-                        </div>
+              <div className="table-styled">
+                <table className="w-full">
+                  <thead>
+                    <tr>
+                      <th>Usuário</th>
+                      <th>Email</th>
+                      <th>Tipo Usuário</th>
+                      <th>Data de Registro</th>
+                      <th>StatusAprovado</th>
+                      <th>ID</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {usuariosAprovados.map((usuario) => {
+                      const dataRegistro = new Date(usuario.dataRegistro).toLocaleDateString('pt-BR');
+                      
+                      return (
+                        <tr key={usuario.id} className="hover:bg-gray-800/30 transition-colors">
+                          <td>
+                            <div className="flex items-center space-x-3">
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
+                                <User className="w-5 h-5 text-white" />
+                              </div>
+                              <span className="font-semibold">{usuario.nome}</span>
+                            </div>
+                          </td>
+                          <td>{usuario.email}</td>
+                          <td>
+                            <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded-full text-xs">
+                              Usuário
+                            </span>
+                          </td>
+                          <td>{dataRegistro}</td>
+                          <td>
+                            <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded-full text-xs">
+                              Aprovado
+                            </span>
+                          </td>
+                          <td className="font-mono text-xs text-gray-400">
+                            ID{usuario.id.substring(0, 8)}...
+                          </td>
+                          <td>
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={() => onViewUser(usuario)}
+                                className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                                title="Visualizar"
+                              >
+                                <Eye className="w-4 h-4 text-white" />
+                              </button>
+                              <button
+                                className="p-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg transition-colors"
+                                title="Editar"
+                              >
+                                <Edit className="w-4 h-4 text-white" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
                         <div className="flex justify-between items-center">
                           <span className="text-gray-400 text-sm">Status</span>
                           <span className="font-semibold text-green-400">Aprovado</span>
