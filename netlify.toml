@@ -1,0 +1,67 @@
+[build]
+  base = "dash"
+  publish = "dist"
+  command = "npm run build"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+# Redirects for Single Page Application (SPA)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Headers para segurança
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://*.supabase.co; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.coingecko.com; frame-ancestors 'none';"
+
+# Cache para assets estáticos
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Headers específicos para Supabase
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "https://courageous-jelly-382fd9.netlify.app"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
+
+# Configuração de Functions (se necessário no futuro)
+[functions]
+  directory = "functions"
+
+# Configuração de Deploy Contexts
+[context.production]
+  command = "npm run build"
+  
+[context.deploy-preview]
+  command = "npm run build"
+  
+[context.branch-deploy]
+  command = "npm run build" 
+
+# Configuração de variáveis de ambiente para produção
+[context.production.environment]
+  NODE_ENV = "production"
+  VITE_ENVIRONMENT = "production"
+
+# Configuração para preview
+[context.deploy-preview.environment]
+  VITE_ENVIRONMENT = "preview"
+
+# Sugestões de domínios personalizados
+# Você pode escolher um destes no Netlify Dashboard:
+# - crypto-dashboard-brasil.netlify.app
+# - defi-analytics.netlify.app
+# - dashboard-cripto.netlify.app
+# - crypto-brasil.netlify.app 
