@@ -331,18 +331,28 @@ export const GerenciarClienteModal: React.FC<GerenciarClienteModalProps> = ({
                         </select>
                       </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                          Endereço da Carteira *
-                        </label>
-                        <input
-                          type="text"
-                          value={newWalletAddress}
-                          onChange={(e) => setNewWalletAddress(e.target.value)}
-                          placeholder="Cole o endereço da carteira"
-                          className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white"
-                        />
-                      </div>
+                                             <div>
+                         <label className="block text-sm font-medium text-gray-300 mb-2">
+                           Endereço da Carteira *
+                         </label>
+                         <input
+                           type="text"
+                           value={newWalletAddress}
+                           onChange={(e) => setNewWalletAddress(e.target.value)}
+                           placeholder={
+                             newWalletType === 'ethereum' 
+                               ? "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6" 
+                               : "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM"
+                           }
+                           className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white"
+                         />
+                         <p className="text-xs text-gray-400 mt-1">
+                           {newWalletType === 'ethereum' 
+                             ? "Exemplo: 0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6 (42 caracteres)"
+                             : "Exemplo: 9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM (32-44 caracteres)"
+                           }
+                         </p>
+                       </div>
                     </div>
 
                     <div className="flex justify-end space-x-4">

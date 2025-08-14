@@ -1229,6 +1229,35 @@ class SupabaseApiClient {
     }
   }
 
+  // Função para validar endereços de carteira
+  private validarEnderecoCarteira(endereco: string, tipo: 'solana' | 'ethereum'): { valido: boolean; erro?: string } {
+    if (!endereco || endereco.trim().length === 0) {
+      return { valido: false, erro: 'Endereço da carteira é obrigatório' };
+    }
+
+    const enderecoLimpo = endereco.trim();
+
+    if (tipo === 'ethereum') {
+      // Endereço Ethereum deve ter 42 caracteres e começar com 0x
+      if (!/^0x[a-fA-F0-9]{40}$/.test(enderecoLimpo)) {
+        return { 
+          valido: false, 
+          erro: 'Endereço Ethereum inválido. Deve ter 42 caracteres e começar com 0x' 
+        };
+      }
+    } else if (tipo === 'solana') {
+      // Endereço Solana deve ter entre 32 e 44 caracteres
+      if (enderecoLimpo.length < 32 || enderecoLimpo.length > 44) {
+        return { 
+          valido: false, 
+          erro: 'Endereço Solana inválido. Deve ter entre 32 e 44 caracteres' 
+        };
+      }
+    }
+
+    return { valido: true };
+  }
+
   async vincularCarteiraUsuario(usuarioId: string, dadosCarteiraInput: {
     endereco: string;
     tipo: 'solana' | 'ethereum';
@@ -1237,6 +1266,13 @@ class SupabaseApiClient {
   }): Promise<ApiResponse> {
     try {
       console.log('🔗 Vinculando carteira ao usuário:', { usuarioId, dadosCarteiraInput });
+      
+      // Validar endereço da carteira
+      const validacao = this.validarEnderecoCarteira(dadosCarteiraInput.endereco, dadosCarteiraInput.tipo);
+      if (!validacao.valido) {
+        console.log('❌ Endereço inválido:', validacao.erro);
+        return { success: false, error: validacao.erro };
+      }
       
       if (!isSupabaseConfigured) {
         return { success: false, error: 'Supabase não configurado' }
