@@ -278,10 +278,23 @@ class SupabaseApiClient {
         }
       }
 
-      // Usar a sessão atual do Supabase
-      const { data: { session }, error: sessionError } = await supabase!.auth.getSession()
+      // Usar a sessão atual do Supabase com tratamento de erro melhorado
+      let session;
+      try {
+        const { data, error: sessionError } = await supabase!.auth.getSession()
+        
+        if (sessionError) {
+          console.log('Erro ao obter sessão:', sessionError)
+          return { success: false, error: 'Sessão não encontrada' }
+        }
+        
+        session = data.session
+      } catch (sessionError: any) {
+        console.log('Erro ao verificar sessão (refresh token inválido):', sessionError.message)
+        return { success: false, error: 'Sessão expirada' }
+      }
       
-      if (sessionError || !session) {
+      if (!session) {
         return { success: false, error: 'Sessão não encontrada' }
       }
 
@@ -302,6 +315,12 @@ class SupabaseApiClient {
       return { success: true, user: userData }
     } catch (error: any) {
       console.error('Erro ao obter usuário:', error)
+      
+      // Se for erro de refresh token, retornar erro específico
+      if (error.message?.includes('Refresh Token') || error.message?.includes('refresh')) {
+        return { success: false, error: 'Sessão expirada' }
+      }
+      
       return { success: false, error: error.message }
     }
   }

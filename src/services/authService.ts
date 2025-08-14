@@ -33,7 +33,6 @@ class AuthService {
   // Registro de novo usuário
   async register(registerData: RegisterData): Promise<{ success: boolean; usuario?: Usuario; error?: string; requiresEmailConfirmation?: boolean }> {
     try {
-
       const response = await apiClient.register(
         registerData.nome,
         registerData.email,
@@ -41,10 +40,7 @@ class AuthService {
         registerData.confirmarSenha
       );
       
-
-   
       if (response.success && response.user) {
-
         const userData = {
           id: response.user.id,
           nome: response.user.nome,
@@ -61,7 +57,6 @@ class AuthService {
       
       // Se requer confirmação de email
       if (response.success && response.requiresEmailConfirmation) {
-
         return { 
           success: true, 
           requiresEmailConfirmation: true
@@ -70,14 +65,12 @@ class AuthService {
       
       // Se success mas sem user nem requiresEmailConfirmation
       if (response.success) {
-
         return { 
           success: true, 
           requiresEmailConfirmation: false
         };
       }
       
-
       return { success: false, error: response.error || 'Erro no registro' };
     } catch (error: any) {
       console.error('🔧 AuthService - Erro capturado:', error);
@@ -105,6 +98,12 @@ class AuthService {
       return { success: false, error: response.error || 'Usuário não autenticado' };
     } catch (error: any) {
       console.error('Erro ao obter usuário atual:', error);
+      
+      // Se for erro de refresh token, não retornar erro para não quebrar a UI
+      if (error.message?.includes('Refresh Token') || error.message?.includes('refresh')) {
+        return { success: false, error: 'Sessão expirada' };
+      }
+      
       return { success: false, error: error.message || 'Erro interno do servidor' };
     }
   }

@@ -20,12 +20,25 @@ export const getSupabaseClient = () => {
       auth: {
         autoRefreshToken: true,
         persistSession: true,
-        storageKey: 'supabase-singleton'
+        storageKey: 'supabase-auth',
+        detectSessionInUrl: true,
+        flowType: 'pkce'
       },
       global: {
         headers: {
-          'X-Client-Info': 'supabase-js-singleton'
+          'X-Client-Info': 'supabase-js-dashboard'
         }
+      }
+    })
+
+    // Listener para mudanças de autenticação
+    supabaseInstance.auth.onAuthStateChange((event, session) => {
+      console.log('🔐 Auth state changed:', event, session?.user?.email)
+      
+      if (event === 'SIGNED_OUT') {
+        // Limpar dados locais quando fizer logout
+        localStorage.removeItem('supabase-auth')
+        sessionStorage.removeItem('currentPage')
       }
     })
   }

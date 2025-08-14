@@ -21,29 +21,18 @@ export const useAuth = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Não há mais confirmação de email - removido essa lógica
-
-        // Verificar se há sessão ativa do Supabase apenas uma vez
-        try {
-          const result = await authService.getCurrentUser('');
-          
-          if (result.success && result.usuario) {
-            setAuthState({
-              usuario: result.usuario,
-              token: 'supabase-session',
-              loading: false,
-              error: null
-            });
-          } else {
-            setAuthState({
-              usuario: null,
-              token: null,
-              loading: false,
-              error: null
-            });
-          }
-        } catch (sessionError) {
-          console.log('🔍 Sem sessão ativa (normal):', sessionError);
+        // Verificar se há sessão ativa do Supabase
+        const result = await authService.getCurrentUser('');
+        
+        if (result.success && result.usuario) {
+          setAuthState({
+            usuario: result.usuario,
+            token: 'supabase-session',
+            loading: false,
+            error: null
+          });
+        } else {
+          // Se não há sessão válida, limpar estado
           setAuthState({
             usuario: null,
             token: null,
@@ -51,13 +40,23 @@ export const useAuth = () => {
             error: null
           });
         }
-      } catch (error) {
-        console.error('Erro ao verificar autenticação:', error);
+      } catch (error: any) {
+        console.log('🔍 Sem sessão ativa ou erro de refresh token:', error.message);
+        
+        // Se for erro de refresh token, limpar sessão
+        if (error.message?.includes('Refresh Token') || error.message?.includes('refresh')) {
+          try {
+            await authService.logout();
+          } catch (logoutError) {
+            console.log('Erro ao limpar sessão:', logoutError);
+          }
+        }
+        
         setAuthState({
           usuario: null,
           token: null,
           loading: false,
-          error: 'Erro ao verificar autenticação'
+          error: null
         });
       }
     };
