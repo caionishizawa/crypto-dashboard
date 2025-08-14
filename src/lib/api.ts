@@ -79,7 +79,38 @@ class SupabaseApiClient {
         }
       }
 
-      // Primeiro, verificar se existe uma solicitação aprovada para este email
+      // Primeiro, verificar se o usuário já existe na tabela usuarios (usuários antigos)
+      const { data: existingUser, error: existingUserError } = await safeQuery(async () => {
+        return await supabase!
+          .from('usuarios')
+          .select('id, nome, email, tipo, dataRegistro')
+          .eq('email', email)
+          .single()
+      })
+
+      if (existingUser && !existingUserError) {
+        // Usuário já existe na tabela usuarios, tentar login normal no Supabase Auth
+        const { data, error } = await supabase!.auth.signInWithPassword({
+          email,
+          password: senha
+        })
+
+        if (!error && data.user) {
+          return { 
+            success: true, 
+            user: {
+              id: existingUser.id,
+              nome: existingUser.nome,
+              email: existingUser.email,
+              tipo: existingUser.tipo,
+              dataRegistro: existingUser.dataRegistro
+            },
+            message: 'Login realizado com sucesso (usuário existente)'
+          }
+        }
+      }
+
+      // Se não encontrou usuário existente, verificar se existe uma solicitação aprovada
       const { data: solicitacao, error: solicitacaoError } = await safeQuery(async () => {
         return await supabase!
           .from('solicitacoes_usuarios')
