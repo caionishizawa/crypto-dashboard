@@ -16,26 +16,34 @@ const Notification: React.FC<NotificationProps> = ({
   isVisible,
   onClose,
   autoClose = true,
-  duration = 5000
+  duration = 4000
 }) => {
   const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
-    if (isVisible) {
+    if (isVisible && message) {
       setIsAnimating(true);
       
-      if (autoClose) {
-        const timer = setTimeout(() => {
-          setIsAnimating(false);
-          setTimeout(onClose, 300); // Aguarda a animação terminar
-        }, duration);
-        
-        return () => clearTimeout(timer);
-      }
+      // Sempre configurar auto-close, independente da prop
+      const timer = setTimeout(() => {
+        setIsAnimating(false);
+        setTimeout(() => {
+          onClose();
+        }, 300); // Aguarda a animação terminar
+      }, duration);
+      
+      return () => clearTimeout(timer);
     }
-  }, [isVisible, autoClose, duration, onClose]);
+  }, [isVisible, message, duration, onClose]);
 
-  if (!isVisible) return null;
+  // Resetar animação quando a notificação mudar
+  useEffect(() => {
+    if (isVisible) {
+      setIsAnimating(true);
+    }
+  }, [isVisible]);
+
+  if (!isVisible || !message) return null;
 
   const getTypeStyles = () => {
     switch (type) {
@@ -83,7 +91,9 @@ const Notification: React.FC<NotificationProps> = ({
             <button
               onClick={() => {
                 setIsAnimating(false);
-                setTimeout(onClose, 300);
+                setTimeout(() => {
+                  onClose();
+                }, 300);
               }}
               className="text-gray-400 hover:text-gray-200 transition-colors p-1 rounded-full hover:bg-gray-800"
             >

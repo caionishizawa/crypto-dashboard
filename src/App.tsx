@@ -287,15 +287,6 @@ function App() {
         isVisible: true
       });
       
-      // Esconder notificação após 5 segundos
-      setTimeout(() => {
-    setNotification({
-          message: '',
-      type: 'success',
-          isVisible: false
-    });
-      }, 5000);
-      
     return { success: true };
     } catch (error) {
       console.error('Erro ao enviar solicitação:', error);
