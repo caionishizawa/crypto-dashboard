@@ -533,6 +533,44 @@ function App() {
     }
   };
 
+  const handleUpdateCliente = async (clienteId: string, dados: Partial<Cliente>) => {
+    try {
+      if (!token) {
+        alert('Usuário não autenticado');
+        return;
+      }
+
+      const response = await apiClient.updateCliente(clienteId, dados);
+      
+      if (response.success && response.data) {
+        // Atualizar estado local
+        setClientes(prev => ({
+          ...prev,
+          [clienteId]: { ...prev[clienteId], ...response.data }
+        }));
+
+        setNotification({
+          message: 'Cliente atualizado com sucesso!',
+          type: 'success',
+          isVisible: true
+        });
+      } else {
+        setNotification({
+          message: 'Erro ao atualizar cliente: ' + (response.error || 'Erro desconhecido'),
+          type: 'error',
+          isVisible: true
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar cliente:', error);
+      setNotification({
+        message: 'Erro ao atualizar cliente. Tente novamente.',
+        type: 'error',
+        isVisible: true
+      });
+    }
+  };
+
   // Componente para indicador de modo
   const ModeIndicator = () => (
     <div className={`fixed top-4 right-4 z-50 px-3 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 ${
@@ -892,6 +930,7 @@ function App() {
         onAddWallet={handleAddWallet}
         onCreateSnapshot={() => {}} // Implementar quando necessário
         onCreateClient={handleCreateClient}
+        onUpdateCliente={handleUpdateCliente}
         activeTab={activeAdminTab}
         onTabChange={setActiveAdminTab}
         onGoToSolicitacoes={handleGoToSolicitacoes}

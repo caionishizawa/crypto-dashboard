@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Users, User, LogOut, Plus, Eye, Edit, Wallet, Bitcoin, Shield, TrendingUp, UserPlus, Trash2 } from 'lucide-react';
+import { Users, User, LogOut, Plus, Eye, Edit, Wallet, Bitcoin, Shield, TrendingUp, UserPlus, Trash2, Settings } from 'lucide-react';
 import type { Cliente, ClientesData, Usuario, UsuarioAprovado, Carteira } from '../types';
 import { formatarMoeda, formatarPercentual, getCorRetorno } from '../utils';
 import { NovoClienteForm } from '../components/auth/NovoClienteForm';
+import { GerenciarClienteModal } from '../components/GerenciarClienteModal';
 import { authService } from '../services/authService';
 
 interface AdminPageProps {
@@ -16,6 +17,7 @@ interface AdminPageProps {
   onAddWallet: (clientId: string, walletData: Omit<Carteira, 'id'>) => void;
   onCreateSnapshot: (clientId: string) => void;
   onCreateClient: (clienteData: Omit<Cliente, 'id' | 'transacoes' | 'carteiras' | 'snapshots'>) => void;
+  onUpdateCliente: (clienteId: string, dados: Partial<Cliente>) => void;
   activeTab?: 'clientes' | 'carteiras' | 'snapshots';
   onTabChange?: (tab: 'clientes' | 'carteiras' | 'snapshots') => void;
   onGoToSolicitacoes?: () => void;
@@ -33,6 +35,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   onAddWallet,
   onCreateSnapshot,
   onCreateClient,
+  onUpdateCliente,
   activeTab: externalActiveTab,
   onTabChange,
   onGoToSolicitacoes,
@@ -49,6 +52,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   const [newWalletType, setNewWalletType] = useState<'solana' | 'ethereum'>('solana');
   const [loading, setLoading] = useState(false);
   const [showNovoCliente, setShowNovoCliente] = useState(false);
+  const [showGerenciarCliente, setShowGerenciarCliente] = useState(false);
   const [excluindoUsuario, setExcluindoUsuario] = useState<string | null>(null);
   const [showConfirmacaoExclusao, setShowConfirmacaoExclusao] = useState<string | null>(null);
 
@@ -214,11 +218,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   Total: {usuariosAprovados.length} usuários
                 </div>
                 <button 
-                  onClick={() => setShowNovoCliente(true)}
+                  onClick={() => setShowGerenciarCliente(true)}
                   className="btn-primary flex items-center space-x-2"
                 >
-                  <Plus className="w-5 h-5" />
-                  <span>Novo Cliente</span>
+                  <Settings className="w-5 h-5" />
+                  <span>Gerenciar Cliente</span>
                 </button>
               </div>
             </div>
@@ -512,9 +516,14 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           </div>
         )}
 
-        {/* Modal para novo cliente */}
-        {showNovoCliente && (
-          <NovoClienteForm onSubmit={handleCreateClient} onClose={() => setShowNovoCliente(false)} />
+        {/* Modal para gerenciar cliente */}
+        {showGerenciarCliente && (
+          <GerenciarClienteModal 
+            onClose={() => setShowGerenciarCliente(false)}
+            usuariosAprovados={usuariosAprovados}
+            onAddWallet={onAddWallet}
+            onUpdateCliente={onUpdateCliente}
+          />
         )}
       </div>
     </div>
