@@ -1290,6 +1290,23 @@ class SupabaseApiClient {
         return { success: false, error: 'Erro ao vincular carteira ao usuário' }
       }
 
+      // Verificar se o endereço já existe
+      const { data: existingCarteira, error: checkError } = await safeQuery(async () => {
+        return await supabase!
+          .from('carteiras')
+          .select('id, endereco')
+          .eq('endereco', dadosCarteiraInput.endereco)
+          .single()
+      });
+
+      if (existingCarteira && !checkError) {
+        console.log('⚠️ Endereço já existe:', existingCarteira);
+        return { 
+          success: false, 
+          error: 'Este endereço de carteira já está cadastrado no sistema' 
+        };
+      }
+
       // Criar carteira na tabela carteiras
       const dadosCarteira = {
         clienteId: clienteData.id, // Usar o ID do cliente criado
@@ -1302,11 +1319,15 @@ class SupabaseApiClient {
       console.log('📋 Dados da carteira para inserção:', dadosCarteira);
 
       const { data: carteiraData, error: carteiraError } = await safeQuery(async () => {
-        return await supabase!
+        console.log('🔄 Executando insert na tabela carteiras...');
+        const result = await supabase!
           .from('carteiras')
           .insert([dadosCarteira])
           .select('id, endereco, tipo, nome, valorAtual, ultimaAtualizacao, clienteId, createdAt, updatedAt')
-          .single()
+          .single();
+        
+        console.log('📊 Resultado do insert:', { data: result.data, error: result.error });
+        return result;
       })
 
       if (carteiraError) {

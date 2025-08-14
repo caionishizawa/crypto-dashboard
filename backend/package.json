@@ -15,6 +15,7 @@
     "db:seed": "ts-node src/utils/seed.ts",
     "snapshot:daily": "node scripts/daily-snapshot.js",
     "snapshot:manual": "ts-node src/utils/snapshotService.ts",
+    "check:schema": "ts-node src/utils/checkSchema.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
