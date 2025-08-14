@@ -70,9 +70,18 @@ export const NovoClienteForm: React.FC<NovoClienteFormProps> = ({ onClose, onSub
       tipo
     });
     
-    if (!nome || !investimentoInicial || !dataInicio || !criptoPrincipal || !quantidadeTokens || !scoreRisco) {
-      console.log('❌ Validação falhou - campos obrigatórios não preenchidos');
-      alert('Por favor, preencha todos os campos obrigatórios');
+    // Validação mais detalhada
+    const camposFaltando = [];
+    if (!nome.trim()) camposFaltando.push('Nome');
+    if (!investimentoInicial || parseFloat(investimentoInicial) <= 0) camposFaltando.push('Investimento Inicial');
+    if (!dataInicio) camposFaltando.push('Data de Início');
+    if (!criptoPrincipal) camposFaltando.push('Criptomoeda Principal');
+    if (!quantidadeTokens || parseFloat(quantidadeTokens) <= 0) camposFaltando.push('Quantidade de Tokens');
+    if (!scoreRisco) camposFaltando.push('Score de Risco');
+
+    if (camposFaltando.length > 0) {
+      console.log('❌ Validação falhou - campos obrigatórios não preenchidos:', camposFaltando);
+      alert(`Por favor, preencha os seguintes campos: ${camposFaltando.join(', ')}`);
       return;
     }
 
