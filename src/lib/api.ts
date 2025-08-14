@@ -1065,6 +1065,75 @@ class SupabaseApiClient {
     }
   }
 
+  async excluirUsuarioAprovado(usuarioId: string): Promise<ApiResponse> {
+    try {
+      if (!isSupabaseConfigured) {
+        return { success: false, error: 'Supabase não configurado' }
+      }
+
+      // Verificar se o usuário está autenticado
+      const { data: { user }, error: authError } = await supabase!.auth.getUser()
+      
+      if (authError || !user) {
+        return { 
+          success: false, 
+          error: 'Usuário não autenticado. Faça login para excluir usuários.' 
+        }
+      }
+
+      // Verificar se o usuário a ser excluído existe
+      const { data: usuarioExistente, error: checkError } = await safeQuery(async () => {
+        return await supabase!
+          .from('usuarios')
+          .select('id, nome, email, tipo')
+          .eq('id', usuarioId)
+          .eq('tipo', 'user')
+          .single()
+      })
+
+      if (checkError || !usuarioExistente) {
+        return { success: false, error: 'Usuário não encontrado ou não é um usuário aprovado' }
+      }
+
+      // Verificar se não está tentando excluir a si mesmo
+      if (usuarioId === user.id) {
+        return { success: false, error: 'Não é possível excluir sua própria conta' }
+      }
+
+      // Excluir o usuário da tabela usuarios
+      const { error: deleteError } = await safeQuery(async () => {
+        return await supabase!
+          .from('usuarios')
+          .delete()
+          .eq('id', usuarioId)
+          .eq('tipo', 'user')
+      })
+
+      if (deleteError) {
+        console.error('Erro ao excluir usuário:', deleteError)
+        return { success: false, error: 'Erro ao excluir usuário' }
+      }
+
+      // Tentar excluir também do Supabase Auth (se existir)
+      try {
+        // Nota: Esta operação requer permissões especiais no Supabase
+        // Em produção, isso seria feito através de uma função edge ou admin
+        console.log('Usuário excluído da tabela usuarios. Para excluir do Auth, use o painel do Supabase.')
+      } catch (authDeleteError) {
+        console.log('Não foi possível excluir do Auth (normal):', authDeleteError)
+      }
+
+      return { 
+        success: true, 
+        message: `Usuário ${usuarioExistente.nome} (${usuarioExistente.email}) excluído com sucesso!`,
+        data: usuarioExistente
+      }
+    } catch (error: any) {
+      console.error('Erro ao excluir usuário aprovado:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
   async apagarHistoricoSolicitacoes(): Promise<ApiResponse> {
     try {
       if (!isSupabaseConfigured) {

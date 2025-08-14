@@ -118,6 +118,21 @@ class AuthService {
       return { success: false, error: error.message || 'Erro interno do servidor' };
     }
   }
+
+  // Excluir usuário aprovado
+  async excluirUsuarioAprovado(usuarioId: string): Promise<{ success: boolean; error?: string; message?: string }> {
+    try {
+      const response = await apiClient.excluirUsuarioAprovado(usuarioId);
+      return { 
+        success: response.success, 
+        error: response.error,
+        message: response.message
+      };
+    } catch (error: any) {
+      console.error('Erro ao excluir usuário aprovado:', error);
+      return { success: false, error: error.message || 'Erro interno do servidor' };
+    }
+  }
 }
 
 // Exportar instância única

@@ -230,24 +230,25 @@ function App() {
     carregarClientes();
   }, [isAuthenticated, token]);
 
+  // Função para carregar usuários aprovados
+  const carregarUsuariosAprovados = async () => {
+    if (isAuthenticated && token) {
+      setLoadingUsuarios(true);
+      try {
+        const response = await apiClient.getUsuariosAprovados();
+        if (response.success && response.data) {
+          setUsuariosAprovados(response.data);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar usuários aprovados:', error);
+      } finally {
+        setLoadingUsuarios(false);
+      }
+    }
+  };
+
   // Carregar usuários aprovados quando o usuário estiver autenticado
   useEffect(() => {
-    const carregarUsuariosAprovados = async () => {
-      if (isAuthenticated && token) {
-        setLoadingUsuarios(true);
-        try {
-          const response = await apiClient.getUsuariosAprovados();
-          if (response.success && response.data) {
-            setUsuariosAprovados(response.data);
-          }
-        } catch (error) {
-          console.error('Erro ao carregar usuários aprovados:', error);
-        } finally {
-          setLoadingUsuarios(false);
-        }
-      }
-    };
-
     carregarUsuariosAprovados();
   }, [isAuthenticated, token]);
 
@@ -903,6 +904,7 @@ function App() {
         activeTab={activeAdminTab}
         onTabChange={setActiveAdminTab}
         onGoToSolicitacoes={handleGoToSolicitacoes}
+        onRefreshUsuarios={carregarUsuariosAprovados}
       />
         </div>
       </div>

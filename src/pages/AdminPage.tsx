@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Users, User, LogOut, Plus, Eye, Edit, Wallet, Bitcoin, Shield, TrendingUp, UserPlus } from 'lucide-react';
+import { Users, User, LogOut, Plus, Eye, Edit, Wallet, Bitcoin, Shield, TrendingUp, UserPlus, Trash2 } from 'lucide-react';
 import type { Cliente, ClientesData, Usuario, UsuarioAprovado, Carteira } from '../types';
 import { formatarMoeda, formatarPercentual, getCorRetorno } from '../utils';
 import { NovoClienteForm } from '../components/auth/NovoClienteForm';
+import { authService } from '../services/authService';
 
 interface AdminPageProps {
   currentUser: Usuario;
@@ -18,6 +19,7 @@ interface AdminPageProps {
   activeTab?: 'clientes' | 'carteiras' | 'snapshots';
   onTabChange?: (tab: 'clientes' | 'carteiras' | 'snapshots') => void;
   onGoToSolicitacoes?: () => void;
+  onRefreshUsuarios?: () => void;
 }
 
 export const AdminPage: React.FC<AdminPageProps> = ({
@@ -33,7 +35,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   onCreateClient,
   activeTab: externalActiveTab,
   onTabChange,
-  onGoToSolicitacoes
+  onGoToSolicitacoes,
+  onRefreshUsuarios
 }) => {
   const [internalActiveTab, setInternalActiveTab] = useState<'clientes' | 'carteiras' | 'snapshots'>(externalActiveTab || 'clientes');
   
@@ -46,6 +49,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   const [newWalletType, setNewWalletType] = useState<'solana' | 'ethereum'>('solana');
   const [loading, setLoading] = useState(false);
   const [showNovoCliente, setShowNovoCliente] = useState(false);
+  const [excluindoUsuario, setExcluindoUsuario] = useState<string | null>(null);
+  const [showConfirmacaoExclusao, setShowConfirmacaoExclusao] = useState<string | null>(null);
 
   const handleAddWallet = async () => {
     if (!newWalletAddress || !selectedClientForWallet) return;
@@ -83,6 +88,35 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   const handleCreateClient = async (clienteData: Omit<Cliente, 'id' | 'transacoes' | 'carteiras' | 'snapshots'>) => {
     await onCreateClient(clienteData);
     setShowNovoCliente(false);
+  };
+
+  const handleExcluirUsuario = async (usuarioId: string) => {
+    if (!window.confirm('Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.')) {
+      return;
+    }
+
+    setExcluindoUsuario(usuarioId);
+    
+    try {
+      const result = await authService.excluirUsuarioAprovado(usuarioId);
+      
+      if (result.success) {
+        // Recarregar a lista de usuários (isso será feito pelo componente pai)
+        // Por enquanto, vamos apenas mostrar uma mensagem de sucesso
+        alert(result.message || 'Usuário excluído com sucesso!');
+        
+        // Fechar modal de confirmação
+        setShowConfirmacaoExclusao(null);
+        onRefreshUsuarios?.(); // Chamar a callback para recarregar usuários
+      } else {
+        alert(result.error || 'Erro ao excluir usuário');
+      }
+    } catch (error) {
+      console.error('Erro ao excluir usuário:', error);
+      alert('Erro interno ao excluir usuário');
+    } finally {
+      setExcluindoUsuario(null);
+    }
   };
 
   return (
@@ -273,6 +307,18 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                                 title="Editar"
                               >
                                 <Edit className="w-4 h-4 text-white" />
+                              </button>
+                              <button
+                                onClick={() => handleExcluirUsuario(usuario.id)}
+                                disabled={excluindoUsuario === usuario.id}
+                                className="p-2 bg-red-600 hover:bg-red-700 disabled:bg-red-800 disabled:opacity-50 rounded-lg transition-colors"
+                                title="Excluir"
+                              >
+                                {excluindoUsuario === usuario.id ? (
+                                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                ) : (
+                                  <Trash2 className="w-4 h-4 text-white" />
+                                )}
                               </button>
                             </div>
                           </td>
