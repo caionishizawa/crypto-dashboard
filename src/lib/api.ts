@@ -1236,6 +1236,8 @@ class SupabaseApiClient {
     tokens?: any[];
   }): Promise<ApiResponse> {
     try {
+      console.log('🔗 Vinculando carteira ao usuário:', { usuarioId, dadosCarteiraInput });
+      
       if (!isSupabaseConfigured) {
         return { success: false, error: 'Supabase não configurado' }
       }
@@ -1253,9 +1255,15 @@ class SupabaseApiClient {
         return { success: false, error: 'Usuário não encontrado' }
       }
 
+      // Verificar se o usuário logado é admin
+      const { data: { user }, error: authError } = await supabase!.auth.getUser()
+      
+      if (authError || !user) {
+        return { success: false, error: 'Usuário não autenticado' }
+      }
+
       // Criar ou atualizar dados do cliente na tabela clientes
       const dadosCliente = {
-        id: usuarioId,
         nome: usuario.nome,
         tipo: 'bitcoin', // Tipo padrão para usuários com carteiras
         dataInicio: new Date().toISOString(),
@@ -1264,31 +1272,34 @@ class SupabaseApiClient {
         apyMedio: 0,
         tempoMercado: 'Recém iniciado',
         scoreRisco: 'Baixo',
+        usuarioId: user.id, // ID do admin que está criando o cliente
         updatedAt: new Date().toISOString()
       };
 
-      // Inserir ou atualizar cliente (usando upsert)
+      // Inserir cliente (não usar upsert pois pode não existir)
       const { data: clienteData, error: clienteError } = await safeQuery(async () => {
         return await supabase!
           .from('clientes')
-          .upsert([dadosCliente], { onConflict: 'id' })
+          .insert([dadosCliente])
           .select()
           .single()
       })
 
       if (clienteError) {
-        console.error('Erro ao criar/atualizar cliente:', clienteError)
+        console.error('Erro ao criar cliente:', clienteError)
         return { success: false, error: 'Erro ao vincular carteira ao usuário' }
       }
 
       // Criar carteira na tabela carteiras
       const dadosCarteira = {
-        clienteId: usuarioId,
+        clienteId: clienteData.id, // Usar o ID do cliente criado
         endereco: dadosCarteiraInput.endereco,
         tipo: dadosCarteiraInput.tipo,
         valorAtual: dadosCarteiraInput.valorAtual || 0,
         ultimaAtualizacao: new Date().toISOString()
       };
+
+      console.log('📋 Dados da carteira para inserção:', dadosCarteira);
 
       const { data: carteiraData, error: carteiraError } = await safeQuery(async () => {
         return await supabase!
