@@ -534,8 +534,8 @@ class SupabaseApiClient {
       const { data, error } = await safeQuery(async () => {
         return await supabase!
           .from('carteiras')
-          .select('*')
-          .eq('cliente_id', clienteId)
+          .select('id, endereco, tipo, nome, valorAtual, ultimaAtualizacao, clienteId, createdAt, updatedAt')
+          .eq('clienteId', clienteId)
       })
 
       if (error) {
@@ -561,7 +561,7 @@ class SupabaseApiClient {
       const { data, error } = await safeQuery(async () => {
         return await supabase!
           .from('carteiras')
-          .select('*')
+          .select('id, endereco, tipo, nome, valorAtual, ultimaAtualizacao, clienteId, createdAt, updatedAt')
           .eq('id', id)
           .single()
       })
@@ -590,7 +590,7 @@ class SupabaseApiClient {
         return await supabase!
           .from('carteiras')
           .insert([carteiraData])
-          .select()
+          .select('id, endereco, tipo, nome, valorAtual, ultimaAtualizacao, clienteId, createdAt, updatedAt')
           .single()
       })
 
@@ -619,7 +619,7 @@ class SupabaseApiClient {
           .from('carteiras')
           .update(carteiraData)
           .eq('id', id)
-          .select()
+          .select('id, endereco, tipo, nome, valorAtual, ultimaAtualizacao, clienteId, createdAt, updatedAt')
           .single()
       })
 
@@ -673,9 +673,9 @@ class SupabaseApiClient {
       const { data, error } = await safeQuery(async () => {
         return await supabase!
           .from('carteiras')
-          .update({ ultima_atualizacao: new Date().toISOString() })
+          .update({ ultimaAtualizacao: new Date().toISOString() })
           .eq('id', id)
-          .select()
+          .select('id, endereco, tipo, nome, valorAtual, ultimaAtualizacao, clienteId, createdAt, updatedAt')
           .single()
       })
 
@@ -1143,7 +1143,6 @@ class SupabaseApiClient {
         endereco: dadosCarteiraInput.endereco,
         tipo: dadosCarteiraInput.tipo,
         valorAtual: dadosCarteiraInput.valorAtual || 0,
-        tokens: dadosCarteiraInput.tokens || [],
         ultimaAtualizacao: new Date().toISOString()
       };
 
@@ -1151,13 +1150,34 @@ class SupabaseApiClient {
         return await supabase!
           .from('carteiras')
           .insert([dadosCarteira])
-          .select()
+          .select('id, endereco, tipo, nome, valorAtual, ultimaAtualizacao, clienteId, createdAt, updatedAt')
           .single()
       })
 
       if (carteiraError) {
         console.error('Erro ao criar carteira:', carteiraError)
         return { success: false, error: 'Erro ao criar carteira' }
+      }
+
+      // Criar tokens na tabela tokens se existirem
+      if (dadosCarteiraInput.tokens && dadosCarteiraInput.tokens.length > 0) {
+        const tokensData = dadosCarteiraInput.tokens.map((token: any) => ({
+          carteiraId: carteiraData.id,
+          symbol: token.symbol,
+          balance: token.balance,
+          valueUSD: token.valueUSD
+        }));
+
+        const { error: tokensError } = await safeQuery(async () => {
+          return await supabase!
+            .from('tokens')
+            .insert(tokensData)
+        });
+
+        if (tokensError) {
+          console.error('Erro ao criar tokens:', tokensError)
+          // Não retornamos erro aqui pois a carteira já foi criada
+        }
       }
 
       return { 

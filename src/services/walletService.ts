@@ -1,5 +1,6 @@
 import type { Carteira } from '../types';
 import { apiClient } from '../lib/api';
+import { supabase } from '../lib/api';
 
 class WalletService {
   
@@ -98,12 +99,12 @@ class WalletService {
 
       // Salvar no Supabase
       const carteiraData = {
-        cliente_id: clienteId,
+        clienteId: clienteId,
         endereco,
         tipo,
         nome: nome || `Carteira ${tipo}`,
-        valor_atual: dadosCarteira.valorAtual,
-        ultima_atualizacao: new Date().toISOString()
+        valorAtual: dadosCarteira.valorAtual,
+        ultimaAtualizacao: new Date().toISOString()
       };
 
       const response = await apiClient.createCarteira(carteiraData);
@@ -131,8 +132,8 @@ class WalletService {
     try {
       const response = await apiClient.updateCarteira(id, {
         nome: dados.nome,
-        valor_atual: dados.valorAtual,
-        ultima_atualizacao: new Date().toISOString()
+        valorAtual: dados.valorAtual,
+        ultimaAtualizacao: new Date().toISOString()
       });
       
       if (response.success && response.data) {
@@ -192,9 +193,18 @@ class WalletService {
   // Salvar tokens no Supabase
   private async saveTokens(carteiraId: string, tokens: any[]): Promise<void> {
     try {
-      // Implementar lógica para salvar tokens no Supabase
-      // Por enquanto, apenas log
-      console.log('Salvando tokens para carteira:', carteiraId, tokens);
+      const tokensData = tokens.map((token: any) => ({
+        carteiraId: carteiraId,
+        symbol: token.symbol,
+        balance: token.balance,
+        valueUSD: token.valueUSD
+      }));
+
+      const { error } = await supabase!.from('tokens').insert(tokensData);
+      
+      if (error) {
+        console.error('Erro ao salvar tokens:', error);
+      }
     } catch (error) {
       console.error('Erro ao salvar tokens:', error);
     }
@@ -203,9 +213,27 @@ class WalletService {
   // Atualizar tokens no Supabase
   private async updateTokens(carteiraId: string, tokens: any[]): Promise<void> {
     try {
-      // Implementar lógica para atualizar tokens no Supabase
-      // Por enquanto, apenas log
-      console.log('Atualizando tokens para carteira:', carteiraId, tokens);
+      // Primeiro, deletar tokens existentes
+      const { error: deleteError } = await supabase!.from('tokens').delete().eq('carteiraId', carteiraId);
+      
+      if (deleteError) {
+        console.error('Erro ao deletar tokens existentes:', deleteError);
+        return;
+      }
+
+      // Depois, inserir novos tokens
+      const tokensData = tokens.map((token: any) => ({
+        carteiraId: carteiraId,
+        symbol: token.symbol,
+        balance: token.balance,
+        valueUSD: token.valueUSD
+      }));
+
+      const { error: insertError } = await supabase!.from('tokens').insert(tokensData);
+      
+      if (insertError) {
+        console.error('Erro ao inserir novos tokens:', insertError);
+      }
     } catch (error) {
       console.error('Erro ao atualizar tokens:', error);
     }
@@ -218,9 +246,9 @@ class WalletService {
       endereco: dbCarteira.endereco,
       tipo: dbCarteira.tipo,
       nome: dbCarteira.nome,
-      valorAtual: dbCarteira.valor_atual,
+      valorAtual: dbCarteira.valorAtual,
       tokens: dbCarteira.tokens || [],
-      ultimaAtualizacao: dbCarteira.ultima_atualizacao
+      ultimaAtualizacao: dbCarteira.ultimaAtualizacao
     };
   }
 
