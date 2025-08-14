@@ -495,23 +495,43 @@ class SupabaseApiClient {
 
   async updateCliente(id: string, clienteData: any): Promise<ApiResponse> {
     try {
+      console.log('🔄 Atualizando cliente:', { id, clienteData });
+      
       if (!isSupabaseConfigured) {
+        console.log('❌ Supabase não configurado');
         return { 
           success: false, 
           error: 'Supabase não configurado. Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Netlify Dashboard.' 
         }
       }
 
+      // Filtrar apenas campos válidos da tabela clientes
+      const camposValidos = [
+        'nome', 'tipo', 'dataInicio', 'investimentoInicial', 'btcTotal', 
+        'precoMedio', 'valorAtualBTC', 'valorCarteiraDeFi', 'totalDepositado', 
+        'valorAtualUSD', 'rendimentoTotal', 'apyMedio', 'tempoMercado', 'scoreRisco'
+      ];
+      
+      const dadosFiltrados = Object.keys(clienteData)
+        .filter(key => camposValidos.includes(key))
+        .reduce((obj, key) => {
+          obj[key] = clienteData[key];
+          return obj;
+        }, {} as any);
+
+      console.log('📋 Dados filtrados para update:', dadosFiltrados);
+
       const { data, error } = await safeQuery(async () => {
         return await supabase!
           .from('clientes')
-          .update(clienteData)
+          .update(dadosFiltrados)
           .eq('id', id)
           .select()
           .single()
       })
 
       if (error) {
+        console.log('❌ Erro no update:', error);
         return { success: false, error: error.message }
       }
 

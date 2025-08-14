@@ -49,7 +49,6 @@ export const GerenciarClienteModal: React.FC<GerenciarClienteModalProps> = ({
     try {
       await onUpdateCliente(selectedUsuario.id, {
         nome,
-        email,
         tipo,
         investimentoInicial: parseFloat(investimentoInicial),
         dataInicio,
@@ -186,14 +185,15 @@ export const GerenciarClienteModal: React.FC<GerenciarClienteModalProps> = ({
 
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Email *
+                      Email
                     </label>
                     <input
                       type="email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white"
+                      disabled
+                      className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-400 cursor-not-allowed"
                     />
+                    <p className="text-xs text-gray-500 mt-1">Email não pode ser alterado</p>
                   </div>
                 </div>
 
