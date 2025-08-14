@@ -407,7 +407,10 @@ class SupabaseApiClient {
 
   async createCliente(clienteData: any): Promise<ApiResponse> {
     try {
+      console.log('🚀 Criando cliente com dados:', clienteData);
+      
       if (!isSupabaseConfigured) {
+        console.log('❌ Supabase não configurado');
         return { 
           success: false, 
           error: 'Supabase não configurado. Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Netlify Dashboard.' 
@@ -440,6 +443,8 @@ class SupabaseApiClient {
         // scoreRisco: undefined, // Padrão: ''
         // createdAt: undefined // Padrão: CURRENT_TIMESTAMP
       }
+
+      console.log('📋 Dados completos para inserção:', clienteCompleto);
 
       const { data, error } = await safeQuery(async () => {
         return await supabase!

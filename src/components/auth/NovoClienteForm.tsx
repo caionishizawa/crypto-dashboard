@@ -60,7 +60,18 @@ export const NovoClienteForm: React.FC<NovoClienteFormProps> = ({ onClose, onSub
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('🔍 Validando formulário:', {
+      nome,
+      investimentoInicial,
+      dataInicio,
+      criptoPrincipal,
+      quantidadeTokens,
+      scoreRisco,
+      tipo
+    });
+    
     if (!nome || !investimentoInicial || !dataInicio || !criptoPrincipal || !quantidadeTokens || !scoreRisco) {
+      console.log('❌ Validação falhou - campos obrigatórios não preenchidos');
       alert('Por favor, preencha todos os campos obrigatórios');
       return;
     }
@@ -83,6 +94,8 @@ export const NovoClienteForm: React.FC<NovoClienteFormProps> = ({ onClose, onSub
       valorAtualUSD: tipo === 'conservador' ? parseFloat(investimentoInicial) : undefined,
       rendimentoTotal: tipo === 'conservador' ? 0 : undefined,
     };
+
+    console.log('📊 Dados do cliente preparados:', clienteData);
 
     try {
       await onSubmit(clienteData);
