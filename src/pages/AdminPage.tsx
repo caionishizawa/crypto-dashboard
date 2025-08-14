@@ -283,33 +283,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 </table>
               </div>
             )}
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-400 text-sm">Status</span>
-                          <span className="font-semibold text-green-400">Aprovado</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-400 text-sm">ID</span>
-                          <span className="font-semibold text-purple-400 text-xs">{usuario.id.substring(0, 8)}...</span>
-                        </div>
-                      </div>
-
-                      <div className="flex space-x-2">
-                        <button 
-                          onClick={() => onViewUser(usuario)}
-                          className="flex-1 bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
-                        >
-                          <Eye className="w-4 h-4" />
-                          <span>Visualizar</span>
-                        </button>
-                        <button className="bg-gray-800 hover:bg-gray-700 px-3 py-2 rounded-lg transition-colors">
-                          <Edit className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
           </div>
         )}
 
@@ -398,49 +371,19 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                     {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                   </div>
                 </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {Object.values(clients).map((client: any) => {
-                    const isTypeBitcoin = client.tipo === 'bitcoin';
-                    const valorAtual = isTypeBitcoin 
-                      ? client.valorCarteiraDeFi || 0
-                      : client.valorAtualUSD || 0;
-                    const valorInicial = isTypeBitcoin 
-                      ? client.investimentoInicial * (client.transacoes?.length || 0)
-                      : client.totalDepositado || 0;
-                    const retorno = valorInicial > 0 ? ((valorAtual - valorInicial) / valorInicial) * 100 : 0;
-
-                    return (
-                      <div key={client.id} className="bg-gray-800 rounded-lg p-4">
-                        <div className="flex items-center space-x-2 mb-3">
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                            isTypeBitcoin ? 'bg-orange-500' : 'bg-blue-500'
-                          }`}>
-                            {isTypeBitcoin ? <Bitcoin className="w-3 h-3" /> : <Shield className="w-3 h-3" />}
-                          </div>
-                          <span className="font-medium text-sm">{client.nome}</span>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-xs">
-                            <span className="text-gray-400">Valor</span>
-                            <span className="font-semibold">{formatarMoeda(valorAtual)}</span>
-                          </div>
-                          <div className="flex justify-between text-xs">
-                            <span className="text-gray-400">Retorno</span>
-                            <span className={`font-semibold ${getCorRetorno(retorno)}`}>
-                              {formatarPercentual(retorno)}
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-xs">
-                            <span className="text-gray-400">Carteiras</span>
-                            <span className="font-semibold text-purple-400">
-                              {client.carteiras?.length || 0}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-400">15</div>
+                    <div className="text-sm text-gray-400">Carteiras Ativas</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-400">$125,430</div>
+                    <div className="text-sm text-gray-400">Valor Total</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-purple-400">+8.5%</div>
+                    <div className="text-sm text-gray-400">Crescimento</div>
+                  </div>
                 </div>
               </div>
 
@@ -448,169 +391,34 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-3">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
                     <h3 className="text-lg font-semibold">Snapshot - {new Date(Date.now() - 86400000).toLocaleDateString('pt-BR')}</h3>
-                    <span className="bg-blue-500/20 text-blue-400 px-2 py-1 rounded text-xs">Ontem</span>
+                    <span className="bg-gray-500/20 text-gray-400 px-2 py-1 rounded text-xs">Ontem</span>
                   </div>
-                  <div className="text-sm text-gray-400">23:59</div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {Object.values(clients).map((client: any) => {
-                    const isTypeBitcoin = client.tipo === 'bitcoin';
-                    const valorOntem = isTypeBitcoin 
-                      ? (client.valorCarteiraDeFi || 0) * 0.98 // Simula valor de ontem
-                      : (client.valorAtualUSD || 0) * 0.995;
-                    const valorInicial = isTypeBitcoin 
-                      ? client.investimentoInicial * (client.transacoes?.length || 0)
-                      : client.totalDepositado || 0;
-                    const retornoOntem = valorInicial > 0 ? ((valorOntem - valorInicial) / valorInicial) * 100 : 0;
-
-                    return (
-                      <div key={client.id} className="bg-gray-800 rounded-lg p-4">
-                        <div className="flex items-center space-x-2 mb-3">
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                            isTypeBitcoin ? 'bg-orange-500' : 'bg-blue-500'
-                          }`}>
-                            {isTypeBitcoin ? <Bitcoin className="w-3 h-3" /> : <Shield className="w-3 h-3" />}
-                          </div>
-                          <span className="font-medium text-sm">{client.nome}</span>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-xs">
-                            <span className="text-gray-400">Valor</span>
-                            <span className="font-semibold">{formatarMoeda(valorOntem)}</span>
-                          </div>
-                          <div className="flex justify-between text-xs">
-                            <span className="text-gray-400">Retorno</span>
-                            <span className={`font-semibold ${getCorRetorno(retornoOntem)}`}>
-                              {formatarPercentual(retornoOntem)}
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-xs">
-                            <span className="text-gray-400">Carteiras</span>
-                            <span className="font-semibold text-purple-400">
-                              {client.carteiras?.length || 0}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Snapshot Anteontem */}
-              <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                    <h3 className="text-lg font-semibold">Snapshot - {new Date(Date.now() - 172800000).toLocaleDateString('pt-BR')}</h3>
-                    <span className="bg-purple-500/20 text-purple-400 px-2 py-1 rounded text-xs">2 dias atrás</span>
+                  <div className="text-sm text-gray-400">
+                    {new Date(Date.now() - 86400000).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                   </div>
-                  <div className="text-sm text-gray-400">23:59</div>
                 </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {Object.values(clients).map((client: any) => {
-                    const isTypeBitcoin = client.tipo === 'bitcoin';
-                    const valorAnteontem = isTypeBitcoin 
-                      ? (client.valorCarteiraDeFi || 0) * 0.96 // Simula valor de anteontem
-                      : (client.valorAtualUSD || 0) * 0.99;
-                    const valorInicial = isTypeBitcoin 
-                      ? client.investimentoInicial * (client.transacoes?.length || 0)
-                      : client.totalDepositado || 0;
-                    const retornoAnteontem = valorInicial > 0 ? ((valorAnteontem - valorInicial) / valorInicial) * 100 : 0;
-
-                    return (
-                      <div key={client.id} className="bg-gray-800 rounded-lg p-4">
-                        <div className="flex items-center space-x-2 mb-3">
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                            isTypeBitcoin ? 'bg-orange-500' : 'bg-blue-500'
-                          }`}>
-                            {isTypeBitcoin ? <Bitcoin className="w-3 h-3" /> : <Shield className="w-3 h-3" />}
-                          </div>
-                          <span className="font-medium text-sm">{client.nome}</span>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-xs">
-                            <span className="text-gray-400">Valor</span>
-                            <span className="font-semibold">{formatarMoeda(valorAnteontem)}</span>
-                          </div>
-                          <div className="flex justify-between text-xs">
-                            <span className="text-gray-400">Retorno</span>
-                            <span className={`font-semibold ${getCorRetorno(retornoAnteontem)}`}>
-                              {formatarPercentual(retornoAnteontem)}
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-xs">
-                            <span className="text-gray-400">Carteiras</span>
-                            <span className="font-semibold text-purple-400">
-                              {client.carteiras?.length || 0}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Resumo Semanal */}
-              <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-                <h3 className="text-lg font-semibold mb-4 flex items-center space-x-2">
-                  <TrendingUp className="w-5 h-5 text-green-400" />
-                  <span>Resumo dos Últimos 7 Dias</span>
-                </h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {Object.values(clients).map((client: any) => {
-                    const isTypeBitcoin = client.tipo === 'bitcoin';
-                    const valorAtual = isTypeBitcoin 
-                      ? client.valorCarteiraDeFi || 0
-                      : client.valorAtualUSD || 0;
-                    const valorSemanaPassada = valorAtual * (isTypeBitcoin ? 0.92 : 0.985);
-                    const variacao = ((valorAtual - valorSemanaPassada) / valorSemanaPassada) * 100;
-
-                    return (
-                      <div key={client.id} className="bg-gray-800 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center space-x-3">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                              isTypeBitcoin ? 'bg-orange-500' : 'bg-blue-500'
-                            }`}>
-                              {isTypeBitcoin ? <Bitcoin className="w-4 h-4" /> : <Shield className="w-4 h-4" />}
-                            </div>
-                            <span className="font-semibold">{client.nome}</span>
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span className="text-gray-400 text-sm">Valor Atual</span>
-                            <span className="font-semibold">{formatarMoeda(valorAtual)}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-400 text-sm">Há 7 dias</span>
-                            <span className="font-semibold">{formatarMoeda(valorSemanaPassada)}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-400 text-sm">Variação 7d</span>
-                            <span className={`font-semibold ${variacao >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                              {variacao >= 0 ? '+' : ''}{formatarPercentual(variacao)}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-400">14</div>
+                    <div className="text-sm text-gray-400">Carteiras Ativas</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-400">$115,680</div>
+                    <div className="text-sm text-gray-400">Valor Total</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-purple-400">+5.2%</div>
+                    <div className="text-sm text-gray-400">Crescimento</div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Modal Adicionar Carteira */}
+        {/* Modal para adicionar carteira */}
         {showAddWallet && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-gray-900 rounded-xl p-6 w-full max-w-md border border-gray-800">
@@ -626,77 +434,57 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   >
                     <option value="">Selecione um usuário</option>
                     {usuariosAprovados.map((usuario) => (
-                      <option key={usuario.id} value={usuario.id}>
-                        {usuario.nome} ({usuario.email})
-                      </option>
+                      <option key={usuario.id} value={usuario.id}>{usuario.nome}</option>
                     ))}
                   </select>
-                  {usuariosAprovados.length === 0 && (
-                    <p className="text-sm text-gray-400 mt-1">
-                      Nenhum usuário aprovado encontrado. Aprove solicitações na aba "Solicitações".
-                    </p>
-                  )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Tipo de Blockchain</label>
-                  <div className="flex space-x-4">
-                    <button
-                      onClick={() => setNewWalletType('solana')}
-                      className={`flex-1 py-2 px-4 rounded-lg border ${newWalletType === 'solana' ? 'bg-purple-600 border-purple-600' : 'bg-gray-800 border-gray-700'}`}
-                    >
-                      Solana
-                    </button>
-                    <button
-                      onClick={() => setNewWalletType('ethereum')}
-                      className={`flex-1 py-2 px-4 rounded-lg border ${newWalletType === 'ethereum' ? 'bg-blue-600 border-blue-600' : 'bg-gray-800 border-gray-700'}`}
-                    >
-                      Ethereum
-                    </button>
-                  </div>
+                  <label className="block text-sm font-medium mb-2">Tipo de Carteira</label>
+                  <select 
+                    value={newWalletType}
+                    onChange={(e) => setNewWalletType(e.target.value as 'solana' | 'ethereum')}
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2"
+                  >
+                    <option value="solana">Solana</option>
+                    <option value="ethereum">Ethereum</option>
+                  </select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium mb-2">Endereço da Carteira</label>
-                  <input
+                  <input 
                     type="text"
                     value={newWalletAddress}
                     onChange={(e) => setNewWalletAddress(e.target.value)}
-                    placeholder={newWalletType === 'solana' ? 'Ex: 7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU' : 'Ex: 0x742d35Cc6634C0532925a3b8D93B7c6dA3Bb02'}
+                    placeholder="Cole o endereço da carteira aqui"
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2"
                   />
                 </div>
-              </div>
 
-              <div className="flex space-x-4 mt-6">
-                <button
-                  onClick={() => {
-                    setShowAddWallet(false);
-                    setNewWalletAddress('');
-                    setSelectedClientForWallet('');
-                  }}
-                  className="flex-1 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleAddWallet}
-                  disabled={loading || !newWalletAddress || !selectedClientForWallet}
-                  className="flex-1 bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
-                >
-                  {loading ? 'Vinculando...' : 'Vincular Carteira'}
-                </button>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setShowAddWallet(false)}
+                    className="flex-1 bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleAddWallet}
+                    disabled={loading || !newWalletAddress || !selectedClientForWallet}
+                    className="flex-1 bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {loading ? 'Vinculando...' : 'Vincular Carteira'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Modal Novo Cliente */}
+        {/* Modal para novo cliente */}
         {showNovoCliente && (
-          <NovoClienteForm 
-            onClose={() => setShowNovoCliente(false)}
-            onSubmit={handleCreateClient}
-          />
+          <NovoClienteForm onSubmit={handleCreateClient} onClose={() => setShowNovoCliente(false)} />
         )}
       </div>
     </div>
