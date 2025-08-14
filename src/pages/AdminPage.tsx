@@ -129,22 +129,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             <span className="text-sm text-green-400 font-medium">Modo Online</span>
           </div>
           
-          {/* Ícones decorativos */}
-          <div className="flex space-x-3 mb-8">
-            <div className="w-8 h-8 bg-gray-700 rounded-lg flex items-center justify-center">
-              <span className="text-xs">🎮</span>
-            </div>
-            <div className="w-8 h-8 bg-gray-700 rounded-lg flex items-center justify-center">
-              <span className="text-xs">📱</span>
-            </div>
-            <div className="w-8 h-8 bg-gray-700 rounded-lg flex items-center justify-center">
-              <span className="text-xs">💻</span>
-            </div>
-            <div className="w-8 h-8 bg-gray-700 rounded-lg flex items-center justify-center">
-              <span className="text-xs">🎯</span>
-            </div>
-          </div>
-          
           <h1 className="text-xl font-bold mb-6">Painel Administrativo</h1>
           
           {/* Navegação */}
