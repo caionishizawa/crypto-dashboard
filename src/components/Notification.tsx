@@ -20,28 +20,43 @@ const Notification: React.FC<NotificationProps> = ({
 }) => {
   const [isAnimating, setIsAnimating] = useState(false);
 
+  // Auto-close timer
   useEffect(() => {
-    if (isVisible && message) {
-      setIsAnimating(true);
+    let timer: NodeJS.Timeout;
+    
+    if (isVisible && message && autoClose) {
+      console.log('🔔 Configurando auto-close para notificação:', message);
       
-      // Sempre configurar auto-close, independente da prop
-      const timer = setTimeout(() => {
-        setIsAnimating(false);
-        setTimeout(() => {
-          onClose();
-        }, 300); // Aguarda a animação terminar
+      timer = setTimeout(() => {
+        console.log('🔔 Auto-close executando para:', message);
+        handleClose();
       }, duration);
-      
-      return () => clearTimeout(timer);
     }
-  }, [isVisible, message, duration, onClose]);
 
-  // Resetar animação quando a notificação mudar
+    return () => {
+      if (timer) {
+        console.log('🔔 Limpando timer de auto-close');
+        clearTimeout(timer);
+      }
+    };
+  }, [isVisible, message, duration, autoClose]);
+
+  // Handle close with animation
+  const handleClose = () => {
+    console.log('🔔 Fechando notificação:', message);
+    setIsAnimating(false);
+    setTimeout(() => {
+      onClose();
+    }, 300);
+  };
+
+  // Show notification when visible
   useEffect(() => {
     if (isVisible) {
+      console.log('🔔 Mostrando notificação:', message);
       setIsAnimating(true);
     }
-  }, [isVisible]);
+  }, [isVisible, message]);
 
   if (!isVisible || !message) return null;
 
@@ -89,12 +104,7 @@ const Notification: React.FC<NotificationProps> = ({
           </div>
           <div className="flex-shrink-0 ml-3">
             <button
-              onClick={() => {
-                setIsAnimating(false);
-                setTimeout(() => {
-                  onClose();
-                }, 300);
-              }}
+              onClick={handleClose}
               className="text-gray-400 hover:text-gray-200 transition-colors p-1 rounded-full hover:bg-gray-800"
             >
               <X className="w-4 h-4" />
