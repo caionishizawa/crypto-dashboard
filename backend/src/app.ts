@@ -8,6 +8,7 @@ import authRoutes from './routes/auth';
 import clienteRoutes from './routes/clientes';
 import carteiraRoutes from './routes/carteiras';
 import dashboardRoutes from './routes/dashboard';
+import snapshotRoutes from './routes/snapshots';
 
 // Carregar variáveis de ambiente
 config();
@@ -45,6 +46,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/clientes', clienteRoutes);
 app.use('/api/carteiras', carteiraRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/snapshots', snapshotRoutes);
 
 // Rota de saúde
 app.get('/health', async (req, res) => {

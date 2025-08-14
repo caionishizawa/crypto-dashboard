@@ -1,0 +1,14 @@
+# Cron job para snapshots diários das carteiras
+# Executar todos os dias às 00:00 (meia-noite)
+
+# Para desenvolvimento local (teste)
+# 0 0 * * * cd /path/to/backend && npm run snapshot:daily >> logs/snapshot.log 2>&1
+
+# Para produção (ajustar path conforme necessário)
+# 0 0 * * * cd /home/user/crypto-dashboard/backend && npm run snapshot:daily >> logs/snapshot.log 2>&1
+
+# Para executar manualmente:
+# npm run snapshot:manual
+
+# Para verificar logs:
+# tail -f logs/snapshot.log

@@ -13,6 +13,8 @@
     "db:migrate": "npx prisma migrate dev",
     "db:studio": "npx prisma studio",
     "db:seed": "ts-node src/utils/seed.ts",
+    "snapshot:daily": "node scripts/daily-snapshot.js",
+    "snapshot:manual": "ts-node src/utils/snapshotService.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
