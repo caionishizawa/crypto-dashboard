@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { UserPlus, Mail, Lock, User, Eye, EyeOff, Sparkles, Shield } from 'lucide-react';
 import type { RegisterData } from '../../types/usuario';
+import Notification from '../Notification';
 
 // Função para validar email APENAS com provedores conhecidos e confiáveis
 const validarEmailAvancado = (email: string): boolean => {
@@ -61,6 +62,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
   const [redirectCountdown, setRedirectCountdown] = useState<number>(0);
+  const [showNotification, setShowNotification] = useState<boolean>(false);
 
   // Efeito SIMPLIFICADO para countdown visual apenas
   useEffect(() => {
@@ -108,11 +110,12 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
     
     if (result.success) {
       console.log('🎯 FRONTEND - Definindo mensagem de sucesso...');
-      // Sempre mostrar sucesso e redirecionar para login
-      setSuccess('✅ Conta criada com sucesso!');
-      setRedirectCountdown(8); // Inicia countdown de 8 segundos
-      console.log('🎯 FRONTEND - Mensagem definida! Success:', '✅ Conta criada com sucesso!');
-      console.log('🎯 FRONTEND - Countdown definido:', 8);
+      // Mostrar notificação de sucesso
+      setSuccess('🎉 Conta criada com sucesso! Redirecionando para login...');
+      setShowNotification(true);
+      setRedirectCountdown(5); // Reduzido para 5 segundos
+      console.log('🎯 FRONTEND - Mensagem definida! Success:', '🎉 Conta criada com sucesso! Redirecionando para login...');
+      console.log('🎯 FRONTEND - Countdown definido:', 5);
       
       // Limpar formulário
       setFormData({
@@ -122,11 +125,11 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
         confirmarSenha: ''
       });
       
-      // Redirecionamento direto após 8 segundos (ainda mais tempo para ver)
+      // Redirecionamento após 5 segundos
       setTimeout(() => {
         console.log('🎯 FRONTEND - Executando redirecionamento...');
         onSwitchToLogin();
-      }, 8000);
+      }, 5000);
       
     } else {
       console.log('🎯 FRONTEND - Definindo erro:', result.error);
@@ -137,6 +140,16 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
 
   return (
     <div className="w-full max-w-md relative">
+      {/* Notificação de sucesso */}
+      <Notification
+        message="🎉 Conta criada com sucesso! Redirecionando para login..."
+        type="success"
+        isVisible={showNotification}
+        onClose={() => setShowNotification(false)}
+        autoClose={true}
+        duration={5000}
+      />
+
       {/* Elementos decorativos de fundo */}
       <div className="absolute -top-10 -left-10 w-20 h-20 bg-gradient-to-br from-blue-400/20 to-purple-500/20 rounded-full blur-xl animate-pulse"></div>
       <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-gradient-to-tl from-green-500/20 to-blue-400/20 rounded-full blur-xl animate-pulse delay-1000"></div>
@@ -250,20 +263,17 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
             </div>
           )}
 
-          {success && (
-            <div className="bg-green-500/20 border-2 border-green-400 rounded-xl p-6 text-green-300 text-lg flex items-center mb-4 shadow-lg animate-pulse">
-              <div className="w-4 h-4 bg-green-400 rounded-full mr-4 animate-bounce"></div>
-              <div className="flex-1">
-                {redirectCountdown > 0 ? (
-                  <div>
-                    <div className="text-xl font-bold">🎉 CONTA CRIADA COM SUCESSO! 🎉</div>
-                    <div className="text-green-200 mt-2 text-base font-semibold">
-                      ⏰ Redirecionando para login em {redirectCountdown} segundo{redirectCountdown !== 1 ? 's' : ''}...
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-xl font-bold">{success}</div>
-                )}
+          {success && redirectCountdown > 0 && (
+            <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-2 border-green-400/50 rounded-xl p-6 text-green-300 text-center shadow-lg animate-pulse">
+              <div className="flex items-center justify-center mb-3">
+                <div className="w-6 h-6 bg-green-400 rounded-full mr-3 animate-bounce"></div>
+                <div className="text-2xl font-bold">🎉 CONTA CRIADA COM SUCESSO! 🎉</div>
+              </div>
+              <div className="text-green-200 text-lg font-semibold">
+                ⏰ Redirecionando para login em {redirectCountdown} segundo{redirectCountdown !== 1 ? 's' : ''}...
+              </div>
+              <div className="mt-3 text-green-300 text-sm">
+                Você será redirecionado automaticamente para fazer login
               </div>
             </div>
           )}
