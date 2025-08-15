@@ -72,6 +72,8 @@ class SupabaseApiClient {
   
   async login(email: string, senha: string): Promise<ApiResponse> {
     try {
+      console.log('🔐 Iniciando login para:', email);
+      
       if (!isSupabaseConfigured) {
         return { 
           success: false, 
@@ -80,6 +82,7 @@ class SupabaseApiClient {
       }
 
       // Primeiro, verificar se o usuário já existe na tabela usuarios (usuários antigos)
+      console.log('🔍 Verificando usuário existente na tabela usuarios...');
       const { data: existingUser, error: existingUserError } = await safeQuery(async () => {
         return await supabase!
           .from('usuarios')
@@ -88,14 +91,20 @@ class SupabaseApiClient {
           .single()
       })
 
+      console.log('📋 Resultado busca usuário existente:', { existingUser, existingUserError });
+
       if (existingUser && !existingUserError) {
+        console.log('✅ Usuário encontrado na tabela usuarios, tentando login Supabase Auth...');
         // Usuário já existe na tabela usuarios, tentar login normal no Supabase Auth
         const { data, error } = await supabase!.auth.signInWithPassword({
           email,
           password: senha
         })
 
+        console.log('🔐 Resultado login Supabase Auth:', { data, error });
+
         if (!error && data.user) {
+          console.log('✅ Login Supabase Auth bem-sucedido para usuário existente');
           return { 
             success: true, 
             user: {
@@ -107,7 +116,11 @@ class SupabaseApiClient {
             },
             message: 'Login realizado com sucesso (usuário existente)'
           }
+        } else {
+          console.log('❌ Login Supabase Auth falhou para usuário existente:', error);
         }
+      } else {
+        console.log('❌ Usuário não encontrado na tabela usuarios ou erro:', existingUserError);
       }
 
       // Se não encontrou usuário existente, verificar se existe uma solicitação aprovada
