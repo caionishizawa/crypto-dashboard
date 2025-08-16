@@ -86,7 +86,7 @@ class SupabaseApiClient {
       const { data: existingUser, error: existingUserError } = await safeQuery(async () => {
         return await supabase!
           .from('usuarios')
-          .select('id, nome, email, tipo, dataRegistro')
+          .select('id, nome, email, tipo, dataRegistro, senha')
           .eq('email', email)
           .single()
       })
@@ -118,6 +118,55 @@ class SupabaseApiClient {
           }
         } else {
           console.log('❌ Login Supabase Auth falhou para usuário existente:', error);
+          
+          // Se o login Supabase Auth falhou, tentar verificar se o usuário tem senha na tabela usuarios
+          if (existingUser.senha) {
+            console.log('🔍 Tentando login alternativo com senha da tabela usuarios...');
+            const senhaValida = await verifyPassword(senha, existingUser.senha);
+            
+            if (senhaValida) {
+              console.log('✅ Senha válida na tabela usuarios, login alternativo bem-sucedido');
+              return { 
+                success: true, 
+                user: {
+                  id: existingUser.id,
+                  nome: existingUser.nome,
+                  email: existingUser.email,
+                  tipo: existingUser.tipo,
+                  dataRegistro: existingUser.dataRegistro
+                },
+                message: 'Login realizado com sucesso (usuário antigo - login alternativo)'
+              }
+            } else {
+              console.log('❌ Senha inválida na tabela usuarios');
+            }
+          } else {
+            console.log('❌ Usuário não tem senha na tabela usuarios');
+            
+            // Se o usuário existe na tabela usuarios mas não tem senha, tentar criar no Supabase Auth
+            console.log('🔧 Tentando criar usuário no Supabase Auth...');
+            const { data: signUpData, error: signUpError } = await supabase!.auth.signUp({
+              email,
+              password: senha
+            });
+            
+            if (!signUpError && signUpData.user) {
+              console.log('✅ Usuário criado no Supabase Auth com sucesso');
+              return { 
+                success: true, 
+                user: {
+                  id: existingUser.id,
+                  nome: existingUser.nome,
+                  email: existingUser.email,
+                  tipo: existingUser.tipo,
+                  dataRegistro: existingUser.dataRegistro
+                },
+                message: 'Login realizado com sucesso (usuário migrado para Supabase Auth)'
+              }
+            } else {
+              console.log('❌ Erro ao criar usuário no Supabase Auth:', signUpError);
+            }
+          }
         }
       } else {
         console.log('❌ Usuário não encontrado na tabela usuarios ou erro:', existingUserError);
