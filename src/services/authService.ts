@@ -133,6 +133,21 @@ class AuthService {
       return { success: false, error: error.message || 'Erro interno do servidor' };
     }
   }
+
+  // Transformar usuário em admin
+  async transformarUsuarioEmAdmin(usuarioId: string): Promise<{ success: boolean; error?: string; message?: string }> {
+    try {
+      const response = await apiClient.transformarUsuarioEmAdmin(usuarioId);
+      return { 
+        success: response.success, 
+        error: response.error,
+        message: response.message
+      };
+    } catch (error: any) {
+      console.error('Erro ao transformar usuário em admin:', error);
+      return { success: false, error: error.message || 'Erro interno do servidor' };
+    }
+  }
 }
 
 // Exportar instância única

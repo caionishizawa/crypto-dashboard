@@ -139,84 +139,7 @@ class SupabaseApiClient {
               }
             } else {
               console.log('❌ Senha inválida na tabela usuarios');
-            }
-          } else {
-            console.log('❌ Usuário não tem senha na tabela usuarios');
-            
-            // Se o usuário existe na tabela usuarios mas não tem senha, tentar criar no Supabase Auth
-            console.log('🔧 Tentando criar usuário no Supabase Auth...');
-            const { data: signUpData, error: signUpError } = await supabase!.auth.signUp({
-              email,
-              password: senha
-            });
-            
-            if (!signUpError && signUpData.user) {
-              console.log('✅ Usuário criado no Supabase Auth com sucesso');
-              return { 
-                success: true, 
-                user: {
-                  id: existingUser.id,
-                  nome: existingUser.nome,
-                  email: existingUser.email,
-                  tipo: existingUser.tipo,
-                  dataRegistro: existingUser.dataRegistro
-                },
-                message: 'Login realizado com sucesso (usuário migrado para Supabase Auth)'
-              }
-            } else {
-              console.log('❌ Erro ao criar usuário no Supabase Auth:', signUpError);
-              
-              // Se o erro for "user_already_exists", tentar reset de senha
-              if (signUpError.message === 'User already registered') {
-                console.log('🔧 Usuário já existe no Supabase Auth, tentando reset de senha...');
-                
-                // Primeiro, tentar fazer login com a senha atual
-                const { data: resetData, error: resetError } = await supabase!.auth.signInWithPassword({
-                  email,
-                  password: senha
-                });
-                
-                if (!resetError && resetData.user) {
-                  console.log('✅ Login bem-sucedido após verificação');
-                  return { 
-                    success: true, 
-                    user: {
-                      id: existingUser.id,
-                      nome: existingUser.nome,
-                      email: existingUser.email,
-                      tipo: existingUser.tipo,
-                      dataRegistro: existingUser.dataRegistro
-                    },
-                    message: 'Login realizado com sucesso'
-                  }
-                                 } else {
-                   console.log('❌ Reset de senha falhou:', resetError);
-                   
-                   // Se ainda falhar, tentar reset de senha via email
-                   console.log('📧 Tentando enviar email de reset de senha...');
-                   const { error: resetEmailError } = await supabase!.auth.resetPasswordForEmail(email, {
-                     redirectTo: window.location.origin + '/reset-password'
-                   });
-                   
-                   if (!resetEmailError) {
-                     console.log('✅ Email de reset enviado com sucesso');
-                     return { 
-                       success: false, 
-                       message: 'Usuário existe mas senha perdida. Email de reset enviado para ' + email + '. Verifique sua caixa de entrada e spam.'
-                     }
-                   } else {
-                     console.log('❌ Erro ao enviar email de reset:', resetEmailError);
-                     
-                     // Se não conseguir enviar email, retornar erro específico
-                     return {
-                       success: false,
-                       message: 'Usuário existe mas senha perdida. Entre em contato com o administrador para redefinir sua senha.'
-                     }
-                   }
-                 }
-              }
-            }
-          }
+  
         }
       } else {
         console.log('❌ Usuário não encontrado na tabela usuarios ou erro:', existingUserError);
@@ -1298,6 +1221,84 @@ class SupabaseApiClient {
       }
     } catch (error: any) {
       console.error('Erro ao excluir usuário aprovado:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  async transformarUsuarioEmAdmin(usuarioId: string): Promise<ApiResponse> {
+    try {
+      if (!isSupabaseConfigured) {
+        return { success: false, error: 'Supabase não configurado' }
+      }
+
+      // Verificar se o usuário está autenticado
+      const { data: { user }, error: authError } = await supabase!.auth.getUser()
+      
+      if (authError || !user) {
+        return { 
+          success: false, 
+          error: 'Usuário não autenticado. Faça login para transformar usuários em admins.' 
+        }
+      }
+
+      // Verificar se o usuário atual é admin
+      const { data: currentUser, error: currentUserError } = await safeQuery(async () => {
+        return await supabase!
+          .from('usuarios')
+          .select('id, tipo')
+          .eq('id', user.id)
+          .single()
+      })
+
+      if (currentUserError || !currentUser) {
+        return { success: false, error: 'Erro ao verificar permissões do usuário atual' }
+      }
+
+      if (currentUser.tipo !== 'admin') {
+        return { success: false, error: 'Apenas administradores podem transformar usuários em admins' }
+      }
+
+      // Verificar se não está tentando transformar a si mesmo
+      if (currentUser.id === usuarioId) {
+        return { success: false, error: 'Você já é um administrador' }
+      }
+
+      // Buscar dados do usuário a ser transformado
+      const { data: targetUser, error: targetUserError } = await safeQuery(async () => {
+        return await supabase!
+          .from('usuarios')
+          .select('id, nome, email, tipo')
+          .eq('id', usuarioId)
+          .single()
+      })
+
+      if (targetUserError || !targetUser) {
+        return { success: false, error: 'Usuário não encontrado' }
+      }
+
+      if (targetUser.tipo === 'admin') {
+        return { success: false, error: 'Este usuário já é um administrador' }
+      }
+
+      // Atualizar o tipo do usuário para admin
+      const { error: updateError } = await safeQuery(async () => {
+        return await supabase!
+          .from('usuarios')
+          .update({ tipo: 'admin' })
+          .eq('id', usuarioId)
+      })
+
+      if (updateError) {
+        console.error('Erro ao transformar usuário em admin:', updateError)
+        return { success: false, error: 'Erro ao atualizar permissões do usuário' }
+      }
+
+      return { 
+        success: true, 
+        message: `${targetUser.nome} foi transformado em administrador com sucesso!` 
+      }
+    } catch (error: any) {
+      console.error('Erro ao transformar usuário em admin:', error)
       return { success: false, error: error.message }
     }
   }

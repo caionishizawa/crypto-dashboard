@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, User, LogOut, Plus, Eye, Edit, Wallet, Bitcoin, Shield, TrendingUp, UserPlus, Trash2, Settings } from 'lucide-react';
+import { Users, User, LogOut, Plus, Eye, Edit, Wallet, Bitcoin, Shield, TrendingUp, UserPlus, Trash2, Settings, Crown } from 'lucide-react';
 import type { Cliente, ClientesData, Usuario, UsuarioAprovado, Carteira } from '../types';
 import { formatarMoeda, formatarPercentual, getCorRetorno } from '../utils';
 import { NovoClienteForm } from '../components/auth/NovoClienteForm';
@@ -55,6 +55,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   const [showGerenciarCliente, setShowGerenciarCliente] = useState(false);
   const [excluindoUsuario, setExcluindoUsuario] = useState<string | null>(null);
   const [showConfirmacaoExclusao, setShowConfirmacaoExclusao] = useState<string | null>(null);
+  const [transformandoUsuario, setTransformandoUsuario] = useState<string | null>(null);
 
   const handleAddWallet = async () => {
     if (!newWalletAddress || !selectedClientForWallet) return;
@@ -120,6 +121,30 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       alert('Erro interno ao excluir usuário');
     } finally {
       setExcluindoUsuario(null);
+    }
+  };
+
+  const handleTransformarEmAdmin = async (usuarioId: string) => {
+    if (!window.confirm('Tem certeza que deseja transformar este usuário em administrador? Esta ação dará acesso total ao sistema.')) {
+      return;
+    }
+
+    setTransformandoUsuario(usuarioId);
+    
+    try {
+      const result = await authService.transformarUsuarioEmAdmin(usuarioId);
+      
+      if (result.success) {
+        alert(result.message || 'Usuário transformado em administrador com sucesso!');
+        onRefreshUsuarios?.(); // Chamar a callback para recarregar usuários
+      } else {
+        alert(result.error || 'Erro ao transformar usuário em administrador');
+      }
+    } catch (error) {
+      console.error('Erro ao transformar usuário em admin:', error);
+      alert('Erro interno ao transformar usuário em administrador');
+    } finally {
+      setTransformandoUsuario(null);
     }
   };
 
@@ -268,8 +293,12 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                           </td>
                           <td>{usuario.email}</td>
                           <td>
-                            <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded-full text-xs">
-                              Usuário
+                            <span className={`px-2 py-1 rounded-full text-xs ${
+                              usuario.tipo === 'user' 
+                                ? 'bg-green-500/20 text-green-400' 
+                                : 'bg-purple-500/20 text-purple-400'
+                            }`}>
+                              {usuario.tipo === 'user' ? 'Cliente' : 'Admin'}
                             </span>
                           </td>
                           <td>{dataRegistro}</td>
@@ -295,6 +324,18 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                                 title="Editar"
                               >
                                 <Edit className="w-4 h-4 text-white" />
+                              </button>
+                              <button
+                                onClick={() => handleTransformarEmAdmin(usuario.id)}
+                                disabled={transformandoUsuario === usuario.id}
+                                className="p-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800 disabled:opacity-50 rounded-lg transition-colors"
+                                title="Transformar em Admin"
+                              >
+                                {transformandoUsuario === usuario.id ? (
+                                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                ) : (
+                                  <Crown className="w-4 h-4 text-white" />
+                                )}
                               </button>
                               <button
                                 onClick={() => handleExcluirUsuario(usuario.id)}
