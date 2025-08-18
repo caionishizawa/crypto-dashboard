@@ -1335,17 +1335,16 @@ class SupabaseApiClient {
         return { success: false, error: 'Usuário não encontrado' };
       }
 
-      // Fazer o UPDATE
+      // Fazer o UPDATE diretamente
       console.log('🔧 API - Executando UPDATE com:', { usuarioId, novoTipo: 'admin' });
       
-      const { error: updateError } = await safeQuery(async () => {
-        return await supabase!
-          .from('usuarios')
-          .update({ tipo: 'admin' })
-          .eq('id', usuarioId)
-      })
+      const { data: updateData, error: updateError } = await supabase!
+        .from('usuarios')
+        .update({ tipo: 'admin' })
+        .eq('id', usuarioId)
+        .select('id, nome, email, tipo')
 
-      console.log('🔧 API - Resultado da atualização:', { updateError });
+      console.log('🔧 API - Resultado da atualização:', { updateData, updateError });
 
       if (updateError) {
         console.error('🔧 API - Erro ao transformar usuário em admin:', updateError)
