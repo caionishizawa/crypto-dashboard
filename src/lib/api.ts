@@ -1352,6 +1352,11 @@ class SupabaseApiClient {
         return { success: false, error: 'Erro ao atualizar permissões do usuário' }
       }
 
+      console.log('🔧 API - UPDATE executado com sucesso, aguardando 1 segundo...');
+      
+      // Aguardar um pouco para garantir que a atualização foi processada
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       // Verificar se a atualização foi bem-sucedida buscando o usuário atualizado
       const { data: updatedUser, error: fetchError } = await safeQuery(async () => {
         return await supabase!
@@ -1367,6 +1372,7 @@ class SupabaseApiClient {
       }
 
       console.log('🔧 API - Usuário transformado em admin com sucesso:', updatedUser);
+      console.log('🔧 API - Comparação - Antes:', checkUser.tipo, 'Depois:', updatedUser.tipo);
 
       return { 
         success: true, 
