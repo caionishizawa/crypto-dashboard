@@ -1307,23 +1307,35 @@ class SupabaseApiClient {
       // Atualizar o tipo do usuário para admin
       console.log('🔧 API - Tentando transformar usuário em admin:', { usuarioId, targetUser });
       
-      const { data: updateData, error: updateError } = await safeQuery(async () => {
+      const { error: updateError } = await safeQuery(async () => {
         return await supabase!
           .from('usuarios')
           .update({ tipo: 'admin' })
           .eq('id', usuarioId)
-          .select('id, nome, email, tipo')
-          .single()
       })
 
-      console.log('🔧 API - Resultado da atualização:', { updateData, updateError });
+      console.log('🔧 API - Resultado da atualização:', { updateError });
 
       if (updateError) {
         console.error('🔧 API - Erro ao transformar usuário em admin:', updateError)
         return { success: false, error: 'Erro ao atualizar permissões do usuário' }
       }
 
-      console.log('🔧 API - Usuário transformado em admin com sucesso:', updateData);
+      // Verificar se a atualização foi bem-sucedida buscando o usuário atualizado
+      const { data: updatedUser, error: fetchError } = await safeQuery(async () => {
+        return await supabase!
+          .from('usuarios')
+          .select('id, nome, email, tipo')
+          .eq('id', usuarioId)
+          .single()
+      })
+
+      if (fetchError || !updatedUser) {
+        console.error('🔧 API - Erro ao verificar usuário atualizado:', fetchError);
+        return { success: false, error: 'Erro ao verificar se a atualização foi bem-sucedida' };
+      }
+
+      console.log('🔧 API - Usuário transformado em admin com sucesso:', updatedUser);
 
       return { 
         success: true, 
