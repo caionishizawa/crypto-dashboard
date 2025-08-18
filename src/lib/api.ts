@@ -95,6 +95,8 @@ class SupabaseApiClient {
 
       if (existingUser && !existingUserError) {
         console.log('✅ Usuário encontrado na tabela usuarios, tentando login Supabase Auth...');
+        console.log('🔍 Dados do usuário na tabela usuarios:', existingUser);
+        
         // Usuário já existe na tabela usuarios, tentar login normal no Supabase Auth
         const { data, error } = await supabase!.auth.signInWithPassword({
           email,
@@ -151,6 +153,32 @@ class SupabaseApiClient {
         }
       } else {
         console.log('❌ Usuário não encontrado na tabela usuarios ou erro:', existingUserError);
+        
+        // Tentar login direto no Supabase Auth mesmo sem estar na tabela usuarios
+        console.log('🔍 Tentando login direto no Supabase Auth...');
+        const { data: directAuthData, error: directAuthError } = await supabase!.auth.signInWithPassword({
+          email,
+          password: senha
+        })
+        
+        console.log('🔐 Resultado login direto Supabase Auth:', { directAuthData, directAuthError });
+        
+        if (!directAuthError && directAuthData.user) {
+          console.log('✅ Login direto no Supabase Auth bem-sucedido!');
+          return { 
+            success: true, 
+            user: {
+              id: directAuthData.user.id,
+              nome: directAuthData.user.user_metadata?.nome || 'Usuário',
+              email: directAuthData.user.email!,
+              tipo: directAuthData.user.user_metadata?.tipo || 'user',
+              dataRegistro: directAuthData.user.created_at
+            },
+            message: 'Login realizado com sucesso (usuário apenas no Supabase Auth)'
+          }
+        } else {
+          console.log('❌ Login direto no Supabase Auth também falhou:', directAuthError);
+        }
       }
 
       // Se não encontrou usuário existente, verificar se existe uma solicitação aprovada
