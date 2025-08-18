@@ -10,13 +10,14 @@ interface ClientDashboardProps {
   onRefresh?: () => void;
 }
 
-interface DashboardBox {
+// Importar o tipo do portfolioService
+type DashboardBox = {
   titulo: string;
   descricao: string;
   valor: number;
   percentual?: number;
   tipo: 'base' | 'atual' | 'resultado';
-}
+};
 
 export const ClientDashboard: React.FC<ClientDashboardProps> = ({
   userId,

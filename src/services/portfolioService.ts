@@ -1,6 +1,20 @@
 import type { Transacao, Asset, Portfolio, PortfolioMetrics } from '../types/transacao';
 import { priceService } from './priceService';
 
+interface DashboardBox {
+  titulo: string;
+  descricao: string;
+  valor: number;
+  percentual?: number;
+  tipo: 'base' | 'atual' | 'resultado';
+}
+
+interface DashboardBoxes {
+  box1: DashboardBox;
+  box2: DashboardBox;
+  box3: DashboardBox;
+}
+
 export class PortfolioService {
   /**
    * Calcula as métricas do portfólio baseado nas transações
@@ -91,7 +105,7 @@ export class PortfolioService {
   /**
    * Calcula os 3 boxes principais do dashboard do cliente
    */
-  calculateDashboardBoxes(portfolio: Portfolio) {
+  calculateDashboardBoxes(portfolio: Portfolio): DashboardBoxes {
     const { metrics } = portfolio;
     
     return {
@@ -99,20 +113,20 @@ export class PortfolioService {
         titulo: "Valor Inicial Investido",
         descricao: "Seu capital se permanecesse parado",
         valor: metrics.valorInicial,
-        tipo: "base"
+        tipo: "base" as const
       },
       box2: {
         titulo: "Valor Total Atual",
         descricao: "Capital inicial + Rendimentos",
         valor: metrics.valorAtual,
-        tipo: "atual"
+        tipo: "atual" as const
       },
       box3: {
         titulo: "Resultado da Assessoria",
         descricao: "Lucro gerado através de nossa gestão",
         valor: metrics.lucroPrejuizo,
         percentual: metrics.lucroPrejuizoPercentual,
-        tipo: "resultado"
+        tipo: "resultado" as const
       }
     };
   }
