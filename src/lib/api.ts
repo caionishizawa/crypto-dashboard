@@ -234,22 +234,16 @@ class SupabaseApiClient {
 
   async register(nome: string, email: string, senha: string, confirmarSenha: string): Promise<ApiResponse> {
     try {
-
-      
       if (senha !== confirmarSenha) {
-
         return { success: false, error: 'Senhas não coincidem' }
       }
 
       if (!isSupabaseConfigured) {
-
         return { 
           success: false, 
           error: 'Supabase não configurado. Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no Netlify Dashboard.' 
         }
       }
-      
-
 
       // Verificar se o email já existe
       const { data: existingUser, error: checkError } = await safeQuery(async () => {
@@ -259,11 +253,8 @@ class SupabaseApiClient {
           .eq('email', email)
           .maybeSingle()
       })
-      
-
 
       if (existingUser) {
-
         return { success: false, error: 'Email já cadastrado' }
       }
 
@@ -282,8 +273,6 @@ class SupabaseApiClient {
           captchaToken: null
         }
       })
-      
-
 
       if (authError) {
         console.error('🔧 API - Erro ao criar usuário no Auth:', authError)
@@ -291,11 +280,8 @@ class SupabaseApiClient {
       }
 
       if (!authData.user) {
-
         return { success: false, error: 'Erro ao criar usuário - nenhum dado retornado' }
       }
-      
-
 
       // Criar registro na tabela usuarios
       const { data: userData, error: insertError } = await safeQuery(async () => {
