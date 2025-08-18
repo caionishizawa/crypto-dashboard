@@ -2,7 +2,7 @@ export interface Usuario {
   id: string;
   nome: string;
   email: string;
-  tipo: 'admin' | 'cliente';
+  tipo: 'admin' | 'user';
   dataRegistro: string;
 }
 

@@ -162,8 +162,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           
           {/* Navegação */}
           <nav className="space-y-2">
-            <button 
-              onClick={() => setActiveTab('clientes')}
+              <button 
+                onClick={() => setActiveTab('clientes')}
               className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 flex items-center space-x-3 ${
                 activeTab === 'clientes' 
                   ? 'bg-gradient-to-r from-green-500 to-green-600 text-black shadow-lg' 
@@ -172,9 +172,9 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             >
               <Users className="w-5 h-5" />
               <span>Clientes</span>
-            </button>
-            <button 
-              onClick={() => setActiveTab('carteiras')}
+              </button>
+              <button 
+                onClick={() => setActiveTab('carteiras')}
               className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 flex items-center space-x-3 ${
                 activeTab === 'carteiras' 
                   ? 'bg-gradient-to-r from-green-500 to-green-600 text-black shadow-lg' 
@@ -183,9 +183,9 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             >
               <Wallet className="w-5 h-5" />
               <span>Carteiras</span>
-            </button>
-            <button 
-              onClick={() => setActiveTab('snapshots')}
+              </button>
+              <button 
+                onClick={() => setActiveTab('snapshots')}
               className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 flex items-center space-x-3 ${
                 activeTab === 'snapshots' 
                   ? 'bg-gradient-to-r from-green-500 to-green-600 text-black shadow-lg' 
@@ -194,7 +194,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             >
               <TrendingUp className="w-5 h-5" />
               <span>Snapshots</span>
-            </button>
+              </button>
           </nav>
           
           {/* Usuário logado */}
@@ -204,16 +204,16 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 <User className="w-4 h-4 text-gray-300" />
               </div>
               <span className="text-sm text-gray-300">{currentUser.nome}</span>
-            </div>
-            <button
-              onClick={onLogout}
+              </div>
+              <button
+                onClick={onLogout}
               className="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Sair</span>
-            </button>
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Sair</span>
+              </button>
+            </div>
           </div>
-        </div>
       </div>
 
       {/* Conteúdo principal */}
@@ -278,18 +278,18 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                     </tr>
                   </thead>
                   <tbody>
-                    {usuariosAprovados.map((usuario) => {
-                      const dataRegistro = new Date(usuario.dataRegistro).toLocaleDateString('pt-BR');
-                      
-                      return (
+                {usuariosAprovados.map((usuario) => {
+                  const dataRegistro = new Date(usuario.dataRegistro).toLocaleDateString('pt-BR');
+                  
+                  return (
                         <tr key={usuario.id} className="hover:bg-gray-800/30 transition-colors">
                           <td>
-                            <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-3">
                               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
                                 <User className="w-5 h-5 text-white" />
-                              </div>
+                          </div>
                               <span className="font-semibold">{usuario.nome}</span>
-                            </div>
+                          </div>
                           </td>
                           <td>{usuario.email}</td>
                           <td>
@@ -311,9 +311,9 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                             ID{usuario.id.substring(0, 8)}...
                           </td>
                           <td>
-                            <div className="flex space-x-2">
-                              <button
-                                onClick={() => onViewUser(usuario)}
+                      <div className="flex space-x-2">
+                        <button 
+                          onClick={() => onViewUser(usuario)}
                                 className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
                                 title="Visualizar"
                               >
@@ -336,7 +336,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                                 ) : (
                                   <Crown className="w-4 h-4 text-white" />
                                 )}
-                              </button>
+                        </button>
                               <button
                                 onClick={() => handleExcluirUsuario(usuario.id)}
                                 disabled={excluindoUsuario === usuario.id}
@@ -348,12 +348,12 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                                 ) : (
                                   <Trash2 className="w-4 h-4 text-white" />
                                 )}
-                              </button>
-                            </div>
+                        </button>
+                      </div>
                           </td>
                         </tr>
-                      );
-                    })}
+                  );
+                })}
                   </tbody>
                 </table>
               </div>
@@ -450,15 +450,15 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   <div className="text-center">
                     <div className="text-2xl font-bold text-green-400">15</div>
                     <div className="text-sm text-gray-400">Carteiras Ativas</div>
-                  </div>
+                          </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-blue-400">$125,430</div>
                     <div className="text-sm text-gray-400">Valor Total</div>
-                  </div>
+                        </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-purple-400">+8.5%</div>
                     <div className="text-sm text-gray-400">Crescimento</div>
-                  </div>
+                      </div>
                 </div>
               </div>
 
@@ -472,13 +472,13 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   </div>
                   <div className="text-sm text-gray-400">
                     {new Date(Date.now() - 86400000).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                  </div>
+                      </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-green-400">14</div>
                     <div className="text-sm text-gray-400">Carteiras Ativas</div>
-                  </div>
+              </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-blue-400">$115,680</div>
                     <div className="text-sm text-gray-400">Valor Total</div>
@@ -486,7 +486,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   <div className="text-center">
                     <div className="text-2xl font-bold text-purple-400">+5.2%</div>
                     <div className="text-sm text-gray-400">Crescimento</div>
-                  </div>
+                      </div>
                 </div>
               </div>
             </div>
@@ -528,29 +528,29 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium mb-2">Endereço da Carteira</label>
-                  <input 
+                  <input
                     type="text"
                     value={newWalletAddress}
                     onChange={(e) => setNewWalletAddress(e.target.value)}
                     placeholder="Cole o endereço da carteira aqui"
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2"
                   />
-                </div>
+              </div>
 
                 <div className="flex space-x-3">
-                  <button
+                <button
                     onClick={() => setShowAddWallet(false)}
                     className="flex-1 bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={handleAddWallet}
-                    disabled={loading || !newWalletAddress || !selectedClientForWallet}
-                    className="flex-1 bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
-                  >
-                    {loading ? 'Vinculando...' : 'Vincular Carteira'}
-                  </button>
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleAddWallet}
+                  disabled={loading || !newWalletAddress || !selectedClientForWallet}
+                  className="flex-1 bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  {loading ? 'Vinculando...' : 'Vincular Carteira'}
+                </button>
                 </div>
               </div>
             </div>
