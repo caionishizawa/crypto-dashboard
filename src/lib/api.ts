@@ -1307,6 +1307,23 @@ class SupabaseApiClient {
       // Atualizar o tipo do usuário para admin
       console.log('🔧 API - Tentando transformar usuário em admin:', { usuarioId, targetUser });
       
+      // Primeiro, verificar se o usuário existe com esse ID
+      const { data: checkUser, error: checkError } = await safeQuery(async () => {
+        return await supabase!
+          .from('usuarios')
+          .select('id, nome, email, tipo')
+          .eq('id', usuarioId)
+          .single()
+      })
+
+      console.log('🔧 API - Usuário antes da atualização:', { checkUser, checkError });
+
+      if (checkError || !checkUser) {
+        console.error('🔧 API - Usuário não encontrado para atualização:', checkError);
+        return { success: false, error: 'Usuário não encontrado' };
+      }
+
+      // Fazer o UPDATE
       const { error: updateError } = await safeQuery(async () => {
         return await supabase!
           .from('usuarios')
