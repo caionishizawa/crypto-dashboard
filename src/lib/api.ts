@@ -281,7 +281,7 @@ class SupabaseApiClient {
         }
       }
 
-      // Verificar se o email já existe
+      // Verificar se o email já existe em solicitações ou usuários
       const { data: existingUser, error: checkError } = await safeQuery(async () => {
         return await supabase!
           .from('usuarios')
@@ -290,82 +290,62 @@ class SupabaseApiClient {
           .maybeSingle()
       })
 
+      const { data: existingSolicitacao, error: checkSolicitacaoError } = await safeQuery(async () => {
+        return await supabase!
+          .from('solicitacoes_usuarios')
+          .select('id, email, status')
+          .eq('email', email)
+          .maybeSingle()
+      })
+
       if (existingUser) {
         return { success: false, error: 'Email já cadastrado' }
       }
 
-      // Criar usuário usando Supabase Auth (FORÇAR sem confirmação por email)
-      console.log('🔧 API - Tentando criar usuário no Supabase Auth:', { email, nome });
-      const { data: authData, error: authError } = await supabase!.auth.signUp({
-        email,
-        password: senha,
-        options: {
-          data: {
-            nome,
-            tipo: 'user',
-            email_confirmed_at: new Date().toISOString() // Forçar como já confirmado
-          },
-          // Desabilitar completamente o envio de email de confirmação
-          emailRedirectTo: null,
-          captchaToken: null
+      if (existingSolicitacao) {
+        if (existingSolicitacao.status === 'pendente') {
+          return { success: false, error: 'Já existe uma solicitação pendente para este email. Aguarde a aprovação do administrador.' }
+        } else if (existingSolicitacao.status === 'aprovado') {
+          return { success: false, error: 'Este email já foi aprovado. Entre em contato com o administrador.' }
+        } else if (existingSolicitacao.status === 'rejeitado') {
+          return { success: false, error: 'Sua solicitação anterior foi rejeitada. Entre em contato com o administrador.' }
         }
-      })
-
-      console.log('🔧 API - Resultado signUp Supabase Auth:', { authData, authError });
-
-      if (authError) {
-        console.error('🔧 API - Erro ao criar usuário no Auth:', authError)
-        return { success: false, error: `Erro ao criar usuário: ${authError.message}` }
       }
 
-      if (!authData.user) {
-        console.error('🔧 API - Nenhum usuário retornado do Supabase Auth');
-        return { success: false, error: 'Erro ao criar usuário - nenhum dado retornado' }
-      }
-
-      console.log('🔧 API - Usuário criado no Supabase Auth:', authData.user);
-
-      // Criar registro na tabela usuarios
-      console.log('🔧 API - Criando registro na tabela usuarios:', {
-        id: authData.user.id,
-        nome,
-        email,
-        tipo: 'user'
-      });
+      // Criar solicitação na tabela solicitacoes_usuarios
+      console.log('🔧 API - Criando solicitação de cadastro:', { email, nome });
       
-      const { data: userData, error: insertError } = await safeQuery(async () => {
+      // Fazer hash da senha
+      const senhaHash = await hashPassword(senha);
+      
+      const { data: solicitacaoData, error: solicitacaoError } = await safeQuery(async () => {
         return await supabase!
-          .from('usuarios')
+          .from('solicitacoes_usuarios')
           .insert([
             {
-              id: authData.user.id,
               nome,
               email,
-              tipo: 'user',
-              dataRegistro: new Date().toISOString(),
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
+              senha_hash: senhaHash, // Armazenar senha hash na solicitação
+              status: 'pendente',
+              data_solicitacao: new Date().toISOString()
             }
           ])
-          .select('id, nome, email, tipo, dataRegistro')
+          .select('id, nome, email, status, data_solicitacao')
           .single()
       })
 
-      console.log('🔧 API - Resultado criação na tabela usuarios:', { userData, insertError });
+      console.log('🔧 API - Resultado criação da solicitação:', { solicitacaoData, solicitacaoError });
 
-      if (insertError) {
-        console.error('🔧 API - Erro ao criar usuário na tabela:', insertError)
-        return { success: false, error: 'Erro ao criar usuário' }
+      if (solicitacaoError) {
+        console.error('🔧 API - Erro ao criar solicitação:', solicitacaoError);
+        return { success: false, error: 'Erro ao criar solicitação de cadastro' };
       }
 
-      console.log('🔧 API - Usuário criado com sucesso na tabela usuarios:', userData);
-
-      // SEMPRE fazer logout após criar conta (sem confirmação por email)
-      await supabase!.auth.signOut();
+      console.log('🔧 API - Solicitação criada com sucesso:', solicitacaoData);
       
       return { 
         success: true, 
-        message: 'Conta criada com sucesso! Faça login para acessar sua conta.',
+        message: 'Solicitação de cadastro enviada com sucesso! Aguarde a aprovação do administrador.',
         requiresEmailConfirmation: false
       }
     } catch (error: any) {
@@ -1027,18 +1007,21 @@ class SupabaseApiClient {
           return { success: false, error: 'Erro ao aprovar solicitação' }
         }
 
-        // NÃO criar usuário no Auth - ele usará a senha original da solicitação
-        // O usuário será criado apenas na tabela usuarios
-
-        // Fallback: Criar apenas na tabela usuarios (usuário precisará ser criado manualmente no Auth)
+        // Criar usuário na tabela usuarios com a senha hash
+        console.log('🔧 API - Criando usuário na tabela usuarios após aprovação:', { 
+          email: solicitacao.email, 
+          nome: solicitacao.nome 
+        });
+        
         const { error: createUserError } = await safeQuery(async () => {
           return await supabase!
             .from('usuarios')
             .insert([
               {
-                id: solicitacao.id,
+                id: solicitacao.id, // Usar o ID da solicitação
                 nome: solicitacao.nome,
                 email: solicitacao.email,
+                senha: solicitacao.senha_hash, // Salvar a senha hash na tabela usuarios
                 tipo: 'user',
                 dataRegistro: new Date().toISOString(),
                 createdAt: new Date().toISOString(),
@@ -1048,9 +1031,11 @@ class SupabaseApiClient {
         })
 
         if (createUserError) {
-          console.error('Erro ao criar usuário:', createUserError)
-          return { success: false, error: 'Erro ao criar usuário' }
+          console.error('🔧 API - Erro ao criar usuário na tabela:', createUserError);
+          return { success: false, error: 'Erro ao criar usuário na tabela' };
         }
+
+        console.log('🔧 API - Usuário criado com sucesso na tabela usuarios');
 
         return { 
           success: true, 
