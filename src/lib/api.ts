@@ -154,7 +154,7 @@ class SupabaseApiClient {
                 console.log('✅ Email de reset enviado');
                 return { 
                   success: false, 
-                  error: 'Foi enviado um email para redefinir sua senha. Verifique sua caixa de entrada.' 
+                  error: 'Sua senha foi redefinida. Foi enviado um email para redefinir sua senha. Verifique sua caixa de entrada e clique no link para criar uma nova senha.' 
                 };
               }
             } catch (resetError) {
