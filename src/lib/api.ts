@@ -1381,10 +1381,17 @@ class SupabaseApiClient {
             .rpc('transformar_usuario_em_admin', { usuario_id: usuarioId })
           
           console.log('🔧 API - Resultado função SQL:', { sqlResult, sqlError });
+          console.log('🔧 API - Detalhes do resultado SQL:', sqlResult);
           
           if (sqlError) {
             console.error('🔧 API - Erro na função SQL:', sqlError);
             return { success: false, error: 'Erro ao atualizar permissões do usuário (RLS bloqueando)' };
+          }
+          
+          // Verificar se a função SQL foi bem-sucedida
+          if (sqlResult && sqlResult.success === false) {
+            console.error('🔧 API - Função SQL retornou erro:', sqlResult.error);
+            return { success: false, error: sqlResult.error || 'Erro na função SQL' };
           }
         }
       }
