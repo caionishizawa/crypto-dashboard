@@ -267,6 +267,7 @@ class SupabaseApiClient {
       }
 
       // Criar usuário usando Supabase Auth (FORÇAR sem confirmação por email)
+      console.log('🔧 API - Tentando criar usuário no Supabase Auth:', { email, nome });
       const { data: authData, error: authError } = await supabase!.auth.signUp({
         email,
         password: senha,
@@ -282,16 +283,28 @@ class SupabaseApiClient {
         }
       })
 
+      console.log('🔧 API - Resultado signUp Supabase Auth:', { authData, authError });
+
       if (authError) {
         console.error('🔧 API - Erro ao criar usuário no Auth:', authError)
         return { success: false, error: `Erro ao criar usuário: ${authError.message}` }
       }
 
       if (!authData.user) {
+        console.error('🔧 API - Nenhum usuário retornado do Supabase Auth');
         return { success: false, error: 'Erro ao criar usuário - nenhum dado retornado' }
       }
 
+      console.log('🔧 API - Usuário criado no Supabase Auth:', authData.user);
+
       // Criar registro na tabela usuarios
+      console.log('🔧 API - Criando registro na tabela usuarios:', {
+        id: authData.user.id,
+        nome,
+        email,
+        tipo: 'user'
+      });
+      
       const { data: userData, error: insertError } = await safeQuery(async () => {
         return await supabase!
           .from('usuarios')
@@ -310,10 +323,14 @@ class SupabaseApiClient {
           .single()
       })
 
+      console.log('🔧 API - Resultado criação na tabela usuarios:', { userData, insertError });
+
       if (insertError) {
-        console.error('Erro ao criar usuário na tabela:', insertError)
+        console.error('🔧 API - Erro ao criar usuário na tabela:', insertError)
         return { success: false, error: 'Erro ao criar usuário' }
       }
+
+      console.log('🔧 API - Usuário criado com sucesso na tabela usuarios:', userData);
 
       // SEMPRE fazer logout após criar conta (sem confirmação por email)
       await supabase!.auth.signOut();
