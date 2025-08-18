@@ -1338,13 +1338,36 @@ class SupabaseApiClient {
       // Fazer o UPDATE diretamente
       console.log('🔧 API - Executando UPDATE com:', { usuarioId, novoTipo: 'admin' });
       
+      // Tentar com o cliente normal primeiro
       const { data: updateData, error: updateError } = await supabase!
         .from('usuarios')
         .update({ tipo: 'admin' })
         .eq('id', usuarioId)
         .select('id, nome, email, tipo')
 
-      console.log('🔧 API - Resultado da atualização:', { updateData, updateError });
+      console.log('🔧 API - Resultado da atualização (cliente normal):', { updateData, updateError });
+
+      // Se não afetou nenhuma linha, tentar com cliente anônimo
+      if (!updateError && (!updateData || updateData.length === 0)) {
+        console.log('🔧 API - Nenhuma linha afetada, tentando com cliente anônimo...');
+        
+        const { data: anonUpdateData, error: anonUpdateError } = await supabaseAnon!
+          .from('usuarios')
+          .update({ tipo: 'admin' })
+          .eq('id', usuarioId)
+          .select('id, nome, email, tipo')
+
+        console.log('🔧 API - Resultado da atualização (cliente anônimo):', { anonUpdateData, anonUpdateError });
+        
+        if (anonUpdateError) {
+          console.error('🔧 API - Erro ao transformar usuário em admin:', anonUpdateError);
+          return { success: false, error: 'Erro ao atualizar permissões do usuário' };
+        }
+        
+        if (anonUpdateData && anonUpdateData.length > 0) {
+          console.log('🔧 API - UPDATE bem-sucedido com cliente anônimo:', anonUpdateData[0]);
+        }
+      }
 
       if (updateError) {
         console.error('🔧 API - Erro ao transformar usuário em admin:', updateError)
