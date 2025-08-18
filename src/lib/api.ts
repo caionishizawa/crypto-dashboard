@@ -1319,6 +1319,17 @@ class SupabaseApiClient {
       console.log('🔧 API - Usuário antes da atualização:', { checkUser, checkError });
       console.log('🔧 API - Dados do usuário antes:', checkUser);
 
+      // Verificar todos os usuários para debug
+      const { data: allUsers, error: allUsersError } = await safeQuery(async () => {
+        return await supabase!
+          .from('usuarios')
+          .select('id, nome, email, tipo')
+      })
+
+      console.log('🔧 API - Todos os usuários na tabela:', { allUsers, allUsersError });
+      console.log('🔧 API - Procurando ID:', usuarioId);
+      console.log('🔧 API - IDs disponíveis:', allUsers?.map(u => u.id));
+
       if (checkError || !checkUser) {
         console.error('🔧 API - Usuário não encontrado para atualização:', checkError);
         return { success: false, error: 'Usuário não encontrado' };
