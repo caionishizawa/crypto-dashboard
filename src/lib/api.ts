@@ -141,25 +141,12 @@ class SupabaseApiClient {
               console.log('❌ Senha inválida na tabela usuarios');
             }
           } else {
-            // Se o usuário não tem senha na tabela usuarios, tentar enviar email de reset
-            console.log('⚠️ Usuário sem senha na tabela usuarios, tentando reset de senha...');
-            try {
-              const { error: resetError } = await supabase!.auth.resetPasswordForEmail(email, {
-                redirectTo: window.location.origin + '/reset-password'
-              });
-              
-              if (resetError) {
-                console.log('❌ Erro ao enviar email de reset:', resetError);
-              } else {
-                console.log('✅ Email de reset enviado');
-                return { 
-                  success: false, 
-                  error: 'Sua senha foi redefinida. Foi enviado um email para redefinir sua senha. Verifique sua caixa de entrada e clique no link para criar uma nova senha.' 
-                };
-              }
-            } catch (resetError) {
-              console.log('❌ Erro no processo de reset:', resetError);
-            }
+            // Se o usuário não tem senha na tabela usuarios, informar sobre o problema
+            console.log('⚠️ Usuário sem senha na tabela usuarios');
+            return { 
+              success: false, 
+              error: 'Sua senha não está disponível no sistema. Entre em contato com o administrador para redefinir sua senha.' 
+            };
           }
         }
       } else {
