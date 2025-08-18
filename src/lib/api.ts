@@ -165,6 +165,50 @@ class SupabaseApiClient {
               }
             } else {
               console.log('❌ Erro ao criar usuário no Supabase Auth:', signUpError);
+              
+              // Se o erro for "user_already_exists", tentar reset de senha
+              if (signUpError.message === 'User already registered') {
+                console.log('🔧 Usuário já existe no Supabase Auth, tentando reset de senha...');
+                
+                // Primeiro, tentar fazer login com a senha atual
+                const { data: resetData, error: resetError } = await supabase!.auth.signInWithPassword({
+                  email,
+                  password: senha
+                });
+                
+                if (!resetError && resetData.user) {
+                  console.log('✅ Login bem-sucedido após verificação');
+                  return { 
+                    success: true, 
+                    user: {
+                      id: existingUser.id,
+                      nome: existingUser.nome,
+                      email: existingUser.email,
+                      tipo: existingUser.tipo,
+                      dataRegistro: existingUser.dataRegistro
+                    },
+                    message: 'Login realizado com sucesso'
+                  }
+                } else {
+                  console.log('❌ Reset de senha falhou:', resetError);
+                  
+                  // Se ainda falhar, tentar reset de senha via email
+                  console.log('📧 Tentando enviar email de reset de senha...');
+                  const { error: resetEmailError } = await supabase!.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin + '/reset-password'
+                  });
+                  
+                  if (!resetEmailError) {
+                    console.log('✅ Email de reset enviado com sucesso');
+                    return { 
+                      success: false, 
+                      message: 'Usuário existe mas senha incorreta. Email de reset enviado para ' + email
+                    }
+                  } else {
+                    console.log('❌ Erro ao enviar email de reset:', resetEmailError);
+                  }
+                }
+              }
             }
           }
         }
