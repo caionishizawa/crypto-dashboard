@@ -38,13 +38,13 @@ const generateToken = (userId: string): string => {
     exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // 24 horas
     iat: Math.floor(Date.now() / 1000)
   }
-  return btoa(JSON.stringify(payload)) // Base64 encoding (simplificado)
+  return Buffer.from(JSON.stringify(payload)).toString('base64') // Base64 encoding (simplificado)
 }
 
 // Função para verificar token
 const verifyToken = (token: string): { userId: string; valid: boolean } => {
   try {
-    const payload = JSON.parse(atob(token))
+    const payload = JSON.parse(Buffer.from(token, 'base64').toString())
     const now = Math.floor(Date.now() / 1000)
     
     if (payload.exp < now) {
