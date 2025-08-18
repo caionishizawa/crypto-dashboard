@@ -1338,6 +1338,13 @@ class SupabaseApiClient {
       // Fazer o UPDATE diretamente
       console.log('🔧 API - Executando UPDATE com:', { usuarioId, novoTipo: 'admin' });
       
+      // Verificar se o cliente Supabase está funcionando
+      console.log('🔧 API - Verificando cliente Supabase:', { 
+        supabase: !!supabase, 
+        supabaseAnon: !!supabaseAnon,
+        isSupabaseConfigured 
+      });
+      
       // Tentar com o cliente normal primeiro
       const { data: updateData, error: updateError } = await supabase!
         .from('usuarios')
