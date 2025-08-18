@@ -1,11 +1,11 @@
-import bcrypt from 'bcryptjs'
-import { getSupabaseClient, getSupabaseAnonClient, isSupabaseConfigured } from './supabaseClient'
+import bcrypt from 'bcryptjs';
+import { getSupabaseClient, getSupabaseAnonClient, isSupabaseConfigured } from './supabaseClient';
 
 // Usar os singletons
-export const supabase = getSupabaseClient()
-export const supabaseAnon = getSupabaseAnonClient()
+export const supabase = getSupabaseClient();
+export const supabaseAnon = getSupabaseAnonClient();
 
-export { isSupabaseConfigured }
+export { isSupabaseConfigured };
 
 // Função helper para queries seguras
 const safeQuery = async (queryFn: () => Promise<any>) => {
@@ -1608,5 +1608,5 @@ class SupabaseApiClient {
 }
 
 // Exportar instância única
-export const apiClient = new SupabaseApiClient()
-export const supabaseClient = supabase 
+export const apiClient = new SupabaseApiClient();
+export const supabaseClient = supabase; 
