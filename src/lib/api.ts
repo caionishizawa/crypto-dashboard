@@ -139,8 +139,8 @@ class SupabaseApiClient {
               }
             } else {
               console.log('❌ Senha inválida na tabela usuarios');
-  
-        }
+            }
+          }
       } else {
         console.log('❌ Usuário não encontrado na tabela usuarios ou erro:', existingUserError);
       }
