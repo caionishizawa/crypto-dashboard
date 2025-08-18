@@ -189,25 +189,31 @@ class SupabaseApiClient {
                     },
                     message: 'Login realizado com sucesso'
                   }
-                } else {
-                  console.log('❌ Reset de senha falhou:', resetError);
-                  
-                  // Se ainda falhar, tentar reset de senha via email
-                  console.log('📧 Tentando enviar email de reset de senha...');
-                  const { error: resetEmailError } = await supabase!.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.origin + '/reset-password'
-                  });
-                  
-                  if (!resetEmailError) {
-                    console.log('✅ Email de reset enviado com sucesso');
-                    return { 
-                      success: false, 
-                      message: 'Usuário existe mas senha incorreta. Email de reset enviado para ' + email
-                    }
-                  } else {
-                    console.log('❌ Erro ao enviar email de reset:', resetEmailError);
-                  }
-                }
+                                 } else {
+                   console.log('❌ Reset de senha falhou:', resetError);
+                   
+                   // Se ainda falhar, tentar reset de senha via email
+                   console.log('📧 Tentando enviar email de reset de senha...');
+                   const { error: resetEmailError } = await supabase!.auth.resetPasswordForEmail(email, {
+                     redirectTo: window.location.origin + '/reset-password'
+                   });
+                   
+                   if (!resetEmailError) {
+                     console.log('✅ Email de reset enviado com sucesso');
+                     return { 
+                       success: false, 
+                       message: 'Usuário existe mas senha perdida. Email de reset enviado para ' + email + '. Verifique sua caixa de entrada e spam.'
+                     }
+                   } else {
+                     console.log('❌ Erro ao enviar email de reset:', resetEmailError);
+                     
+                     // Se não conseguir enviar email, retornar erro específico
+                     return {
+                       success: false,
+                       message: 'Usuário existe mas senha perdida. Entre em contato com o administrador para redefinir sua senha.'
+                     }
+                   }
+                 }
               }
             }
           }
