@@ -47,7 +47,7 @@ BEGIN
   
   -- Fazer o UPDATE
   UPDATE usuarios 
-  SET tipo = 'admin', updated_at = NOW()
+  SET tipo = 'admin'
   WHERE id = usuario_id;
   
   -- Retornar sucesso
