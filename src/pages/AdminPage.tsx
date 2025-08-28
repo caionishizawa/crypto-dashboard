@@ -241,6 +241,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
               <span>Sair</span>
             </button>
           </div>
+        </div>
       </div>
 
       {/* Conteúdo principal */}
@@ -602,7 +603,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   <div className="text-center">
                     <div className="text-2xl font-bold text-purple-400">+5.2%</div>
                     <div className="text-sm text-gray-400">Crescimento</div>
-                      </div>
+                  </div>
                 </div>
               </div>
             </div>
