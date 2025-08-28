@@ -154,84 +154,92 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       {/* Botão de menu mobile */}
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-gray-800 rounded-lg text-white hover:bg-gray-700 transition-colors"
+        className="lg:hidden fixed top-4 left-4 z-50 p-3 bg-gray-800/90 backdrop-blur-sm rounded-lg text-white hover:bg-gray-700 transition-colors shadow-lg"
       >
-        {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
       </button>
 
       {/* Overlay para fechar sidebar no mobile */}
       {sidebarOpen && (
         <div 
-          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+          className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <div className={`fixed left-0 top-0 h-full w-64 sidebar-glass z-20 transition-transform duration-300 ${
+      <div className={`fixed left-0 top-0 h-full w-80 lg:w-64 sidebar-glass z-50 transition-transform duration-300 ease-in-out ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       }`}>
-        <div className="p-6">
-          <div className="flex items-center space-x-3 mb-8">
-            <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-            <span className="text-sm text-green-400 font-medium">Modo Online</span>
-          </div>
-          
-          <h1 className="text-xl font-bold mb-6">Painel Administrativo</h1>
+        <div className="p-4 lg:p-6">
+            <div className="flex items-center space-x-3 mb-6 lg:mb-8">
+              <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+              <span className="text-sm text-green-400 font-medium">Modo Online</span>
+            </div>
+            
+            <h1 className="text-lg lg:text-xl font-bold mb-6">Painel Administrativo</h1>
           
           {/* Navegação */}
           <nav className="space-y-2">
               <button 
-                onClick={() => setActiveTab('clientes')}
-              className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 flex items-center space-x-3 ${
+                onClick={() => {
+                  setActiveTab('clientes');
+                  setSidebarOpen(false); // Fechar sidebar no mobile
+                }}
+              className={`w-full text-left px-3 lg:px-4 py-3 rounded-lg transition-all duration-300 flex items-center space-x-3 ${
                 activeTab === 'clientes' 
                   ? 'bg-gradient-to-r from-green-500 to-green-600 text-black shadow-lg' 
                   : 'text-gray-300 hover:bg-gray-800/50 hover:text-white'
               }`}
             >
-              <Users className="w-5 h-5" />
-              <span>Clientes</span>
+              <Users className="w-4 h-4 lg:w-5 lg:h-5" />
+              <span className="text-sm lg:text-base">Clientes</span>
               </button>
               <button 
-                onClick={() => setActiveTab('carteiras')}
-              className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 flex items-center space-x-3 ${
+                onClick={() => {
+                  setActiveTab('carteiras');
+                  setSidebarOpen(false); // Fechar sidebar no mobile
+                }}
+              className={`w-full text-left px-3 lg:px-4 py-3 rounded-lg transition-all duration-300 flex items-center space-x-3 ${
                 activeTab === 'carteiras' 
                   ? 'bg-gradient-to-r from-green-500 to-green-600 text-black shadow-lg' 
                   : 'text-gray-300 hover:bg-gray-800/50 hover:text-white'
               }`}
             >
-              <Wallet className="w-5 h-5" />
-              <span>Carteiras</span>
+              <Wallet className="w-4 h-4 lg:w-5 lg:h-5" />
+              <span className="text-sm lg:text-base">Carteiras</span>
               </button>
               <button 
-                onClick={() => setActiveTab('snapshots')}
-              className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 flex items-center space-x-3 ${
+                onClick={() => {
+                  setActiveTab('snapshots');
+                  setSidebarOpen(false); // Fechar sidebar no mobile
+                }}
+              className={`w-full text-left px-3 lg:px-4 py-3 rounded-lg transition-all duration-300 flex items-center space-x-3 ${
                 activeTab === 'snapshots' 
                   ? 'bg-gradient-to-r from-green-500 to-green-600 text-black shadow-lg' 
                   : 'text-gray-300 hover:bg-gray-800/50 hover:text-white'
               }`}
             >
-              <TrendingUp className="w-5 h-5" />
-              <span>Snapshots</span>
+              <TrendingUp className="w-4 h-4 lg:w-5 lg:h-5" />
+              <span className="text-sm lg:text-base">Snapshots</span>
               </button>
           </nav>
           
           {/* Usuário logado */}
-          <div className="absolute bottom-6 left-6 right-6">
+          <div className="absolute bottom-4 lg:bottom-6 left-4 lg:left-6 right-4 lg:right-6">
             <div className="flex items-center space-x-3 mb-3">
               <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">
                 <User className="w-4 h-4 text-gray-300" />
               </div>
-              <span className="text-sm text-gray-300">{currentUser.nome}</span>
-              </div>
-              <button
-                onClick={onLogout}
-              className="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Sair</span>
-              </button>
+              <span className="text-sm text-gray-300 truncate">{currentUser.nome}</span>
             </div>
+            <button
+              onClick={onLogout}
+              className="w-full bg-red-600 hover:bg-red-700 text-white px-3 lg:px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2 text-sm"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Sair</span>
+            </button>
           </div>
       </div>
 
@@ -283,161 +291,186 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 <p className="text-gray-500">Aprove solicitações na aba "Solicitações" para ver usuários aqui.</p>
               </div>
                         ) : (
-              <div className="overflow-x-auto">
-                <div className="table-styled min-w-full">
-                  <table className="w-full">
-                    <thead>
-                      <tr>
-                        <th className="hidden md:table-cell">Usuário</th>
-                        <th className="hidden md:table-cell">Email</th>
-                        <th className="hidden md:table-cell">Tipo Usuário</th>
-                        <th className="hidden md:table-cell">Data de Registro</th>
-                        <th className="hidden md:table-cell">StatusAprovado</th>
-                        <th className="hidden md:table-cell">ID</th>
-                        <th className="hidden md:table-cell">Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {usuariosAprovados.map((usuario) => {
-                        const dataRegistro = new Date(usuario.dataRegistro).toLocaleDateString('pt-BR');
+              <div className="space-y-4">
+                {/* Versão Mobile - Cards */}
+                <div className="md:hidden space-y-3">
+                  {usuariosAprovados.map((usuario) => {
+                    const dataRegistro = new Date(usuario.dataRegistro).toLocaleDateString('pt-BR');
+                    
+                    return (
+                      <div key={usuario.id} className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
+                              <User className="w-6 h-6 text-white" />
+                            </div>
+                            <div>
+                              <div className="font-semibold text-white">{usuario.nome}</div>
+                              <div className="text-sm text-gray-400">{usuario.email}</div>
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end space-y-1">
+                            <span className={`px-2 py-1 rounded-full text-xs ${
+                              usuario.tipo === 'user' 
+                                ? 'bg-green-500/20 text-green-400' 
+                                : 'bg-purple-500/20 text-purple-400'
+                            }`}>
+                              {usuario.tipo === 'user' ? 'Cliente' : 'Admin'}
+                            </span>
+                            <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded-full text-xs">
+                              Aprovado
+                            </span>
+                          </div>
+                        </div>
                         
-                        return (
-                          <tr key={usuario.id} className="hover:bg-gray-800/30 transition-colors">
-                            <td className="md:hidden">
-                              <div className="flex items-center space-x-3 p-2">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
-                                  <User className="w-5 h-5 text-white" />
-                                </div>
-                                <div className="flex-1">
-                                  <div className="font-semibold">{usuario.nome}</div>
-                                  <div className="text-sm text-gray-400">{usuario.email}</div>
-                                  <div className="text-xs text-gray-500 mt-1">
-                                    <span className={`px-2 py-1 rounded-full text-xs ${
-                                      usuario.tipo === 'user' 
-                                        ? 'bg-green-500/20 text-green-400' 
-                                        : 'bg-purple-500/20 text-purple-400'
-                                    }`}>
-                                      {usuario.tipo === 'user' ? 'Cliente' : 'Admin'}
-                                    </span>
-                                    <span className="ml-2">ID{usuario.id.substring(0, 8)}...</span>
+                        <div className="grid grid-cols-2 gap-2 mb-3 text-xs text-gray-400">
+                          <div>
+                            <span className="font-medium">Data:</span> {dataRegistro}
+                          </div>
+                          <div>
+                            <span className="font-medium">ID:</span> {usuario.id.substring(0, 8)}...
+                          </div>
+                        </div>
+                        
+                        <div className="flex justify-end space-x-2">
+                          <button 
+                            onClick={() => onViewUser(usuario)}
+                            className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                            title="Visualizar"
+                          >
+                            <Eye className="w-4 h-4 text-white" />
+                          </button>
+                          <button
+                            className="p-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg transition-colors"
+                            title="Editar"
+                          >
+                            <Edit className="w-4 h-4 text-white" />
+                          </button>
+                          <button
+                            onClick={() => handleTransformarEmAdmin(usuario.id)}
+                            disabled={transformandoUsuario === usuario.id}
+                            className="p-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800 disabled:opacity-50 rounded-lg transition-colors"
+                            title="Transformar em Admin"
+                          >
+                            {transformandoUsuario === usuario.id ? (
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            ) : (
+                              <Crown className="w-4 h-4 text-white" />
+                            )}
+                          </button>
+                          <button
+                            onClick={() => handleExcluirUsuario(usuario.id)}
+                            disabled={excluindoUsuario === usuario.id}
+                            className="p-2 bg-red-600 hover:bg-red-700 disabled:bg-red-800 disabled:opacity-50 rounded-lg transition-colors"
+                            title="Excluir"
+                          >
+                            {excluindoUsuario === usuario.id ? (
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            ) : (
+                              <Trash2 className="w-4 h-4 text-white" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                {/* Versão Desktop - Tabela */}
+                <div className="hidden md:block overflow-x-auto">
+                  <div className="table-styled min-w-full">
+                    <table className="w-full">
+                      <thead>
+                        <tr>
+                          <th>Usuário</th>
+                          <th>Email</th>
+                          <th>Tipo Usuário</th>
+                          <th>Data de Registro</th>
+                          <th>StatusAprovado</th>
+                          <th>ID</th>
+                          <th>Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {usuariosAprovados.map((usuario) => {
+                          const dataRegistro = new Date(usuario.dataRegistro).toLocaleDateString('pt-BR');
+                          
+                          return (
+                            <tr key={usuario.id} className="hover:bg-gray-800/30 transition-colors">
+                              <td>
+                                <div className="flex items-center space-x-3">
+                                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
+                                    <User className="w-5 h-5 text-white" />
                                   </div>
+                                  <span className="font-semibold">{usuario.nome}</span>
                                 </div>
-                              </div>
-                            </td>
-                            <td className="hidden md:table-cell">
-                              <div className="flex items-center space-x-3">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
-                                  <User className="w-5 h-5 text-white" />
+                              </td>
+                              <td>{usuario.email}</td>
+                              <td>
+                                <span className={`px-2 py-1 rounded-full text-xs ${
+                                  usuario.tipo === 'user' 
+                                    ? 'bg-green-500/20 text-green-400' 
+                                    : 'bg-purple-500/20 text-purple-400'
+                                }`}>
+                                  {usuario.tipo === 'user' ? 'Cliente' : 'Admin'}
+                                </span>
+                              </td>
+                              <td>{dataRegistro}</td>
+                              <td>
+                                <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded-full text-xs">
+                                  Aprovado
+                                </span>
+                              </td>
+                              <td className="font-mono text-xs text-gray-400">
+                                ID{usuario.id.substring(0, 8)}...
+                              </td>
+                              <td>
+                                <div className="flex space-x-2">
+                                  <button 
+                                    onClick={() => onViewUser(usuario)}
+                                    className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                                    title="Visualizar"
+                                  >
+                                    <Eye className="w-4 h-4 text-white" />
+                                  </button>
+                                  <button
+                                    className="p-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg transition-colors"
+                                    title="Editar"
+                                  >
+                                    <Edit className="w-4 h-4 text-white" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleTransformarEmAdmin(usuario.id)}
+                                    disabled={transformandoUsuario === usuario.id}
+                                    className="p-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800 disabled:opacity-50 rounded-lg transition-colors"
+                                    title="Transformar em Admin"
+                                  >
+                                    {transformandoUsuario === usuario.id ? (
+                                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                    ) : (
+                                      <Crown className="w-4 h-4 text-white" />
+                                    )}
+                                  </button>
+                                  <button
+                                    onClick={() => handleExcluirUsuario(usuario.id)}
+                                    disabled={excluindoUsuario === usuario.id}
+                                    className="p-2 bg-red-600 hover:bg-red-700 disabled:bg-red-800 disabled:opacity-50 rounded-lg transition-colors"
+                                    title="Excluir"
+                                  >
+                                    {excluindoUsuario === usuario.id ? (
+                                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                    ) : (
+                                      <Trash2 className="w-4 h-4 text-white" />
+                                    )}
+                                  </button>
                                 </div>
-                                <span className="font-semibold">{usuario.nome}</span>
-                              </div>
-                            </td>
-                            <td className="hidden md:table-cell">{usuario.email}</td>
-                            <td className="hidden md:table-cell">
-                              <span className={`px-2 py-1 rounded-full text-xs ${
-                                usuario.tipo === 'user' 
-                                  ? 'bg-green-500/20 text-green-400' 
-                                  : 'bg-purple-500/20 text-purple-400'
-                              }`}>
-                                {usuario.tipo === 'user' ? 'Cliente' : 'Admin'}
-                              </span>
-                            </td>
-                            <td className="hidden md:table-cell">{dataRegistro}</td>
-                            <td className="hidden md:table-cell">
-                              <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded-full text-xs">
-                                Aprovado
-                              </span>
-                            </td>
-                            <td className="hidden md:table-cell font-mono text-xs text-gray-400">
-                              ID{usuario.id.substring(0, 8)}...
-                            </td>
-                            <td className="hidden md:table-cell">
-                              <div className="flex space-x-2">
-                                <button 
-                                  onClick={() => onViewUser(usuario)}
-                                  className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-                                  title="Visualizar"
-                                >
-                                  <Eye className="w-4 h-4 text-white" />
-                                </button>
-                                <button
-                                  className="p-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg transition-colors"
-                                  title="Editar"
-                                >
-                                  <Edit className="w-4 h-4 text-white" />
-                                </button>
-                                <button
-                                  onClick={() => handleTransformarEmAdmin(usuario.id)}
-                                  disabled={transformandoUsuario === usuario.id}
-                                  className="p-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800 disabled:opacity-50 rounded-lg transition-colors"
-                                  title="Transformar em Admin"
-                                >
-                                  {transformandoUsuario === usuario.id ? (
-                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                  ) : (
-                                    <Crown className="w-4 h-4 text-white" />
-                                  )}
-                                </button>
-                                <button
-                                  onClick={() => handleExcluirUsuario(usuario.id)}
-                                  disabled={excluindoUsuario === usuario.id}
-                                  className="p-2 bg-red-600 hover:bg-red-700 disabled:bg-red-800 disabled:opacity-50 rounded-lg transition-colors"
-                                  title="Excluir"
-                                >
-                                  {excluindoUsuario === usuario.id ? (
-                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                  ) : (
-                                    <Trash2 className="w-4 h-4 text-white" />
-                                  )}
-                                </button>
-                              </div>
-                            </td>
-                            <td className="md:hidden">
-                              <div className="flex justify-end space-x-2 p-2">
-                                <button 
-                                  onClick={() => onViewUser(usuario)}
-                                  className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-                                  title="Visualizar"
-                                >
-                                  <Eye className="w-4 h-4 text-white" />
-                                </button>
-                                <button
-                                  className="p-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg transition-colors"
-                                  title="Editar"
-                                >
-                                  <Edit className="w-4 h-4 text-white" />
-                                </button>
-                                <button
-                                  onClick={() => handleTransformarEmAdmin(usuario.id)}
-                                  disabled={transformandoUsuario === usuario.id}
-                                  className="p-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800 disabled:opacity-50 rounded-lg transition-colors"
-                                  title="Transformar em Admin"
-                                >
-                                  {transformandoUsuario === usuario.id ? (
-                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                  ) : (
-                                    <Crown className="w-4 h-4 text-white" />
-                                  )}
-                                </button>
-                                <button
-                                  onClick={() => handleExcluirUsuario(usuario.id)}
-                                  disabled={excluindoUsuario === usuario.id}
-                                  className="p-2 bg-red-600 hover:bg-red-700 disabled:bg-red-800 disabled:opacity-50 rounded-lg transition-colors"
-                                  title="Excluir"
-                                >
-                                  {excluindoUsuario === usuario.id ? (
-                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                  ) : (
-                                    <Trash2 className="w-4 h-4 text-white" />
-                                  )}
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             )}
