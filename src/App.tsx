@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Shield, Wifi, WifiOff } from 'lucide-react';
 import type { Cliente, ClientesData } from './types/cliente';
 import type { Usuario, LoginData, RegisterData, UsuarioAprovado } from './types/usuario';
