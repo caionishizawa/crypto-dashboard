@@ -157,4 +157,189 @@
 .table-styled tr:hover {
   @apply bg-gray-800/30;
 }
+
+/* ===== RESPONSIVIDADE PARA MOBILE ===== */
+
+/* Breakpoints responsivos */
+@media (max-width: 768px) {
+  /* Ajustes gerais para mobile */
+  body {
+    font-size: 14px;
+  }
+  
+  /* Sidebar mobile */
+  .sidebar-mobile {
+    @apply fixed top-0 left-0 w-full h-full z-50 transform transition-transform duration-300;
+  }
+  
+  .sidebar-mobile.hidden {
+    @apply -translate-x-full;
+  }
+  
+  .sidebar-mobile.visible {
+    @apply translate-x-0;
+  }
+  
+  /* Conteúdo principal mobile */
+  .content-mobile {
+    @apply ml-0 p-4;
+  }
+  
+  /* Header mobile */
+  .header-mobile {
+    @apply flex-col space-y-4 p-4;
+  }
+  
+  .header-mobile h1 {
+    @apply text-2xl;
+  }
+  
+  /* Tabelas responsivas */
+  .table-responsive {
+    @apply overflow-x-auto;
+  }
+  
+  .table-mobile {
+    @apply min-w-full;
+  }
+  
+  .table-mobile th,
+  .table-mobile td {
+    @apply px-3 py-2 text-sm;
+  }
+  
+  /* Cards mobile */
+  .card-mobile {
+    @apply p-4 mb-4;
+  }
+  
+  /* Botões mobile */
+  .btn-mobile {
+    @apply w-full py-3 px-4 text-sm;
+  }
+  
+  .btn-group-mobile {
+    @apply flex flex-col space-y-2;
+  }
+  
+  /* Grid mobile */
+  .grid-mobile {
+    @apply grid-cols-1 gap-4;
+  }
+  
+  /* Modal mobile */
+  .modal-mobile {
+    @apply p-4 mx-4;
+  }
+  
+  /* Formulários mobile */
+  .form-mobile {
+    @apply space-y-4;
+  }
+  
+  .input-mobile {
+    @apply w-full py-3 px-4;
+  }
+  
+  /* Navegação mobile */
+  .nav-mobile {
+    @apply flex flex-col space-y-2;
+  }
+  
+  .nav-item-mobile {
+    @apply w-full py-3 px-4 text-left;
+  }
+  
+  /* Tabs mobile */
+  .tabs-mobile {
+    @apply flex flex-col space-y-2;
+  }
+  
+  .tab-mobile {
+    @apply w-full py-3 px-4 text-center;
+  }
+  
+  /* Partículas decorativas mobile */
+  .particles-mobile {
+    @apply hidden;
+  }
+  
+  /* Gradientes mobile */
+  .gradients-mobile {
+    @apply opacity-50;
+  }
+}
+
+/* Breakpoint para tablets */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .content-tablet {
+    @apply ml-64 p-6;
+  }
+  
+  .header-tablet {
+    @apply flex-row justify-between items-center;
+  }
+  
+  .table-tablet {
+    @apply overflow-x-auto;
+  }
+  
+  .grid-tablet {
+    @apply grid-cols-2 gap-6;
+  }
+}
+
+/* Breakpoint para telas muito pequenas */
+@media (max-width: 480px) {
+  .content-xs {
+    @apply p-2;
+  }
+  
+  .header-xs {
+    @apply p-2;
+  }
+  
+  .header-xs h1 {
+    @apply text-xl;
+  }
+  
+  .table-xs th,
+  .table-xs td {
+    @apply px-2 py-1 text-xs;
+  }
+  
+  .btn-xs {
+    @apply py-2 px-3 text-xs;
+  }
+  
+  .modal-xs {
+    @apply p-2 mx-2;
+  }
+}
+
+/* Melhorias específicas para touch */
+@media (hover: none) and (pointer: coarse) {
+  .btn-touch {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  .nav-touch {
+    @apply min-h-[48px];
+  }
+  
+  .input-touch {
+    @apply min-h-[44px];
+  }
+}
+
+/* Orientação landscape em mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  .sidebar-landscape {
+    @apply w-80;
+  }
+  
+  .content-landscape {
+    @apply ml-80;
+  }
+}
   

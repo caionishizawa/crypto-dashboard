@@ -130,19 +130,19 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onSwitch
   };
 
   return (
-    <div className="w-full max-w-md relative">
+    <div className="w-full max-w-md relative mx-4 lg:mx-0">
       {/* Elementos decorativos de fundo */}
       <div className="absolute -top-10 -left-10 w-20 h-20 bg-gradient-to-br from-blue-400/20 to-purple-500/20 rounded-full blur-xl animate-pulse"></div>
       <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-gradient-to-tl from-green-500/20 to-blue-400/20 rounded-full blur-xl animate-pulse delay-1000"></div>
       
       {/* Formulário de Cadastro */}
-      <div className="relative bg-gradient-to-br from-gray-900/90 via-gray-900/80 to-gray-800/90 backdrop-blur-xl rounded-3xl p-8 border border-gray-700/50 shadow-2xl">
+      <div className="relative bg-gradient-to-br from-gray-900/90 via-gray-900/80 to-gray-800/90 backdrop-blur-xl rounded-3xl p-6 lg:p-8 border border-gray-700/50 shadow-2xl">
         {/* Header elegante */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-4 shadow-lg">
             <Sparkles className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2">
+          <h2 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2">
             Criar conta
           </h2>
           <p className="text-gray-400 text-sm">

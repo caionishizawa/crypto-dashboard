@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, User, LogOut, Plus, Eye, Edit, Wallet, Bitcoin, Shield, TrendingUp, UserPlus, Trash2, Settings, Crown } from 'lucide-react';
+import { Users, User, LogOut, Plus, Eye, Edit, Wallet, Bitcoin, Shield, TrendingUp, UserPlus, Trash2, Settings, Crown, Menu, X } from 'lucide-react';
 import type { Cliente, ClientesData, Usuario, UsuarioAprovado, Carteira } from '../types';
 import { formatarMoeda, formatarPercentual, getCorRetorno } from '../utils';
 import { NovoClienteForm } from '../components/auth/NovoClienteForm';
@@ -56,6 +56,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   const [excluindoUsuario, setExcluindoUsuario] = useState<string | null>(null);
   const [showConfirmacaoExclusao, setShowConfirmacaoExclusao] = useState<string | null>(null);
   const [transformandoUsuario, setTransformandoUsuario] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleAddWallet = async () => {
     if (!newWalletAddress || !selectedClientForWallet) return;
@@ -150,8 +151,26 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
   return (
     <div className="min-h-screen text-white relative">
+      {/* Botão de menu mobile */}
+      <button
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-gray-800 rounded-lg text-white hover:bg-gray-700 transition-colors"
+      >
+        {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+      </button>
+
+      {/* Overlay para fechar sidebar no mobile */}
+      {sidebarOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <div className="fixed left-0 top-0 h-full w-64 sidebar-glass z-20">
+      <div className={`fixed left-0 top-0 h-full w-64 sidebar-glass z-20 transition-transform duration-300 ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      }`}>
         <div className="p-6">
           <div className="flex items-center space-x-3 mb-8">
             <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
@@ -217,9 +236,9 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       </div>
 
       {/* Conteúdo principal */}
-      <div className="ml-64 p-8">
+      <div className="lg:ml-64 p-4 lg:p-8">
         {/* Header com botão de solicitações */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-6 lg:mb-8 space-y-4 lg:space-y-0">
           <div className="flex items-center space-x-3">
             <Users className="w-8 h-8 text-green-400" />
             <h1 className="text-3xl font-bold">Painel Administrativo</h1>
@@ -236,15 +255,15 @@ export const AdminPage: React.FC<AdminPageProps> = ({
         {/* Aba Clientes */}
         {activeTab === 'clientes' && (
           <div>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold">Usuários Aprovados</h2>
-              <div className="flex items-center space-x-4">
+            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-6 space-y-4 lg:space-y-0">
+              <h2 className="text-xl lg:text-2xl font-semibold">Usuários Aprovados</h2>
+              <div className="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0 lg:space-x-4">
                 <div className="text-sm text-gray-400">
                   Total: {usuariosAprovados.length} usuários
                 </div>
                 <button 
                   onClick={() => setShowGerenciarCliente(true)}
-                  className="btn-primary flex items-center space-x-2"
+                  className="btn-primary flex items-center justify-center space-x-2 w-full lg:w-auto"
                 >
                   <Settings className="w-5 h-5" />
                   <span>Gerenciar Cliente</span>
@@ -263,99 +282,163 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 <h3 className="text-xl font-semibold text-gray-400 mb-2">Nenhum usuário aprovado</h3>
                 <p className="text-gray-500">Aprove solicitações na aba "Solicitações" para ver usuários aqui.</p>
               </div>
-            ) : (
-              <div className="table-styled">
-                <table className="w-full">
-                  <thead>
-                    <tr>
-                      <th>Usuário</th>
-                      <th>Email</th>
-                      <th>Tipo Usuário</th>
-                      <th>Data de Registro</th>
-                      <th>StatusAprovado</th>
-                      <th>ID</th>
-                      <th>Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                {usuariosAprovados.map((usuario) => {
-                  const dataRegistro = new Date(usuario.dataRegistro).toLocaleDateString('pt-BR');
-                  
-                  return (
-                        <tr key={usuario.id} className="hover:bg-gray-800/30 transition-colors">
-                          <td>
-                        <div className="flex items-center space-x-3">
-                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
-                                <User className="w-5 h-5 text-white" />
-                          </div>
-                              <span className="font-semibold">{usuario.nome}</span>
-                          </div>
-                          </td>
-                          <td>{usuario.email}</td>
-                          <td>
-                            <span className={`px-2 py-1 rounded-full text-xs ${
-                              usuario.tipo === 'user' 
-                                ? 'bg-green-500/20 text-green-400' 
-                                : 'bg-purple-500/20 text-purple-400'
-                            }`}>
-                              {usuario.tipo === 'user' ? 'Cliente' : 'Admin'}
-                            </span>
-                          </td>
-                          <td>{dataRegistro}</td>
-                          <td>
-                            <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded-full text-xs">
-                              Aprovado
-                            </span>
-                          </td>
-                          <td className="font-mono text-xs text-gray-400">
-                            ID{usuario.id.substring(0, 8)}...
-                          </td>
-                          <td>
-                      <div className="flex space-x-2">
-                        <button 
-                          onClick={() => onViewUser(usuario)}
-                                className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-                                title="Visualizar"
-                              >
-                                <Eye className="w-4 h-4 text-white" />
-                              </button>
-                              <button
-                                className="p-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg transition-colors"
-                                title="Editar"
-                              >
-                                <Edit className="w-4 h-4 text-white" />
-                              </button>
-                              <button
-                                onClick={() => handleTransformarEmAdmin(usuario.id)}
-                                disabled={transformandoUsuario === usuario.id}
-                                className="p-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800 disabled:opacity-50 rounded-lg transition-colors"
-                                title="Transformar em Admin"
-                              >
-                                {transformandoUsuario === usuario.id ? (
-                                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                ) : (
-                                  <Crown className="w-4 h-4 text-white" />
-                                )}
-                        </button>
-                              <button
-                                onClick={() => handleExcluirUsuario(usuario.id)}
-                                disabled={excluindoUsuario === usuario.id}
-                                className="p-2 bg-red-600 hover:bg-red-700 disabled:bg-red-800 disabled:opacity-50 rounded-lg transition-colors"
-                                title="Excluir"
-                              >
-                                {excluindoUsuario === usuario.id ? (
-                                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                ) : (
-                                  <Trash2 className="w-4 h-4 text-white" />
-                                )}
-                        </button>
-                      </div>
-                          </td>
-                        </tr>
-                  );
-                })}
-                  </tbody>
-                </table>
+                        ) : (
+              <div className="overflow-x-auto">
+                <div className="table-styled min-w-full">
+                  <table className="w-full">
+                    <thead>
+                      <tr>
+                        <th className="hidden md:table-cell">Usuário</th>
+                        <th className="hidden md:table-cell">Email</th>
+                        <th className="hidden md:table-cell">Tipo Usuário</th>
+                        <th className="hidden md:table-cell">Data de Registro</th>
+                        <th className="hidden md:table-cell">StatusAprovado</th>
+                        <th className="hidden md:table-cell">ID</th>
+                        <th className="hidden md:table-cell">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {usuariosAprovados.map((usuario) => {
+                        const dataRegistro = new Date(usuario.dataRegistro).toLocaleDateString('pt-BR');
+                        
+                        return (
+                          <tr key={usuario.id} className="hover:bg-gray-800/30 transition-colors">
+                            <td className="md:hidden">
+                              <div className="flex items-center space-x-3 p-2">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
+                                  <User className="w-5 h-5 text-white" />
+                                </div>
+                                <div className="flex-1">
+                                  <div className="font-semibold">{usuario.nome}</div>
+                                  <div className="text-sm text-gray-400">{usuario.email}</div>
+                                  <div className="text-xs text-gray-500 mt-1">
+                                    <span className={`px-2 py-1 rounded-full text-xs ${
+                                      usuario.tipo === 'user' 
+                                        ? 'bg-green-500/20 text-green-400' 
+                                        : 'bg-purple-500/20 text-purple-400'
+                                    }`}>
+                                      {usuario.tipo === 'user' ? 'Cliente' : 'Admin'}
+                                    </span>
+                                    <span className="ml-2">ID{usuario.id.substring(0, 8)}...</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="hidden md:table-cell">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
+                                  <User className="w-5 h-5 text-white" />
+                                </div>
+                                <span className="font-semibold">{usuario.nome}</span>
+                              </div>
+                            </td>
+                            <td className="hidden md:table-cell">{usuario.email}</td>
+                            <td className="hidden md:table-cell">
+                              <span className={`px-2 py-1 rounded-full text-xs ${
+                                usuario.tipo === 'user' 
+                                  ? 'bg-green-500/20 text-green-400' 
+                                  : 'bg-purple-500/20 text-purple-400'
+                              }`}>
+                                {usuario.tipo === 'user' ? 'Cliente' : 'Admin'}
+                              </span>
+                            </td>
+                            <td className="hidden md:table-cell">{dataRegistro}</td>
+                            <td className="hidden md:table-cell">
+                              <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded-full text-xs">
+                                Aprovado
+                              </span>
+                            </td>
+                            <td className="hidden md:table-cell font-mono text-xs text-gray-400">
+                              ID{usuario.id.substring(0, 8)}...
+                            </td>
+                            <td className="hidden md:table-cell">
+                              <div className="flex space-x-2">
+                                <button 
+                                  onClick={() => onViewUser(usuario)}
+                                  className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                                  title="Visualizar"
+                                >
+                                  <Eye className="w-4 h-4 text-white" />
+                                </button>
+                                <button
+                                  className="p-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg transition-colors"
+                                  title="Editar"
+                                >
+                                  <Edit className="w-4 h-4 text-white" />
+                                </button>
+                                <button
+                                  onClick={() => handleTransformarEmAdmin(usuario.id)}
+                                  disabled={transformandoUsuario === usuario.id}
+                                  className="p-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800 disabled:opacity-50 rounded-lg transition-colors"
+                                  title="Transformar em Admin"
+                                >
+                                  {transformandoUsuario === usuario.id ? (
+                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                  ) : (
+                                    <Crown className="w-4 h-4 text-white" />
+                                  )}
+                                </button>
+                                <button
+                                  onClick={() => handleExcluirUsuario(usuario.id)}
+                                  disabled={excluindoUsuario === usuario.id}
+                                  className="p-2 bg-red-600 hover:bg-red-700 disabled:bg-red-800 disabled:opacity-50 rounded-lg transition-colors"
+                                  title="Excluir"
+                                >
+                                  {excluindoUsuario === usuario.id ? (
+                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                  ) : (
+                                    <Trash2 className="w-4 h-4 text-white" />
+                                  )}
+                                </button>
+                              </div>
+                            </td>
+                            <td className="md:hidden">
+                              <div className="flex justify-end space-x-2 p-2">
+                                <button 
+                                  onClick={() => onViewUser(usuario)}
+                                  className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                                  title="Visualizar"
+                                >
+                                  <Eye className="w-4 h-4 text-white" />
+                                </button>
+                                <button
+                                  className="p-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg transition-colors"
+                                  title="Editar"
+                                >
+                                  <Edit className="w-4 h-4 text-white" />
+                                </button>
+                                <button
+                                  onClick={() => handleTransformarEmAdmin(usuario.id)}
+                                  disabled={transformandoUsuario === usuario.id}
+                                  className="p-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800 disabled:opacity-50 rounded-lg transition-colors"
+                                  title="Transformar em Admin"
+                                >
+                                  {transformandoUsuario === usuario.id ? (
+                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                  ) : (
+                                    <Crown className="w-4 h-4 text-white" />
+                                  )}
+                                </button>
+                                <button
+                                  onClick={() => handleExcluirUsuario(usuario.id)}
+                                  disabled={excluindoUsuario === usuario.id}
+                                  className="p-2 bg-red-600 hover:bg-red-700 disabled:bg-red-800 disabled:opacity-50 rounded-lg transition-colors"
+                                  title="Excluir"
+                                >
+                                  {excluindoUsuario === usuario.id ? (
+                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                  ) : (
+                                    <Trash2 className="w-4 h-4 text-white" />
+                                  )}
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </div>
@@ -364,21 +447,21 @@ export const AdminPage: React.FC<AdminPageProps> = ({
         {/* Aba Carteiras */}
         {activeTab === 'carteiras' && (
           <div>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold">Gestão de Carteiras</h2>
+            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-6 space-y-4 lg:space-y-0">
+              <h2 className="text-xl lg:text-2xl font-semibold">Gestão de Carteiras</h2>
               <button 
                 onClick={() => setShowAddWallet(true)}
-                className="bg-green-500 hover:bg-green-600 text-black font-semibold px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+                className="bg-green-500 hover:bg-green-600 text-black font-semibold px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2 w-full lg:w-auto"
               >
                 <Wallet className="w-5 h-5" />
                 <span>Vincular Carteira</span>
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
               {Object.values(clients).map((client: any) => 
                 client.carteiras?.map((carteira: any) => (
-                  <div key={carteira.id} className="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                  <div key={carteira.id} className="bg-gray-900 rounded-xl p-4 lg:p-6 border border-gray-800">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-3">
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
@@ -418,14 +501,14 @@ export const AdminPage: React.FC<AdminPageProps> = ({
         {/* Aba Snapshots */}
         {activeTab === 'snapshots' && (
           <div>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold">Snapshots Diários</h2>
+            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-6 space-y-4 lg:space-y-0">
+              <h2 className="text-xl lg:text-2xl font-semibold">Snapshots Diários</h2>
               <button 
                 onClick={() => {
                   const today = new Date().toLocaleDateString('pt-BR');
                   alert(`Snapshot criado para ${today} - Dados atualizados para todos os clientes`);
                 }}
-                className="bg-green-500 hover:bg-green-600 text-black font-semibold px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+                className="bg-green-500 hover:bg-green-600 text-black font-semibold px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2 w-full lg:w-auto"
               >
                 <Plus className="w-5 h-5" />
                 <span>Criar Snapshot Hoje</span>
@@ -495,8 +578,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
         {/* Modal para adicionar carteira */}
         {showAddWallet && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-gray-900 rounded-xl p-6 w-full max-w-md border border-gray-800">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-900 rounded-xl p-4 lg:p-6 w-full max-w-md border border-gray-800">
               <h3 className="text-xl font-semibold mb-4">Vincular Carteira a Usuário</h3>
               
               <div className="space-y-4">
