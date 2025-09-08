@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,28 +7,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Modelo de Usuario
 model Usuario {
-  id           String   @id @default(cuid())
-  nome         String
-  email        String   @unique
-  senha        String
-  tipo         String   // 'admin' | 'cliente'
-  dataRegistro DateTime @default(now())
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  // Relacionamentos
-  clientes Cliente[]
+  id                    String                  @id @default(cuid())
+  nome                  String
+  email                 String                  @unique
+  senha                 String?
+  tipo                  String
+  dataRegistro          DateTime                @default(now())
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  auth_criado           Boolean?                @default(false)
+  clientes              Cliente[]
+  solicitacoes_usuarios solicitacoes_usuarios[]
 
   @@map("usuarios")
 }
 
-// Modelo de Cliente
 model Cliente {
-  id                  String   @id @default(cuid())
+  id                  String          @id @default(dbgenerated("nextval('clientes_id_seq'::regclass)"))
   nome                String
-  tipo                String   // 'bitcoin' | 'conservador'
+  tipo                String
   dataInicio          DateTime
   investimentoInicial Float
   btcTotal            Float?
@@ -41,60 +36,61 @@ model Cliente {
   totalDepositado     Float?
   valorAtualUSD       Float?
   rendimentoTotal     Float?
-  apyMedio            Float    @default(0)
-  tempoMercado        String   @default("")
-  scoreRisco          String   @default("")
-  usuarioId           String
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-
-  // Relacionamentos
-  usuario    Usuario         @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  transacoes Transacao[]
-  carteiras  Carteira[]
-  snapshots  DailySnapshot[]
+  apyMedio            Float           @default(0)
+  tempoMercado        String          @default("")
+  scoreRisco          String          @default("")
+  usuarioId           String?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  apy_medio           Decimal?        @default(0) @db.Decimal(10, 2)
+  btc_total           Decimal?        @default(0) @db.Decimal(20, 8)
+  preco_medio         Decimal?        @default(0) @db.Decimal(15, 2)
+  valor_atual_btc     Decimal?        @default(0) @db.Decimal(15, 2)
+  valor_carteira_defi Decimal?        @default(0) @db.Decimal(15, 2)
+  total_depositado    Decimal?        @default(0) @db.Decimal(15, 2)
+  valor_atual_usd     Decimal?        @default(0) @db.Decimal(15, 2)
+  rendimento_total    Decimal?        @default(0) @db.Decimal(15, 2)
+  tempo_mercado       String?         @default("") @db.VarChar(50)
+  score_risco         String?         @default("") @db.VarChar(20)
+  carteiras           Carteira[]
+  usuario             Usuario?        @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  snapshots           DailySnapshot[]
+  transacoes          Transacao[]
 
   @@map("clientes")
 }
 
-// Modelo de Transacao
 model Transacao {
   id        String   @id @default(cuid())
   data      DateTime
-  tipo      String   // 'compra' | 'deposito'
+  tipo      String
   btcAmount Float?
   usdValue  Float
   btcPrice  Float?
   clienteId String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  // Relacionamentos
-  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  cliente   Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
 
   @@map("transacoes")
 }
 
-// Modelo de Carteira
 model Carteira {
-  id                String   @id @default(cuid())
-  endereco          String   @unique
-  tipo              String   // 'solana' | 'ethereum'
+  id                String    @id @default(cuid())
+  endereco          String    @unique
+  tipo              String
   nome              String?
   valorAtual        Float?
   ultimaAtualizacao DateTime?
   clienteId         String
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  // Relacionamentos
-  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
-  tokens  Token[]
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  cliente           Cliente   @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  tokens            Token[]
 
   @@map("carteiras")
 }
 
-// Modelo de Token
 model Token {
   id         String   @id @default(cuid())
   symbol     String
@@ -103,72 +99,79 @@ model Token {
   carteiraId String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-
-  // Relacionamentos
-  carteira Carteira @relation(fields: [carteiraId], references: [id], onDelete: Cascade)
+  carteira   Carteira @relation(fields: [carteiraId], references: [id], onDelete: Cascade)
 
   @@map("tokens")
 }
 
-// Modelo de Snapshot Diário
 model DailySnapshot {
-  id         String   @id @default(cuid())
-  data       DateTime
-  valorTotal Float
-  clienteId  String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  // Relacionamentos
-  cliente           Cliente             @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  id                String             @id @default(cuid())
+  data              DateTime
+  valorTotal        Float
+  clienteId         String
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
   carteiraSnapshots CarteiraSnapshot[]
+  cliente           Cliente            @relation(fields: [clienteId], references: [id], onDelete: Cascade)
 
   @@unique([clienteId, data])
   @@map("daily_snapshots")
 }
 
-// Modelo para Snapshots de Carteira dentro de um DailySnapshot
 model CarteiraSnapshot {
-  id              String   @id @default(cuid())
+  id              String          @id @default(cuid())
   carteiraId      String
   valor           Float
   dailySnapshotId String
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // Relacionamentos
-  dailySnapshot DailySnapshot @relation(fields: [dailySnapshotId], references: [id], onDelete: Cascade)
-  tokens        TokenSnapshot[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  dailySnapshot   DailySnapshot   @relation(fields: [dailySnapshotId], references: [id], onDelete: Cascade)
+  tokens          TokenSnapshot[]
 
   @@map("carteira_snapshots")
 }
 
-// Modelo para Tokens dentro de um CarteiraSnapshot
 model TokenSnapshot {
-  id                 String   @id @default(cuid())
+  id                 String           @id @default(cuid())
   symbol             String
   balance            Float
   valueUSD           Float
   carteiraSnapshotId String
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-
-  // Relacionamentos
-  carteiraSnapshot CarteiraSnapshot @relation(fields: [carteiraSnapshotId], references: [id], onDelete: Cascade)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  carteiraSnapshot   CarteiraSnapshot @relation(fields: [carteiraSnapshotId], references: [id], onDelete: Cascade)
 
   @@map("token_snapshots")
 }
 
-// Modelo para Performance Data
 model PerformanceData {
-  id       String @id @default(cuid())
-  month    String @unique
-  btcPuro  Float?
-  btcDeFi  Float?
+  id        String   @id @default(cuid())
+  month     String   @unique
+  btcPuro   Float?
+  btcDeFi   Float?
   usdParado Float?
-  usdDeFi  Float?
+  usdDeFi   Float?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("performance_data")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model solicitacoes_usuarios {
+  id               String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  nome             String    @db.VarChar(255)
+  email            String    @unique @db.VarChar(255)
+  senha_hash       String    @db.VarChar(255)
+  status           String?   @default("pendente") @db.VarChar(50)
+  data_solicitacao DateTime? @default(now()) @db.Timestamptz(6)
+  data_aprovacao   DateTime? @db.Timestamptz(6)
+  aprovado_por     String?
+  motivo_rejeicao  String?
+  observacoes      String?
+  usuarios         Usuario?  @relation(fields: [aprovado_por], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([data_solicitacao], map: "idx_solicitacoes_data")
+  @@index([email], map: "idx_solicitacoes_email")
+  @@index([status], map: "idx_solicitacoes_status")
 }
