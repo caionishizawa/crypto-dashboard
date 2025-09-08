@@ -198,7 +198,7 @@ export const UserDetailPage: React.FC<UserDetailPageProps> = ({
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400 text-sm">Valor Atual</span>
                     <span className="font-semibold">
-                      {formatarMoeda(cliente.tipo === 'bitcoin' ? (cliente.valorCarteiraDeFi || 0) : (cliente.valorAtualUSD || 0))}
+                      {formatarMoeda(cliente.tipo === 'bitcoin' ? (cliente.valorCarteiraDeFi || cliente.valorAtualUSD || 0) : (cliente.valorAtualUSD || 0))}
                     </span>
                   </div>
                   
@@ -212,11 +212,11 @@ export const UserDetailPage: React.FC<UserDetailPageProps> = ({
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400 text-sm">Lucro Total</span>
                     <span className={`font-semibold ${cliente.tipo === 'bitcoin' ? 
-                      ((cliente.valorCarteiraDeFi || 0) - cliente.investimentoInicial >= 0 ? 'text-green-400' : 'text-red-400') :
+                      ((cliente.valorCarteiraDeFi || cliente.valorAtualUSD || 0) - cliente.investimentoInicial >= 0 ? 'text-green-400' : 'text-red-400') :
                       ((cliente.valorAtualUSD || 0) - (cliente.totalDepositado || 0) >= 0 ? 'text-green-400' : 'text-red-400')
                     }`}>
                       {formatarMoeda(Math.abs(cliente.tipo === 'bitcoin' ? 
-                        (cliente.valorCarteiraDeFi || 0) - cliente.investimentoInicial :
+                        (cliente.valorCarteiraDeFi || cliente.valorAtualUSD || 0) - cliente.investimentoInicial :
                         (cliente.valorAtualUSD || 0) - (cliente.totalDepositado || 0)
                       ))}
                     </span>
@@ -225,11 +225,11 @@ export const UserDetailPage: React.FC<UserDetailPageProps> = ({
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400 text-sm">Retorno</span>
                     <span className={`font-semibold ${getCorRetorno(cliente.tipo === 'bitcoin' ? 
-                      ((cliente.valorCarteiraDeFi || 0) - cliente.investimentoInicial) / cliente.investimentoInicial * 100 :
+                      ((cliente.valorCarteiraDeFi || cliente.valorAtualUSD || 0) - cliente.investimentoInicial) / cliente.investimentoInicial * 100 :
                       ((cliente.valorAtualUSD || 0) - (cliente.totalDepositado || 0)) / (cliente.totalDepositado || 1) * 100
                     )}`}>
                       {formatarPercentual(cliente.tipo === 'bitcoin' ? 
-                        ((cliente.valorCarteiraDeFi || 0) - cliente.investimentoInicial) / cliente.investimentoInicial * 100 :
+                        ((cliente.valorCarteiraDeFi || cliente.valorAtualUSD || 0) - cliente.investimentoInicial) / cliente.investimentoInicial * 100 :
                         ((cliente.valorAtualUSD || 0) - (cliente.totalDepositado || 0)) / (cliente.totalDepositado || 1) * 100
                       )}
                     </span>
