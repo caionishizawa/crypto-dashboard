@@ -824,7 +824,7 @@ function App() {
             />
             <UserDetailPage
               usuario={usuarioVisualizando}
-              cliente={clientes[usuarioVisualizando.id]}
+              cliente={Object.values(clientes).find((cliente: any) => cliente.nome === usuarioVisualizando.nome)}
               onBack={handleBackFromUserDetail}
             />
           </div>
