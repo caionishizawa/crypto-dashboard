@@ -822,20 +822,30 @@ function App() {
               isVisible={notification.isVisible}
               onClose={() => setNotification(prev => ({ ...prev, isVisible: false }))}
             />
-            <UserDetailPage
-              usuario={usuarioVisualizando}
-              cliente={clientes[usuarioVisualizando.id] || Object.values(clientes).find((c: any) => c.nome === usuarioVisualizando.nome)}
-              onBack={handleBackFromUserDetail}
-              onEditClient={() => setShowEditModal(true)}
-            />
-            <EditClientModal
-              client={clientes[usuarioVisualizando.id] || Object.values(clientes).find((c: any) => c.nome === usuarioVisualizando.nome)}
-              isOpen={showEditModal}
-              onClose={() => setShowEditModal(false)}
-              onSave={handleSaveClient}
-              onDelete={handleDeleteClient}
-              isAdmin={usuario?.tipo === 'admin'}
-            />
+            {(() => {
+              const selectedClient = clientes[usuarioVisualizando.id] ||
+                Object.values(clientes).find((c: any) => c.nome === usuarioVisualizando.nome);
+              return (
+                <>
+                  <UserDetailPage
+                    usuario={usuarioVisualizando}
+                    cliente={selectedClient}
+                    onBack={handleBackFromUserDetail}
+                    onEditClient={selectedClient ? () => setShowEditModal(true) : undefined}
+                  />
+                  {selectedClient && (
+                    <EditClientModal
+                      client={selectedClient}
+                      isOpen={showEditModal}
+                      onClose={() => setShowEditModal(false)}
+                      onSave={handleSaveClient}
+                      onDelete={handleDeleteClient}
+                      isAdmin={usuario?.tipo === 'admin'}
+                    />
+                  )}
+                </>
+              );
+            })()}
           </div>
         </div>
       );
