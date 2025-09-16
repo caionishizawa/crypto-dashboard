@@ -824,8 +824,17 @@ function App() {
             />
             <UserDetailPage
               usuario={usuarioVisualizando}
-              cliente={Object.values(clientes).find((cliente: any) => cliente.nome === usuarioVisualizando.nome)}
+              cliente={clientes[usuarioVisualizando.id] || Object.values(clientes).find((c: any) => c.nome === usuarioVisualizando.nome)}
               onBack={handleBackFromUserDetail}
+              onEditClient={() => setShowEditModal(true)}
+            />
+            <EditClientModal
+              client={clientes[usuarioVisualizando.id] || Object.values(clientes).find((c: any) => c.nome === usuarioVisualizando.nome)}
+              isOpen={showEditModal}
+              onClose={() => setShowEditModal(false)}
+              onSave={handleSaveClient}
+              onDelete={handleDeleteClient}
+              isAdmin={usuario?.tipo === 'admin'}
             />
           </div>
         </div>

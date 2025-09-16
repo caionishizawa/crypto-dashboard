@@ -10,6 +10,7 @@ interface UserDetailPageProps {
 	onBack: () => void;
 	onEdit?: (usuario: UsuarioAprovado) => void;
 	onDelete?: (usuarioId: string) => void;
+  onEditClient?: () => void;
 }
 
 export const UserDetailPage: React.FC<UserDetailPageProps> = ({
@@ -17,7 +18,8 @@ export const UserDetailPage: React.FC<UserDetailPageProps> = ({
 	cliente,
 	onBack,
 	onEdit,
-	onDelete
+	onDelete,
+  onEditClient
 }) => {
 	const dataRegistro = new Date(usuario.dataRegistro).toLocaleDateString('pt-BR', {
 		year: 'numeric',
@@ -74,6 +76,15 @@ export const UserDetailPage: React.FC<UserDetailPageProps> = ({
 								<span>Editar</span>
 							</button>
 						)}
+            {onEditClient && (
+              <button
+                onClick={onEditClient}
+                className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+              >
+                <Edit className="w-4 h-4" />
+                <span>Editar Informações</span>
+              </button>
+            )}
 						{onDelete && (
 							<button
 								onClick={() => onDelete(usuario.id)}
