@@ -832,6 +832,32 @@ function App() {
                     cliente={selectedClient}
                     onBack={handleBackFromUserDetail}
                     onEditClient={selectedClient ? () => setShowEditModal(true) : undefined}
+                    onCreateClient={selectedClient ? undefined : async () => {
+                      // cria perfil financeiro básico para este usuário
+                      const novo: Omit<Cliente, 'id' | 'transacoes' | 'carteiras' | 'snapshots'> = {
+                        nome: usuarioVisualizando.nome,
+                        tipo: 'bitcoin',
+                        dataInicio: new Date().toISOString(),
+                        investimentoInicial: 0,
+                        btcTotal: 0,
+                        precoMedio: 0,
+                        valorAtualBTC: 0,
+                        valorCarteiraDeFi: 0,
+                        totalDepositado: 0,
+                        valorAtualUSD: 0,
+                        rendimentoTotal: 0,
+                        apyMedio: 0,
+                        tempoMercado: 'N/A',
+                        scoreRisco: 'N/A'
+                      } as any;
+                      const criado = await clienteService.createCliente(novo);
+                      if (criado) {
+                        setClientes(prev => ({ ...prev, [criado.id]: criado }));
+                        setShowEditModal(true);
+                      } else {
+                        setNotification({ message: 'Erro ao criar perfil financeiro', type: 'error', isVisible: true });
+                      }
+                    }}
                   />
                   {selectedClient && (
                     <EditClientModal
