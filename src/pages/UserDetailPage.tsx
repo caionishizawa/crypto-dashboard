@@ -33,6 +33,19 @@ export const UserDetailPage: React.FC<UserDetailPageProps> = ({
     day: 'numeric'
   });
 
+  // Valores padrão quando o cliente não existe, para manter a mesma UI para todos
+  const tipoPerfil = cliente?.tipo ?? 'bitcoin';
+  const valorAtualPerfil = tipoPerfil === 'bitcoin'
+    ? (cliente?.valorCarteiraDeFi || cliente?.valorAtualUSD || 0)
+    : (cliente?.valorAtualUSD || 0);
+  const investimentoInicial = cliente?.investimentoInicial ?? 0;
+  const lucroTotal = tipoPerfil === 'bitcoin'
+    ? (valorAtualPerfil - investimentoInicial)
+    : ((cliente?.valorAtualUSD || 0) - (cliente?.totalDepositado || 0));
+  const retornoPercentual = tipoPerfil === 'bitcoin'
+    ? (investimentoInicial > 0 ? ((valorAtualPerfil - investimentoInicial) / investimentoInicial) * 100 : 0)
+    : ((cliente?.totalDepositado || 0) > 0 ? (((cliente?.valorAtualUSD || 0) - (cliente?.totalDepositado || 0)) / (cliente?.totalDepositado || 1)) * 100 : 0);
+
   return (
     <div className="min-h-screen text-white">
       <div className="container mx-auto px-4 py-8">
@@ -167,9 +180,8 @@ export const UserDetailPage: React.FC<UserDetailPageProps> = ({
           </div>
         </div>
 
-        {/* Seção de Informações Financeiras - Se tiver dados de cliente */}
-        {cliente && (
-          <div className="mt-8 bg-gray-900 rounded-xl p-6 border border-gray-800">
+        {/* Seção de Informações Financeiras - sempre visível (usa defaults se não houver cliente) */}
+        <div className="mt-8 bg-gray-900 rounded-xl p-6 border border-gray-800">
             <h3 className="text-xl font-semibold mb-4 flex items-center space-x-2">
               <TrendingUp className="w-5 h-5 text-green-400" />
               <span>Informações Financeiras</span>
@@ -179,7 +191,7 @@ export const UserDetailPage: React.FC<UserDetailPageProps> = ({
               {/* Card de Performance */}
               <div className="bg-gray-800/50 rounded-lg p-4">
                 <h4 className="text-lg font-semibold mb-3 flex items-center space-x-2">
-                  {cliente.tipo === 'bitcoin' ? (
+                  {tipoPerfil === 'bitcoin' ? (
                     <Bitcoin className="w-5 h-5 text-orange-400" />
                   ) : (
                     <DollarSign className="w-5 h-5 text-blue-400" />
@@ -191,47 +203,35 @@ export const UserDetailPage: React.FC<UserDetailPageProps> = ({
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400 text-sm">Tipo de Perfil</span>
                     <span className="font-semibold">
-                      {cliente.tipo === 'bitcoin' ? 'Bitcoin + DeFi' : 'Conservador USD'}
+                      {tipoPerfil === 'bitcoin' ? 'Bitcoin + DeFi' : 'Conservador USD'}
                     </span>
                   </div>
                   
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400 text-sm">Valor Atual</span>
                     <span className="font-semibold">
-                      {formatarMoeda(cliente.tipo === 'bitcoin' ? (cliente.valorCarteiraDeFi || cliente.valorAtualUSD || 0) : (cliente.valorAtualUSD || 0))}
+                      {formatarMoeda(valorAtualPerfil)}
                     </span>
                   </div>
                   
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400 text-sm">Investimento Inicial</span>
                     <span className="font-semibold">
-                      {formatarMoeda(cliente.investimentoInicial)}
+                      {formatarMoeda(investimentoInicial)}
                     </span>
                   </div>
                   
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400 text-sm">Lucro Total</span>
-                    <span className={`font-semibold ${cliente.tipo === 'bitcoin' ? 
-                      ((cliente.valorCarteiraDeFi || cliente.valorAtualUSD || 0) - cliente.investimentoInicial >= 0 ? 'text-green-400' : 'text-red-400') :
-                      ((cliente.valorAtualUSD || 0) - (cliente.totalDepositado || 0) >= 0 ? 'text-green-400' : 'text-red-400')
-                    }`}>
-                      {formatarMoeda(Math.abs(cliente.tipo === 'bitcoin' ? 
-                        (cliente.valorCarteiraDeFi || cliente.valorAtualUSD || 0) - cliente.investimentoInicial :
-                        (cliente.valorAtualUSD || 0) - (cliente.totalDepositado || 0)
-                      ))}
+                    <span className={`font-semibold ${(lucroTotal) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {formatarMoeda(Math.abs(lucroTotal))}
                     </span>
                   </div>
                   
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400 text-sm">Retorno</span>
-                    <span className={`font-semibold ${getCorRetorno(cliente.tipo === 'bitcoin' ? 
-                      ((cliente.valorCarteiraDeFi || cliente.valorAtualUSD || 0) - cliente.investimentoInicial) / cliente.investimentoInicial * 100 :
-                      ((cliente.valorAtualUSD || 0) - (cliente.totalDepositado || 0)) / (cliente.totalDepositado || 1) * 100
-                    )}`}>
-                      {formatarPercentual(cliente.tipo === 'bitcoin' ? 
-                        ((cliente.valorCarteiraDeFi || cliente.valorAtualUSD || 0) - cliente.investimentoInicial) / cliente.investimentoInicial * 100 :
-                        ((cliente.valorAtualUSD || 0) - (cliente.totalDepositado || 0)) / (cliente.totalDepositado || 1) * 100
-                      )}
+                    <span className={`font-semibold ${getCorRetorno(retornoPercentual)}`}>
+                      {formatarPercentual(retornoPercentual)}
                     </span>
                   </div>
                 </div>
@@ -248,55 +248,55 @@ export const UserDetailPage: React.FC<UserDetailPageProps> = ({
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400 text-sm">Data de Início</span>
                     <span className="font-semibold">
-                      {new Date(cliente.dataInicio).toLocaleDateString('pt-BR')}
+                      {cliente?.dataInicio ? new Date(cliente.dataInicio).toLocaleDateString('pt-BR') : '01/01/2024'}
                     </span>
                   </div>
                   
-                  {cliente.tipo === 'bitcoin' && (
+                  {tipoPerfil === 'bitcoin' && (
                     <>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-400 text-sm">BTC Total</span>
                         <span className="font-semibold text-orange-400">
-                          {(cliente.btcTotal || 0).toFixed(8)} BTC
+                          {(cliente?.btcTotal || 0).toFixed(8)} BTC
                         </span>
                       </div>
                       
                       <div className="flex justify-between items-center">
                         <span className="text-gray-400 text-sm">Preço Médio</span>
                         <span className="font-semibold">
-                          {formatarMoeda(cliente.precoMedio || 0)}
+                          {formatarMoeda(cliente?.precoMedio || 0)}
                         </span>
                       </div>
                       
                       <div className="flex justify-between items-center">
                         <span className="text-gray-400 text-sm">Valor Atual BTC</span>
                         <span className="font-semibold text-orange-400">
-                          {formatarMoeda(cliente.valorAtualBTC || 0)}
+                          {formatarMoeda(cliente?.valorAtualBTC || 0)}
                         </span>
                       </div>
                     </>
                   )}
                   
-                  {cliente.tipo === 'conservador' && (
+                  {tipoPerfil === 'conservador' && (
                     <>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-400 text-sm">Total Depositado</span>
                         <span className="font-semibold">
-                          {formatarMoeda(cliente.totalDepositado || 0)}
+                          {formatarMoeda(cliente?.totalDepositado || 0)}
                         </span>
                       </div>
                       
                       <div className="flex justify-between items-center">
                         <span className="text-gray-400 text-sm">Rendimento Total</span>
                         <span className="font-semibold text-green-400">
-                          {formatarMoeda(cliente.rendimentoTotal || 0)}
+                          {formatarMoeda(cliente?.rendimentoTotal || 0)}
                         </span>
                       </div>
                       
                       <div className="flex justify-between items-center">
                         <span className="text-gray-400 text-sm">APY Médio</span>
                         <span className="font-semibold text-blue-400">
-                          {formatarPercentual(cliente.apyMedio || 0)}
+                          {formatarPercentual(cliente?.apyMedio || 0)}
                         </span>
                       </div>
                     </>
@@ -305,21 +305,21 @@ export const UserDetailPage: React.FC<UserDetailPageProps> = ({
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400 text-sm">Tempo no Mercado</span>
                     <span className="font-semibold">
-                      {cliente.tempoMercado || 'N/A'}
+                      {cliente?.tempoMercado || 'N/A'}
                     </span>
                   </div>
                   
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400 text-sm">Score de Risco</span>
                     <span className="font-semibold text-yellow-400">
-                      {cliente.scoreRisco || 'N/A'}
+                      {cliente?.scoreRisco || 'N/A'}
                     </span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        )}
+        </div>
 
         {/* Seção de Ações */}
         <div className="mt-8 bg-gray-900 rounded-xl p-6 border border-gray-800">
