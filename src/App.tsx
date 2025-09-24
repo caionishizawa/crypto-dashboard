@@ -850,11 +850,20 @@ function App() {
                         tempoMercado: 'N/A',
                         scoreRisco: 'N/A'
                       } as any;
-                      const criado = await clienteService.createCliente(novo);
-                      if (criado) {
-                        setClientes(prev => ({ ...prev, [criado.id]: criado }));
+                      const criado = await apiClient.createCliente({ ...novo, usuarioId: usuarioVisualizando.id });
+                      if (criado.success && criado.data) {
+                        setClientes(prev => ({ ...prev, [criado.data.id]: criado.data }));
                         setShowEditModal(true);
-                      } else {
+                        return;
+                      }
+                      // fallback antigo caso o endpoint mude
+                      const criadoLegacy = await clienteService.createCliente(novo);
+                      if (criadoLegacy) {
+                        setClientes(prev => ({ ...prev, [criadoLegacy.id]: criadoLegacy }));
+                        setShowEditModal(true);
+                        return;
+                      }
+                      {
                         setNotification({ message: 'Erro ao criar perfil financeiro', type: 'error', isVisible: true });
                       }
                     }}

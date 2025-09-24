@@ -488,8 +488,8 @@ class SupabaseApiClient {
         dataInicio: clienteData.dataInicio || new Date().toISOString(),
         investimentoInicial: clienteData.investimentoInicial || 0,
         updatedAt: new Date().toISOString(),
-        // Campo obrigatório - usar o ID do usuário logado
-        usuarioId: user.id,
+        // Campo obrigatório - usar o ID do usuário dono do perfil se fornecido; senão, fallback para o logado
+        usuarioId: clienteData.usuarioId || user.id,
         // Campos com valores padrão (não precisam ser enviados)
         // id: undefined, // Gerado automaticamente
         // apyMedio: undefined, // Padrão: 0
