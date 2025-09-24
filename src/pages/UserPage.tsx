@@ -26,14 +26,15 @@ export const UserPage: React.FC<UserPageProps> = ({
 
   // Buscar o cliente correspondente ao usuário logado
   const clientsArray: Cliente[] = Object.values(clients);
-  const userClient = clientsArray.find((client: Cliente) => 
-    client.nome === currentUser.nome
-  );
+  // Priorizar match por usuarioId; fallback por nome para compatibilidade
+  const userClient = clientsArray.find((client: Cliente) => client.usuarioId === currentUser.id) 
+    || clientsArray.find((client: Cliente) => client.nome === currentUser.nome);
 
   // Se não encontrar cliente específico, usar dados simulados do usuário
   const userPortfolio = userClient || {
     id: currentUser.id,
     nome: currentUser.nome,
+    usuarioId: currentUser.id,
     tipo: 'bitcoin' as const,
     dataInicio: currentUser.dataRegistro,
     valorCarteiraDeFi: 25000,

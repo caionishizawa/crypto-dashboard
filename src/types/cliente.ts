@@ -7,6 +7,7 @@ export interface Cliente {
   tipo: 'bitcoin' | 'conservador';
   dataInicio: string;
   investimentoInicial: number;
+  usuarioId?: string;
   transacoes: Transacao[];
   carteiras?: Carteira[];
   snapshots?: DailySnapshot[];
