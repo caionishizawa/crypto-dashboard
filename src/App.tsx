@@ -206,29 +206,26 @@ function App() {
     }
   }, [isAuthenticated, loading]);
 
-  // Carregar clientes quando o usuário estiver autenticado
-  useEffect(() => {
-    const carregarClientes = async () => {
-      if (isAuthenticated && token) {
-        setLoadingClientes(true);
-        try {
-          const clientesArray = await clienteService.getClientes();
-          // Converter array para objeto com IDs como chaves
-          const clientesObj: ClientesData = {};
-          clientesArray.forEach((cliente: Cliente) => {
-            clientesObj[cliente.id] = cliente;
-          });
-          setClientes(clientesObj);
-        } catch (error) {
-          console.error('Erro ao carregar clientes:', error);
-        } finally {
-          setLoadingClientes(false);
-        }
+  // Carregar clientes quando o usuário estiver autenticado, e refetch ao salvar
+  const fetchClientes = async () => {
+    if (isAuthenticated && token) {
+      setLoadingClientes(true);
+      try {
+        const clientesArray = await clienteService.getClientes();
+        const clientesObj: ClientesData = {};
+        clientesArray.forEach((cliente: Cliente) => {
+          clientesObj[cliente.id] = cliente;
+        });
+        setClientes(clientesObj);
+      } catch (error) {
+        console.error('Erro ao carregar clientes:', error);
+      } finally {
+        setLoadingClientes(false);
       }
-    };
+    }
+  };
 
-    carregarClientes();
-  }, [isAuthenticated, token]);
+  useEffect(() => { fetchClientes(); }, [isAuthenticated, token]);
 
   // Função para carregar usuários aprovados
   const carregarUsuariosAprovados = async () => {
@@ -423,11 +420,9 @@ function App() {
         throw new Error('Falha ao salvar no banco de dados - clienteService.updateCliente retornou null');
       }
 
-      // Atualizar no estado local
-      setClientes(prev => ({
-        ...prev,
-        [updatedClient.id]: savedClient
-      }));
+      // Atualizar no estado local e forçar refetch para garantir consistência
+      setClientes(prev => ({ ...prev, [updatedClient.id]: savedClient }));
+      await fetchClientes();
 
       // Atualizar cliente visualizando se for o mesmo
       if (clienteVisualizando && clienteVisualizando.id === updatedClient.id) {

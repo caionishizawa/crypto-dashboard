@@ -563,7 +563,8 @@ class SupabaseApiClient {
       const camposValidos = [
         'nome', 'tipo', 'dataInicio', 'investimentoInicial', 'btcTotal', 
         'precoMedio', 'valorAtualBTC', 'valorCarteiraDeFi', 'totalDepositado', 
-        'valorAtualUSD', 'rendimentoTotal', 'apyMedio', 'tempoMercado', 'scoreRisco'
+        'valorAtualUSD', 'rendimentoTotal', 'apyMedio', 'tempoMercado', 'scoreRisco',
+        'usuarioId'
       ];
       
       const dadosFiltrados = Object.keys(clienteData)
