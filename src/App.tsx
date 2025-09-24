@@ -413,8 +413,14 @@ function App() {
     try {
 
       
+      // Garantir vínculo com o usuário dono quando vindo da tela de detalhe do usuário
+      const payloadToSave: Partial<Cliente> = {
+        ...updatedClient,
+        usuarioId: (updatedClient as any).usuarioId || usuarioVisualizando?.id || undefined
+      } as any;
+
       // Salvar no banco de dados
-      const savedClient = await clienteService.updateCliente(updatedClient.id, updatedClient);
+      const savedClient = await clienteService.updateCliente(updatedClient.id, payloadToSave);
       
       if (!savedClient) {
         throw new Error('Falha ao salvar no banco de dados - clienteService.updateCliente retornou null');
