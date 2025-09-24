@@ -240,6 +240,7 @@ class ClienteService {
       tipo: dbCliente.tipo,
       dataInicio: dbCliente.dataInicio,
       investimentoInicial: dbCliente.investimentoInicial,
+      usuarioId: dbCliente.usuarioId || dbCliente.usuario_id,
       transacoes: dbCliente.transacoes || [],
       carteiras: dbCliente.carteiras || [],
       snapshots: dbCliente.snapshots || [],
